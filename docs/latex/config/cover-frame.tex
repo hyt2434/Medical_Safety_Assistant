@@ -1,26 +1,16 @@
 % =========================================================
 % KHUNG KÉP TRANG BÌA
 % =========================================================
-\newcommand{\VeKhungTrangBia}{%
-    \AddToShipoutPictureBG*{%
-        \begin{tikzpicture}[remember picture,overlay]
-
-            % Khung ngoài
-            \draw[line width=1.2pt]
-            ([xshift=0.7cm,yshift=-0.7cm]
-                current page.north west)
-            rectangle
-            ([xshift=-0.7cm,yshift=0.7cm]
-                current page.south east);
-
-            % Khung trong
-            \draw[line width=0.45pt]
-            ([xshift=0.82cm,yshift=-0.82cm]
-                current page.north west)
-            rectangle
-            ([xshift=-0.82cm,yshift=0.82cm]
-                current page.south east);
-
-        \end{tikzpicture}%
-    }%
+% Double border for the title page
+\newcommand{\DrawCoverFrame}{%
+\begin{tikzpicture}[overlay, remember picture]
+    \draw[black, line width=2.40pt]
+        ($(current page.north west)+(1.18cm,-0.74cm)$)
+        rectangle
+        ($(current page.south east)+(-1.18cm,0.74cm)$);
+    \draw[black, line width=0.85pt]
+        ($(current page.north west)+(1.30cm,-0.86cm)$)
+        rectangle
+        ($(current page.south east)+(-1.30cm,0.86cm)$);
+\end{tikzpicture}%
 }
