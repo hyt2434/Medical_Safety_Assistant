@@ -1,28 +1,21 @@
-% !TeX program = pdflatex
-\documentclass[12pt,a4paper]{extarticle}
+\documentclass[11pt,a4paper]{article}
 
-\input{config/metadata}
+% Shared configuration
 \input{config/packages}
-\input{config/font-sizes}
-\input{config/header-footer}
+\input{config/metadata}
 \input{config/cover-frame}
 \input{config/table-of-contents-style}
+\input{config/header-footer}
 
 \begin{document}
-\raggedbottom
-\selectlanguage{english}
-\hypersetup{pdftitle={\ProjectTitleFull{} -- Project Proposal},pdfauthor={\GroupName},pdfsubject={\CourseName}}
-\pagenumbering{gobble}
+
 \input{pages/cover}
-\clearpage
-\pagenumbering{arabic}
-\setcounter{page}{1}
-\pagestyle{mainstyle}
 \input{pages/table-of-contents}
+
 \input{pages/01-team-members}
 \input{pages/02-introduction}
-\input{pages/03-target-users}
+\input{pages/03-users-and-scope}
 \input{pages/04-key-features}
 \input{pages/05-user-interviews}
-\input{pages/06-references}
+
 \end{document}
