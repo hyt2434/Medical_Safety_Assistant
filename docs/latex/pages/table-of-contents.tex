@@ -1,4 +1,14 @@
-\renewcommand{\contentsname}{\ReportContentsName}
+% ---------- Table of Contents ----------
+\clearpage
+\pagestyle{reportstyle}
+\phantomsection
 \tableofcontents
-\thispagestyle{mainstyle}
+\thispagestyle{reportstyle}
+
+% The report has tables but no figures; omit an empty List of Figures.
+\vspace{0.68cm}
+\phantomsection
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
+\thispagestyle{reportstyle}
 \clearpage
