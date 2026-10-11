@@ -1,78 +1,20 @@
-% =========================================================
-% ĐỊNH DẠNG MỤC LỤC
-% =========================================================
-
-% Tên của mục lục
-\renewcommand{\contentsname}{\ReportContentsName}
-
-% Tiêu đề mục lục
-\renewcommand{\cfttoctitlefont}{%
-    \fontsize{20}{19}\selectfont
-    \bfseries
-}
-
-% Khoảng cách sau tiêu đề MỤC LỤC
-\setlength{\cftaftertoctitleskip}{0.5cm}
-
-% =========================================================
-% ĐỊNH DẠNG CHƯƠNG / SECTION TRONG MỤC LỤC
-% =========================================================
-
-% Font của section
-\renewcommand{\cftsecfont}{%
-    \fontsize{14}{17}\selectfont
-    \bfseries
-}
-
-% Font số trang section
-\renewcommand{\cftsecpagefont}{%
-    \fontsize{13}{16}\selectfont
-    \bfseries
-}
-
-% Khoảng cách trước mỗi section
-\setlength{\cftbeforesecskip}{0.55cm}
-
-% Khoảng cách giữa số thứ tự và tên section
-\setlength{\cftsecnumwidth}{0.8cm}
-
-% Dấu chấm dẫn cho section
-% Nếu không muốn dấu chấm ở section, giữ nguyên dòng bên dưới.
-\renewcommand{\cftsecleader}{\hfill}
-
-% =========================================================
-% ĐỊNH DẠNG MỤC CON / SUBSECTION
-% =========================================================
-
-% Font subsection
-\renewcommand{\cftsubsecfont}{%
-    \fontsize{13}{16}\selectfont
-}
-
-% Font số trang subsection
-\renewcommand{\cftsubsecpagefont}{%
-    \fontsize{13}{16}\selectfont
-}
-
-% Khoảng cách trước subsection
-\setlength{\cftbeforesubsecskip}{0.18cm}
-
-% Khoảng thụt vào của subsection
-\setlength{\cftsubsecindent}{0.8cm}
-
-% Chiều rộng phần số thứ tự subsection
-\setlength{\cftsubsecnumwidth}{1.2cm}
-
-% Tạo dấu chấm dẫn đến số trang
-\renewcommand{\cftsubsecleader}{%
-    \cftdotfill{\cftdotsep}
-}
-
-% Độ dày/mật độ dấu chấm
-\renewcommand{\cftdotsep}{1.5}
-
-% Hiển thị đến subsection trong mục lục
+\definecolor{HCMUSBlue}{HTML}{173B6C}
+\renewcommand{\contentsname}{Contents}
+\renewcommand{\listtablename}{List of Tables}
 \setcounter{tocdepth}{2}
-
-% Đánh số đến subsection
-\setcounter{secnumdepth}{2}
+\setlength{\cftbeforesecskip}{6pt}
+\setlength{\cftbeforesubsecskip}{2pt}
+\setlength{\cftsecnumwidth}{2.2em}
+\setlength{\cftsubsecindent}{2.2em}
+\setlength{\cftsubsecnumwidth}{3.0em}
+\renewcommand{\cfttoctitlefont}{\Large\bfseries\color{HCMUSBlue}}
+\renewcommand{\cftsecfont}{\bfseries\color{HCMUSBlue}}
+\renewcommand{\cftsubsecfont}{\color{HCMUSBlue}}
+\renewcommand{\cftsecpagefont}{\bfseries\color{HCMUSBlue}}
+\renewcommand{\cftsubsecpagefont}{\color{HCMUSBlue}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftdotsep}{2.2}
+\renewcommand{\cftlottitlefont}{\Large\bfseries\color{HCMUSBlue}}
+\renewcommand{\cfttabfont}{\color{HCMUSBlue}}
+\renewcommand{\cfttabpagefont}{\color{HCMUSBlue}}
+\setlength{\cftbeforetabskip}{3pt}
