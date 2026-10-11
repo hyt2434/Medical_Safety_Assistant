@@ -1,0 +1,14 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.jj": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/d:\\7st_semester\\SE\\Medicine_Assistant\\docs\\latex\\main.aux": true,
+        "**/d:\\7st_semester\\SE\\Medicine_Assistant\\docs\\latex\\main.log": true,
+        "**/d:\\7st_semester\\SE\\Medicine_Assistant\\docs\\latex\\main.gz": true,
+        "**/d:\\7st_semester\\SE\\Medicine_Assistant\\docs\\latex\\main.out": true
+    }
+}
