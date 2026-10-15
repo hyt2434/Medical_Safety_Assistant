@@ -1,0 +1,26 @@
+% =========================================================
+% KHUNG KÉP TRANG BÌA
+% =========================================================
+\newcommand{\VeKhungTrangBia}{%
+    \AddToShipoutPictureBG*{%
+        \begin{tikzpicture}[remember picture,overlay]
+
+            % Khung ngoài
+            \draw[line width=1.2pt]
+            ([xshift=0.7cm,yshift=-0.7cm]
+                current page.north west)
+            rectangle
+            ([xshift=-0.7cm,yshift=0.7cm]
+                current page.south east);
+
+            % Khung trong
+            \draw[line width=0.45pt]
+            ([xshift=0.82cm,yshift=-0.82cm]
+                current page.north west)
+            rectangle
+            ([xshift=-0.82cm,yshift=0.82cm]
+                current page.south east);
+
+        \end{tikzpicture}%
+    }%
+}

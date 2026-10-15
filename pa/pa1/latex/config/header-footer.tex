@@ -1,0 +1,12 @@
+\fancypagestyle{mainstyle}{
+    \fancyhf{}
+    \fancyhead[L]{\fontsize{10.5}{12.5}\selectfont\itshape\HeaderLeftText}
+    \fancyhead[R]{\fontsize{10.5}{12.5}\selectfont\itshape\HeaderRightText}
+    \fancyfoot[L]{\fontsize{10.5}{12.5}\selectfont\itshape\FooterLeftText}
+    \fancyfoot[R]{\fontsize{10.5}{12.5}\selectfont\itshape\FooterRightText}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+}
+\makeatletter
+\let\ps@plain\ps@mainstyle
+\makeatother
