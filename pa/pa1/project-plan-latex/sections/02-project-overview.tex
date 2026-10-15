@@ -1,0 +1,91 @@
+\section{Project Overview}
+
+\subsection{Project Purpose, Scope, and Objectives}
+
+Many patients, particularly people with chronic conditions or prescriptions
+from several healthcare professionals, have difficulty determining whether
+their medications are safe to use together. Risks include drug--drug
+interactions, duplicate active ingredients, contraindications, missed doses,
+and possible adverse drug reactions. Prescription readability and different
+brand names for related active ingredients make the problem harder.
+
+The project will produce a Medication Safety Assistant that helps users answer
+the question: ``What potential safety risks should I be aware of in my current
+medications, and when should I seek professional advice?'' The product supports
+prescription-image OCR, manual entry, typed requests, and voice input.
+Speech-to-text transcribes a user's voice, while NLP identifies relevant
+intents and medication information from the resulting text. The system requires
+the user to verify all OCR-extracted or voice-transcribed details before using
+them in an assessment. It first identifies Vietnamese products
+and active ingredients against the medicine-registration data published by the
+\href{https://dichvucong.dav.gov.vn/congbothuoc/index}{Drug Administration of
+Vietnam (DAV)}, then maps the normalized active
+ingredients to DDInter 2.0 entities for international drug--drug interaction
+and severity checking. AI may explain structured system findings,
+but it must not independently determine medication safety.
+
+The project objectives are:
+
+\begin{itemize}
+    \item Provide multimodal medication and request input through prescription
+          OCR, manual entry, typed conversation, and voice-to-text, with an
+          editable confirmation step before further processing;
+    \item Apply NLP to verified text to identify user intent and relevant
+          medication information without allowing the language model to make
+          independent medication-safety conclusions;
+    \item Identify Vietnamese
+          medicine names, active ingredients, strengths, and registration
+          information using data published by the Drug Administration of
+          Vietnam;
+    \item Map the identified active ingredients to corresponding DDInter 2.0
+          entities and assess supported drug--drug interaction risks and their
+          severity using international interaction data;
+    \item Clearly distinguish detected risks, no known interaction within the
+          available data, and incomplete or unassessed cases;
+    \item Provide understandable safety guidance and route high-risk or
+          uncertain cases to professional review;
+    \item Create reminders only from confirmed prescription schedules and
+          record adherence and possible adverse drug reactions; and
+    \item Deliver a demonstrable Web prototype within the five-sprint course
+          schedule.
+\end{itemize}
+
+The initial release excludes advanced timing analysis, drug--food interaction
+checks, pill recognition, handwritten prescription support, and integration
+with real healthcare services.
+
+\subsection{Assumptions and Constraints}
+
+\begin{longtable}{|L{0.18\textwidth}|L{0.35\textwidth}|L{0.35\textwidth}|}
+\hline
+\textbf{Type} & \textbf{Description} & \textbf{Effect on the project}\\ \hline
+Assumption & Users can review and correct OCR results and voice transcripts before assessment. & Safety checks run only on user-verified medication details, never directly on an unconfirmed OCR result or speech transcript.\\ \hline
+Assumption & The medicine-registration data published by the Drug Administration of Vietnam (DAV) is available as the primary source for identifying Vietnamese medicinal products and their active ingredients. & The team must preserve source provenance and account for corrections, changes, supplements, or withdrawals that may not be reflected in the original registration publication.\\ \hline
+Assumption & Vietnamese active ingredients can be mapped reliably to corresponding DDInter 2.0 entities for interaction checking. & Mapping rules, ambiguous matches, coverage, and permitted DDInter access must be validated early; unresolved mappings remain unassessed rather than safe.\\ \hline
+Assumption & Professional review is simulated for the course prototype. & The prototype demonstrates the workflow but does not connect to real clinicians or clinical systems.\\ \hline
+Assumption & A responsive Web application is sufficient for desktop and mobile users. & The team can maintain one codebase and test on representative modern browsers.\\ \hline
+Schedule constraint & The course requires three phases and five sprints with a small three-person team. & Scope must be prioritized around one end-to-end medication safety workflow.\\ \hline
+Safety constraint & The system must not prescribe, stop, replace, or modify prescription medication. & All messages must use cautious language and direct users to qualified professionals when appropriate.\\ \hline
+Data constraint & Missing data or no detected interaction is not proof of safety. & The interface must display coverage limitations and an incomplete/unassessed state.\\ \hline
+Reminder constraint & New reminders for medication involved in a severe interaction require professional review and confirmation. & A safety gate is required before reminder activation; unrelated medication reminders may proceed.\\ \hline
+Privacy constraint & Prescription images, medication lists, health information, and symptoms are sensitive. & The prototype must minimize collected data, restrict access, avoid exposing secrets, and use non-identifying test data where possible.\\ \hline
+Technical constraint & Initial OCR supports printed or digital Vietnamese prescriptions, not handwriting. & Low-confidence and unsupported input must be corrected manually or reported as unresolved.\\ \hline
+Technical constraint & Voice-to-text accuracy varies with accent, pronunciation, background noise, microphone quality, and medication terminology. & The interface must display an editable transcript and require confirmation; low-confidence or unresolved medication terms must not be assessed automatically.\\ \hline
+Privacy constraint & Voice recordings and transcripts may contain sensitive health information. & Audio collection requires clear permission, minimal retention, restricted access, and deletion after transcription when storage is not necessary.\\ \hline
+\end{longtable}
+
+\subsection{Project Deliverables}
+
+\begin{longtable}{|L{0.24\textwidth}|L{0.41\textwidth}|L{0.13\textwidth}|L{0.12\textwidth}|}
+\hline
+\textbf{Deliverable} & \textbf{Description / acceptance condition} & \textbf{Owner} & \textbf{Target}\\ \hline
+PA1 planning package & Initial Project Plan, Vision Document, 3--6 UI screens, two weekly reports, and accessible tracking evidence. & Whole team & Sprint 1\\ \hline
+Requirements baseline & Reviewed vision, prioritized backlog, multimodal-input use cases, non-functional requirements, and traceability to interview needs. & Long & Sprint 2\\ \hline
+Architecture and UX baseline & System context, main workflow, data/interface decisions, and tested UI prototype covering OCR, manual, typed, and voice input. & Trang / Thành & Sprint 2\\ \hline
+Multimodal intake proof of concept & OCR extraction, speech-to-text transcription, NLP intent/medication processing, editable confirmation, and consistent verified-text output. & Long / Trang / Thành & Sprint 3\\ \hline
+Risk-checking proof of concept & Prepared DAV medicine data, reviewed active-ingredient mappings to DDInter, and a controlled drug--drug interaction query with explicit result states. & Long & Sprint 3\\ \hline
+Integrated test build & End-to-end Web build covering multimodal medication intake, verification, normalization, safety results, and safety guidance. & Whole team & Sprint 4\\ \hline
+Final prototype release & Stable course prototype including voice input, confirmed-schedule reminders, basic adherence/ADR recording, regression results, documentation, and demo material. & Whole team & Sprint 5\\ \hline
+Project evidence repository & Versioned source, decisions, test evidence, sprint records, risk register, meeting notes, and weekly reports accessible to teaching staff. & Trang & Continuous\\ \hline
+\end{longtable}
+

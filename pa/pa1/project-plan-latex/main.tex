@@ -1,0 +1,91 @@
+% !TeX program = xelatex
+\documentclass[10pt,a4paper]{article}
+
+\input{metadata}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage[a4paper,top=2.2cm,bottom=2.2cm,left=2.5cm,right=2.5cm,headheight=15pt]{geometry}
+\usepackage{setspace}
+\setstretch{1.05}
+\usepackage{xcolor}
+\usepackage{array,longtable,tabularx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[unicode,hidelinks]{hyperref}
+
+\definecolor{instructionblue}{RGB}{0,92,170}
+\newcommand{\instruction}[1]{\par\textcolor{instructionblue}{\itshape[#1]}\par}
+\newcommand{\field}[1]{\textcolor{instructionblue}{\itshape<#1>}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\emergencystretch=3em
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\titleformat{\section}{\bfseries\large}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\bfseries}{\thesubsubsection}{0.5em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\ProjectName}
+\fancyhead[R]{Version \DocumentVersion}
+\fancyfoot[L]{\OrganizationName\ -- \ConfidentialityText}
+\fancyfoot[R]{Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\hypersetup{
+  pdftitle={\DocumentTitle\ (\ProjectName)},
+  pdfauthor={\GroupName},
+  pdfsubject={PA1 Software Development Plan}
+}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{2.2cm}
+  {\Large\bfseries \ProjectName\par}
+  \vspace{2cm}
+  {\Huge\bfseries \DocumentTitle\par}
+  \vspace{0.35cm}
+  {\Large (\DocumentSubtitle)\par}
+  \vspace{1.6cm}
+  {\large Version \DocumentVersion\par}
+  \vfill
+  \begin{tabular}{rl}
+    \textbf{Document identifier:} & \DocumentIdentifier\\
+    \textbf{Prepared by:} & \GroupName\\
+    \textbf{Organization:} & \OrganizationName\\
+    \textbf{Date:} & \DocumentDate\\
+  \end{tabular}
+  \vfill
+\end{titlepage}
+
+\section*{Revision History}
+\begin{tabularx}{\textwidth}{|L{2.4cm}|L{1.7cm}|Y|L{3cm}|}
+\hline
+\textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author}\\ \hline
+15 Oct 2026 & 0.1 & Initial PA1 draft based on the approved project proposal & Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\\ \hline
+18 Oct 2026 & 1.0 & PA1 submission version & Project team\\ \hline
+\end{tabularx}
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\input{sections/01-introduction}
+\input{sections/02-project-overview}
+\input{sections/03-project-organization}
+\input{sections/04-management-process}
+
+\end{document}
+

@@ -1,0 +1,172 @@
+\section{Management Process}
+
+\subsection{Project Estimates}
+
+% Intentionally left blank for PA1 as instructed by the assignment brief.
+
+\subsection{Project Plan}
+
+The project follows an iterative, risk-driven process. Each sprint begins with
+planning and ends with a review and retrospective. Safety-critical assumptions
+and the highest technical risks are addressed before secondary features. The
+dates below form an initial working schedule anchored to the PA1 deadline of
+18 October 2026. They must be aligned with the official course calendar if the
+teaching staff announces different milestones.
+
+\subsubsection{Phase and Iteration Plan}
+
+\begin{longtable}{|L{0.14\textwidth}|L{0.10\textwidth}|L{0.17\textwidth}|L{0.23\textwidth}|L{0.24\textwidth}|}
+\hline
+\textbf{Phase} & \textbf{Sprint} & \textbf{Dates} & \textbf{Objective} & \textbf{Milestone / exit criteria}\\ \hline
+Inception & Sprint 1 & 5--18 Oct 2026 & Agree on the problem, users, scope, team process, major risks, initial plan, and product vision. & PA1 package completed; tracking tools active; 3--6 main UI screens and two weekly reports available.\\ \hline
+Elaboration & Sprint 2 & 19 Oct--1 Nov 2026 & Baseline the critical requirements, architecture, data strategy, safety states, and principal user journey. & Reviewed backlog and use cases; architecture/UX baseline; data-source feasibility recorded.\\ \hline
+Elaboration & Sprint 3 & 2--15 Nov 2026 & Retire the highest OCR, speech-to-text, NLP, normalization, interaction-data, and safety-communication risks through an executable proof of concept. & OCR, voice, and typed input converge on verified text; medication identity and a controlled interaction check are demonstrated.\\ \hline
+Construction & Sprint 4 & 16--29 Nov 2026 & Implement and integrate the primary end-to-end medication safety workflow. & Test build supports intake through guidance; critical path passes integration tests.\\ \hline
+Construction & Sprint 5 & 30 Nov--13 Dec 2026 & Complete prioritized reminder/follow-up capabilities, stabilize the prototype, and prepare the final demonstration. & Final prototype and documentation accepted; critical defects closed; demo and evidence ready.\\ \hline
+\end{longtable}
+
+\paragraph{Iteration objectives.}
+
+\begin{longtable}{|L{0.11\textwidth}|L{0.28\textwidth}|L{0.38\textwidth}|L{0.13\textwidth}|}
+\hline
+\textbf{Sprint} & \textbf{Objectives} & \textbf{Key work items} & \textbf{Owner(s)}\\ \hline
+Sprint 1 & Validate the project direction and establish a controllable project. & Refine proposal; draft Project Plan and Vision; create UI sketches; set up repository and tracker; define backlog, risks, working agreements, and weekly reports. & Long, Trang, Thành\\ \hline
+Sprint 2 & Define what will be built and how the safety-critical workflow will work. & Analyze interview needs; write use cases and NFRs; prototype OCR, manual, typed, and voice flows; define NLP, OCR, speech-to-text, data, privacy, and safety interfaces and acceptance tests. & Long, Trang, Thành\\ \hline
+Sprint 3 & Prove the highest-risk technical and safety assumptions. & Long implements NLP intent/entity processing and prepares, cleans, versions, and maps DAV/DDInter data; Trang implements OCR and image-based prescription intake; Thành implements voice capture and speech-to-text. Integrate all modes through editable verification and explicit assessment states. & Long, Trang, Thành\\ \hline
+Sprint 4 & Deliver an integrated core product. & Implement primary pages and APIs; persist verified medication data; run automatic checks; show severity and limitations; simulate professional review; conduct system and usability testing. & Whole team\\ \hline
+Sprint 5 & Complete, stabilize, and demonstrate the prioritized release. & Add confirmed-schedule reminders, severe-interaction gate, adherence and possible-ADR records; fix defects; run regression and acceptance tests; finalize documents and demo. & Whole team\\ \hline
+\end{longtable}
+
+\subsubsection{Builds and Releases}
+
+Four executable builds are planned. Additional internal builds may be produced
+by continuous integration, but the following are the review and test baselines.
+
+\begin{longtable}{|L{0.16\textwidth}|L{0.16\textwidth}|L{0.18\textwidth}|L{0.40\textwidth}|}
+\hline
+\textbf{Build / release} & \textbf{Type} & \textbf{Target date} & \textbf{Purpose and included scope}\\ \hline
+UI Prototype & Design prototype & 18 Oct 2026 & Validate navigation and OCR, manual, typed, and voice input; include transcript/extraction confirmation, results, warnings, and reminders; no clinical conclusions are produced.\\ \hline
+Build 0.1 & Technical proof of concept & 15 Nov 2026 & Test OCR, voice-to-text, NLP, manual input, editable confirmation, DAV-based product identification, DDInter mapping, controlled interaction lookup, and explicit assessment states.\\ \hline
+Build 0.2 & Integrated test build & 29 Nov 2026 & Provide the end-to-end core workflow for team, usability, integration, and safety testing.\\ \hline
+Build 1.0 & Final course prototype & 13 Dec 2026 & Add prioritized reminder and follow-up functions, resolve critical defects, and provide a stable demonstration baseline.\\ \hline
+\end{longtable}
+
+Each baseline is tagged in version control and accompanied by a short release
+note containing included scope, known limitations, test status, and unresolved
+risks. A build is not described as safe for clinical use.
+
+\subsubsection{Project Schedule}
+
+The detailed schedule is maintained in the team's task-tracking tool. The
+following table is the initial high-level baseline; individual backlog items
+will be assigned and updated during sprint planning.
+
+% PA1 submission requirement: export the overall Jira schedule/roadmap and
+% insert it in this subsection. The image must show the three phases, five
+% sprints, key tasks, assignees, and dates. Example:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{images/jira-project-schedule.png}
+%   \caption{Overall project schedule exported from Jira}
+%   \label{fig:jira-project-schedule}
+% \end{figure}
+
+\begin{longtable}{|L{0.13\textwidth}|L{0.19\textwidth}|L{0.29\textwidth}|L{0.16\textwidth}|L{0.13\textwidth}|}
+\hline
+\textbf{Period} & \textbf{Workstream} & \textbf{Key scheduled work} & \textbf{Accountable owner} & \textbf{Output}\\ \hline
+5--11 Oct & Product discovery & Consolidate proposal, problem statement, users, features, constraints, and initial risks. & Long & Scope baseline\\ \hline
+12--18 Oct & PA1 planning & Complete plan/vision, UI prototype, tracker setup, weekly reports, and submission review. & Whole team & PA1 package\\ \hline
+19--25 Oct & Requirements and UX & Interview synthesis; OCR, voice, typed, and manual-input use cases; editable verification; acceptance criteria; terminology. & Long / Trang / Thành & Requirements draft\\ \hline
+26 Oct--1 Nov & Architecture and data preparation & Long prepares the DAV dataset, active-ingredient normalization rules, DDInter mapping approach, provenance, and coverage notes; the whole team defines multimodal interfaces, privacy boundaries, and the data model. & Long (data); whole team (architecture) & Baseline package\\ \hline
+2--8 Nov & Multimodal intake spike & NLP and intent processing (Long); OCR and prescription extraction (Trang); voice capture and speech-to-text (Thành); shared verification contract. & Long / Trang / Thành & Working input slices\\ \hline
+9--15 Nov & Intake and assessment integration & Long integrates the prepared DAV dataset and reviewed DDInter mappings; the team connects verified text from all input modes and tests severity, unresolved mappings, incomplete states, and explanation constraints. & Long leads; Trang and Thành support & Build 0.1\\ \hline
+16--22 Nov & Core implementation & Implement and integrate intake, medication list, automatic checks, results, warnings, and limitations. & Whole team & Integrated alpha\\ \hline
+23--29 Nov & Core verification & Professional-review simulation, system tests, usability checks, defect correction, release notes. & Whole team & Build 0.2\\ \hline
+30 Nov--6 Dec & Follow-up features & Confirmed-schedule reminders, safety gate, adherence and possible-ADR records. & Trang / Thành & Feature-complete beta\\ \hline
+7--13 Dec & Stabilization and handoff & Regression, acceptance review, critical defect closure, documentation, demo rehearsal, final baseline. & Whole team & Build 1.0\\ \hline
+\end{longtable}
+
+Dependencies are managed in this order: OCR extraction, speech transcription,
+manual entry, and typed conversation each produce editable text; NLP processes
+the applicable text; user verification precedes identification against DAV
+data; Vietnamese product identification precedes active-ingredient mapping to
+DDInter 2.0; successful mapping precedes interaction assessment; and assessment
+status and severity precede guidance and reminder activation.
+Documentation, risk review, testing, and tracking continue throughout all
+sprints.
+
+\subsubsection{Project Resourcing}
+
+\begin{longtable}{|L{0.17\textwidth}|L{0.22\textwidth}|L{0.27\textwidth}|L{0.24\textwidth}|}
+\hline
+\textbf{Phase / sprint} & \textbf{People / roles} & \textbf{Skills and tools} & \textbf{Training or resource need}\\ \hline
+Inception / Sprint 1 & Three team members; team leader coordinates. & LaTeX/Docs, Figma or equivalent, Jira or equivalent tracker, Git repository. & Agree on workflow, definition of done, medical-safety language, and document access.\\ \hline
+Elaboration / Sprint 2 & Long leads NLP and medication-data preparation; Trang leads OCR; Thành leads speech-to-text; all review requirements and safety. & NLP evaluation, OCR evaluation, Web audio/microphone flows, responsive UX, architecture, DAV data preparation, and DDInter mapping analysis. & Long studies source fields, provenance, coverage, and terminology; the team defines consent, audio privacy, the verified-text schema, and representative scenarios.\\ \hline
+Elaboration / Sprint 3 & Long owns NLP and all prepared DAV/DDInter data artifacts; Trang owns OCR; Thành owns voice-to-text; all integrate and test. & Language/intent tests, data cleaning and versioning, active-ingredient normalization and mapping, image preprocessing/OCR, speech recognition, and automated integration tests. & Long creates controlled medication and mapping datasets; Trang and Thành provide representative image and audio inputs for integration tests.\\ \hline
+Construction / Sprint 4 & All developers and testers. & Web implementation, integration, browser testing, defect tracking, peer review. & Cross-train members on the integrated flow and failure-state testing.\\ \hline
+Construction / Sprint 5 & All members; leader coordinates release. & Reminder logic, regression/acceptance testing, release management, presentation. & Long prepares the fallback demonstration dataset; the whole team verifies submission links and artifacts.\\ \hline
+\end{longtable}
+
+The project will use student laptops, modern desktop and mobile browsers, a
+shared task tracker, a Git-based repository, a shared document workspace, and
+approved external APIs or controlled datasets. No real patient data is needed
+for development or demonstration.
+
+\subsection{Project Monitoring and Control}
+
+\subsubsection{Requirements Management}
+
+The Vision document is the source of high-level stakeholder needs and product
+features. Detailed requirements are represented as backlog items and use cases
+in the task tracker. Each requirement or story receives a stable identifier,
+priority, accountable owner, acceptance criteria, and links to related design,
+implementation, and test evidence. Safety-critical items are labeled and must
+include negative and incomplete-data acceptance criteria.
+
+A proposed requirement change is recorded as a change item rather than applied
+informally. The team analyzes its user value, safety impact, dependencies,
+effort, schedule effect, and effect on committed sprint work. The Project
+Manager and the member responsible for the affected area review the proposal;
+changes to scope or safety behavior require agreement of the whole team. An
+accepted change updates the Vision document or applicable specification, the
+backlog and priority, acceptance tests, and traceability links. Rejected or
+deferred changes remain recorded with their rationale.
+
+Requirements are reviewed during sprint planning, clarified during the sprint,
+demonstrated at the sprint review, and reconsidered during the retrospective.
+No requirement is considered complete until its acceptance criteria and linked
+tests pass and its user-facing limitations are documented.
+
+\subsubsection{Reporting and Measurement}
+
+% Intentionally left blank for PA1 as explicitly required by the brief.
+
+\subsubsection{Risk Management}
+
+Risks are identified from interviews, requirements, architecture work,
+external dependencies, implementation, and testing. The team assesses each
+risk by likelihood and impact and assigns an owner. The risk register is
+reviewed at least during weekly coordination and at each sprint planning and
+review meeting. A risk is closed only when its trigger can no longer occur or
+the mitigation has been verified; realized risks become tracked issues.
+
+\begin{longtable}{|L{0.07\textwidth}|L{0.10\textwidth}|L{0.27\textwidth}|L{0.25\textwidth}|L{0.12\textwidth}|L{0.09\textwidth}|}
+\hline
+\textbf{ID} & \textbf{Ranking} & \textbf{Description and impact} & \textbf{Mitigation / contingency} & \textbf{Owner} & \textbf{Status}\\ \hline
+R-01 & High & A Vietnamese product or active ingredient may be identified incorrectly from DAV data or mapped to the wrong DDInter 2.0 entity, producing a misleading interaction result. & Require user verification; retain DAV source identifiers and mapping provenance; use reviewed mapping rules; test aliases and ambiguous ingredients; keep unresolved mappings unassessed. & Long & Open\\ \hline
+R-02 & High & OCR errors could change a medication name, strength, or schedule and lead to an invalid assessment. & Display extracted fields for confirmation; show confidence/validation errors; provide manual correction; never assess unverified extraction. & Trang & Open\\ \hline
+R-03 & High & AI-generated explanations could add unsupported medical conclusions or false reassurance. & Generate explanations only from structured findings; constrain prompts/output; prohibit independent safety conclusions; add disclaimers and professional escalation; test unsafe prompts. & Long & Open\\ \hline
+R-04 & High & Speech-to-text may confuse Vietnamese accents, noisy speech, or medication terminology, causing an incorrect medication or schedule. & Show an editable transcript; require confirmation; highlight low-confidence terms; offer manual input; test accents, noise, dosages, and similar medication names; never assess unverified speech. & Thành & Open\\ \hline
+R-05 & High & DAV publication limitations, DDInter coverage/access, or incompatibility between the two data sources may prevent reliable mapping and assessment. & Verify both sources in Elaboration; document dates and coverage; store only permitted data; maintain a reviewed mapping table; use a controlled demonstrator dataset or narrow scope if needed. & Long & Open\\ \hline
+R-06 & High & Users may interpret ``no known interaction found'' as a guarantee of safety. & Use distinct result states and cautious wording; always display data limits; usability-test comprehension; route uncertainty for review. & Trang / Long & Open\\ \hline
+R-07 & Medium & Sensitive prescription images, voice recordings, transcripts, or health data may be exposed through logs, repositories, or external services. & Obtain microphone permission; minimize or avoid audio retention; use synthetic/de-identified test data; restrict access; exclude secrets/data from Git; review evidence before publication. & Whole team & Open\\ \hline
+R-08 & Medium & Severe-interaction reminder rules may be bypassed or may incorrectly block unrelated medication. & Implement and test the safety gate per medication; require review/confirmation for affected new reminders; preserve explicit status and audit evidence. & Thành & Open\\ \hline
+R-09 & Medium & Three-person capacity or uneven workload may delay the five-sprint plan. & Keep a prioritized MVP; assign one owner per item; limit work in progress; review blockers weekly; cross-review and redistribute work at mid-sprint. & Trang & Open\\ \hline
+R-10 & Medium & Integration may occur too late, causing incompatible NLP, OCR, speech-to-text, UI, service, or data contracts. & Define a common verified-text contract in Sprint 2; deliver thin slices in Sprint 3; integrate continuously; maintain automated smoke tests and tagged baselines. & Whole team & Open\\ \hline
+R-11 & Medium & The lack of real professional integration may make review behavior unrealistic. & Mark it as a simulation; validate flows with available healthcare feedback; avoid claims of clinical deployment readiness. & Long / Trang & Open\\ \hline
+\end{longtable}
+
+\subsubsection{Configuration Management}
+
+% Intentionally left blank for PA1; it will be completed in a later revision.
+
