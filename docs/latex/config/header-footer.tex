@@ -1,12 +1,9 @@
-\fancypagestyle{mainstyle}{
+\setlength{\headheight}{15pt}
+\fancypagestyle{reportstyle}{%
     \fancyhf{}
-    \fancyhead[L]{\fontsize{10.5}{12.5}\selectfont\itshape\HeaderLeftText}
-    \fancyhead[R]{\fontsize{10.5}{12.5}\selectfont\itshape\HeaderRightText}
-    \fancyfoot[L]{\fontsize{10.5}{12.5}\selectfont\itshape\FooterLeftText}
-    \fancyfoot[R]{\fontsize{10.5}{12.5}\selectfont\itshape\FooterRightText}
-    \renewcommand{\headrulewidth}{0pt}
+    \fancyhead[L]{\small\itshape \ProjectName}
+    \fancyhead[R]{\small \ReportHeader}
+    \fancyfoot[C]{\thepage}
+    \renewcommand{\headrulewidth}{0.35pt}
     \renewcommand{\footrulewidth}{0pt}
 }
-\makeatletter
-\let\ps@plain\ps@mainstyle
-\makeatother

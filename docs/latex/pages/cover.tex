@@ -1,48 +1,56 @@
 \begin{titlepage}
-    \VeKhungTrangBia
-    \thispagestyle{empty}
-    \begin{center}
-        {\TieuDeNho \UniversityName\par}
-        \vspace{0.18cm}
-        {\TieuDeNho \SchoolName\par}
-        \vspace{0.18cm}
-        {\TieuDeNho\bfseries \FacultyName\par}
+\thispagestyle{empty}
 
-        \vspace{1.05cm}
-        \parbox{\textwidth}{%
-            \centering
-            \includegraphics[scale=0.28]{logo.png}\par
-        }
-        \vspace{1.05cm}
+\DrawCoverFrame
 
-        {\TieuDeVua\bfseries PROJECT PROPOSAL\par}
-        \vspace{0.18cm}
-        {\TieuDeNho\bfseries
-        COURSE: \CourseName\par
-        CLASS: \CourseCode\par}
+\centering
+\vspace*{0.18cm}
 
-        \vspace{1.15cm}
-        {\ChuThuong \AssignmentName\par}
-        \vspace{0.25cm}
-        {\fontsize{20}{24}\selectfont\bfseries \ProjectTitleFull\par}
+{\fontsize{14}{17}\selectfont
+VIETNAM NATIONAL UNIVERSITY HO CHI MINH CITY}\\[0.35cm]
+{\fontsize{20}{24}\selectfont\bfseries
+UNIVERSITY OF SCIENCE}\\[0.34cm]
+{\fontsize{14}{17}\selectfont
+FACULTY OF INFORMATION TECHNOLOGY}\par
 
-        \vspace{1.65cm}
-        {\ChuThuong
-        \noindent
-        \begin{minipage}[t]{0.48\textwidth}
-            \raggedright
-            {\TieuDeNho\bfseries Team / Group:\par}
-            \GroupName
-        \end{minipage}
-        \hfill
-        \begin{minipage}[t]{0.42\textwidth}
-            \raggedleft
-            {\TieuDeNho\bfseries Instructor / TA:\par}
-            \InstructorName
-        \end{minipage}\par}
+\vspace{0.52cm}
+\IfFileExists{logo.png}{%
+    \includegraphics[width=5.25cm,height=4.22cm,keepaspectratio]{logo.png}%
+}{%
+    \fbox{\parbox[c][3.0cm][c]{4.3cm}{\centering HCMUS LOGO\\ \small logo.png}}%
+}\par
 
-        \vfill
-        {\ChuThuong Ho Chi Minh City -- \SubmissionDate\par}
-        \vspace{0.15cm}
-    \end{center}
+\vspace{0.35cm}
+{\fontsize{24}{29}\selectfont\bfseries \ReportTitle}\par
+\vspace{0.35cm}
+{\fontsize{18}{22}\selectfont\bfseries TOPIC: \ProjectTitleUpper}\par
+\vspace{0.32cm}
+{\fontsize{12.5}{16}\selectfont\itshape \ProjectSubtitle}\par
+
+\vspace{0.78cm}
+{\fontsize{16}{20}\selectfont\bfseries Authors}\par
+\vspace{0.35cm}
+{\fontsize{13}{18}\selectfont
+\renewcommand{\arraystretch}{1.40}
+\begin{tabular}{@{}l@{\hspace{2.4cm}}r@{}}
+Cao Hoàng Long & 24127442 \\
+Hoàng Yến Trang & 24127133 \\
+Lỗ Chí Thành & 24127541
+\end{tabular}
+}\par
+
+\vspace{0.78cm}
+{\fontsize{16}{20}\selectfont\bfseries Instructors}\par
+\vspace{0.32cm}
+{\fontsize{13}{18}\selectfont
+ThS. Trương Phước Lộc\\[0.19cm]
+ThS. Hồ Tuấn Thanh\\[0.19cm]
+PGS. TS. Nguyễn Văn Vũ
+}\par
+
+\vfill
+{\fontsize{12.5}{17}\selectfont \CourseName}\\[0.24cm]
+{\fontsize{12.5}{17}\selectfont Class: \ClassCode}\\[0.24cm]
+{\fontsize{12.5}{17}\selectfont \ReportDate}
+\vspace*{0.36cm}
 \end{titlepage}

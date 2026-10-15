@@ -1,7 +1,47 @@
-\section{INTRODUCTION}
-\subsection{Project idea}
-\placeholder{Briefly describe the Medicine Assistant idea and the problem it solves.}
-\subsection{Motivation and value}
-\placeholder{Explain why the project is worth doing, who benefits, and what makes the proposed solution useful or different.}
-\subsection{Project scope}
-\placeholder{State what the first version will and will not cover. Keep the scope between 6 and 50 screens or functions.}
+\section{Project Introduction}
+
+\subsection{Problem and Motivation}
+
+Many patients take multiple medications, especially those with chronic diseases or prescriptions from different healthcare professionals. Managing these medications can be difficult because patients may not know whether they are safe to use together.
+
+Medication-related risks may include drug interactions, contraindications, duplicated active ingredients, or conflicts with existing medical conditions. Patients may also miss doses, have difficulty following medication instructions, or experience unexpected symptoms that may be related to adverse drug reactions.
+
+The problem becomes more difficult when prescriptions are hard to read or when different brand names contain the same or related active ingredients.
+
+Therefore, this project focuses on helping users answer a practical question:
+
+\begin{center}
+    \textbf{``What potential safety risks should I be aware of in my current medications, and when should I seek professional advice?''}
+\end{center}
+
+The project proposes a \textbf{Medication Safety Assistant} that uses OCR and a chatbot to capture prescriptions and user requests, reference data to identify medications, and structured medication knowledge to assess potential risks. AI explains system findings but does not independently determine medication safety.
+
+The core medication safety workflow is:
+
+\[
+\begin{aligned}
+\text{Medication Input}
+&\rightarrow \text{User Verification}
+\rightarrow \text{Normalization} \\
+&\rightarrow \text{Safety Assessment}
+\rightarrow \text{Guidance \& Review}
+\end{aligned}
+\]
+
+High-risk or uncertain cases should be referred for professional review. Missing or insufficient data must not be interpreted as evidence of safety.
+
+
+\subsection{Project Objectives}
+
+The project has three main objectives:
+
+\begin{itemize}
+    \item \textbf{Medication Understanding:}
+    Extract prescription details using OCR, identify user requests, and normalize medication names and active ingredients using reference data.
+
+    \item \textbf{Medication Safety Assessment:}
+    Automatically check verified and reliably identified medications for supported risks, prioritizing drug--drug interactions and their severity.
+    
+    \item \textbf{Medication Safety Guidance and Follow-up:}
+    Explain safety findings, support professional review, and provide reminders and basic follow-up under defined safety and schedule-confirmation rules.
+\end{itemize}

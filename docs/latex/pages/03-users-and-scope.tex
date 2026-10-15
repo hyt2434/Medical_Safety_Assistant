@@ -1,0 +1,53 @@
+\subsection{Target Users and Environments}
+
+The system mainly supports two user groups:
+
+\begin{itemize}
+    \item \textbf{Patients or general users:}
+    People who want to manage their medications more safely, check possible medication-related risks, and follow their medication schedules more reliably.
+
+    \item \textbf{Healthcare professionals:}
+    Doctors, pharmacists, nurses, or other qualified professionals who can review high-risk or uncertain medication-related cases and provide professional guidance.
+\end{itemize}
+
+The system is a responsive Web application for desktop and mobile browsers.
+
+\subsection{Scope and Constraints}
+
+The project focuses on \textbf{helping users understand medication risks and manage confirmed medication schedules}.
+
+The core scope includes:
+
+\begin{itemize}
+    \item Extracting prescription information using OCR, supporting manual entry, and identifying user requests through a chatbot or feature selection.
+
+    \item Supporting user verification of extracted details and identifying medications and active ingredients using reference data.
+
+    \item Automatically checking drug--drug interactions and severity using DDInter 2.0; therapeutic duplication and drug--disease checks depend on data availability.
+
+    \item Presenting safety findings, limitations, and guidance, with professional review for high-risk or uncertain cases.
+
+    \item Creating reminders from confirmed prescription schedules, with basic adherence tracking and a safety gate for severe interactions.
+
+    \item Recording possible adverse drug reactions for follow-up and professional review when necessary.
+\end{itemize}
+
+The main constraints are:
+
+\begin{itemize}
+    \item The system does not independently prescribe, stop, replace, or modify prescription medications.
+
+    \item Safety assessment requires user-verified medication details and reliable identification. Unresolved or insufficiently assessed cases must be reported as unassessed, not safe.
+
+    \item Assessment coverage and permitted use depend on the reliability and licensing of available medication data sources. No detected interaction does not guarantee safety.
+
+    \item New reminders for medications involved in a detected severe interaction require professional review and confirmation; unrelated medications may proceed. Existing treatment or reminders are not automatically stopped.
+    
+    \item Medication reminders follow user-confirmed prescription instructions. Changes to prescribed dosing schedules require healthcare professional confirmation and user acceptance.
+
+    \item Reported symptoms indicate possible adverse drug reactions, not confirmed causation.
+
+    \item The prototype supports printed or digital Vietnamese prescriptions and simulates professional review without integration with real clinical services.
+\end{itemize}
+
+Advanced timing analysis, drug--food checks, pill recognition, and handwritten prescription support are outside the initial scope.

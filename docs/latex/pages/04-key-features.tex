@@ -1,13 +1,57 @@
-\section{KEY FEATURES}
+\section{Proposed System and Key Features}
 
-Replace these examples with the agreed features. State the value to users, not only the implementation.
-\begin{enumerate}
-    \item \textbf{\placeholder{Feature name}:} \placeholder{What the user can do and why it is useful.}
-    \item \textbf{\placeholder{Feature name}:} \placeholder{What the user can do and why it is useful.}
-    \item \textbf{\placeholder{Feature name}:} \placeholder{What the user can do and why it is useful.}
-    \item \textbf{\placeholder{Feature name}:} \placeholder{What the user can do and why it is useful.}
-    \item \textbf{\placeholder{Feature name}:} \placeholder{What the user can do and why it is useful.}
-    \item \textbf{\placeholder{Feature name}:} \placeholder{What the user can do and why it is useful.}
-\end{enumerate}
-\subsection{Optional AI capabilities}
-\placeholder{If applicable, explain the value, limitations, and safeguards for inaccurate or unsafe medical output.}
+This section summarizes the system's inputs, key features, and outputs.
+
+\subsection{System Concept}
+
+Users can scan prescriptions, enter medication details manually, or submit requests through a chatbot or feature selection. OCR extracts prescription data, while the chatbot identifies multiple intents and explains system-provided results. After user verification and reliable medication identification, supported safety checks run automatically. Warnings are shown promptly; reminders follow the confirmed-schedule and safety-gate rules.
+
+\subsection{System Inputs}
+
+\subsubsection{Patient Input}
+
+\begin{itemize}
+    \item Printed or digital Vietnamese prescriptions, or manually entered medication information.
+
+    \item User requests through feature selection or chatbot, including multiple intents.
+
+    \item Relevant health information, reported symptoms, and confirmation of medication details and schedules.
+\end{itemize}
+
+\subsubsection{Healthcare Professional Input}
+
+\begin{itemize}
+    \item Professional assessments, schedule approvals, and clinical guidance.
+\end{itemize}
+
+\subsection{Key Features and Core Modules}
+
+\subsubsection{Medication Intake \& Intent Identification}
+
+This module extracts prescription information using OCR and accepts manual entries. A chatbot recognizes one or multiple intents and uses an existing language-model API to explain findings supplied by the safety and guidance modules, without generating independent safety conclusions.
+
+\subsubsection{Medication Normalization}
+
+This module matches user-verified medication details to reference records and identifies active ingredients. Unresolved identities are flagged, and checks involving those medications are marked incomplete rather than assumed safe.
+
+\subsubsection{Medication Safety \& Risk Assessment}
+
+This module automatically checks verified and reliably identified medications for drug--drug interactions and severity using DDInter 2.0. Results distinguish detected interactions, no known interaction found within available data, and incomplete or unassessed checks.
+
+\subsubsection{Safety Guidance \& Professional Review}
+
+This module immediately presents safety warnings, severity levels, and data limitations. It prepares high-risk or uncertain cases for professional review in the prototype and advises users to seek real clinical advice when needed.
+
+\subsubsection{Medication Reminder \& Follow-up}
+
+This module creates reminders from verified prescription schedules after user confirmation. Users may set notification times within prescribed instructions, while changes to dosing schedules require professional confirmation and user acceptance.
+
+New reminders for medications involved in detected severe interactions are held until professional review and confirmation; unrelated reminders may proceed. The module also tracks taken or missed doses and records possible adverse drug reactions.
+
+\subsection{System Outputs}
+
+\begin{itemize}
+    \item \textbf{Patient:} Verified medication information, safety findings, warnings, assessment limitations, medication reminders, adherence records, and professional guidance when available.
+
+    \item \textbf{Healthcare Professional:} Structured patient summaries, medication information, detected risks, assessment limitations, and cases requiring professional review or schedule approval.
+\end{itemize}
