@@ -1,20 +1,72 @@
 \section{Product Overview}
 
-\instruction{Give a high-level view of product capabilities, external interfaces, and system configuration.}
-
 \subsection{Product Perspective}
 
-\instruction{Explain whether the product is self-contained or part of a larger system. Identify relevant external systems, actors, data flows, and interfaces. A context or block diagram may be inserted here.}
+The Medication Safety Assistant is a standalone responsive Web prototype that
+coordinates external data and processing services. It is not an electronic
+medical record, a prescribing system, a diagnostic device, or an autonomous
+clinical decision-maker.
 
-% Example: \includegraphics[width=0.85\textwidth]{images/product-context.png}
+At the product boundary, patients and caregivers provide prescription images,
+manual text, typed requests, voice input, relevant health information, schedule
+confirmation, adherence status, and possible adverse-reaction reports.
+Healthcare professionals interact with a simulated review view. The browser
+provides camera, microphone, and notification capabilities when permission is
+granted.
+
+The high-level information flow is:
+
+\begin{enumerate}
+  \item The patient provides medication information and relevant health
+  context through an image, voice, manual entry, or typed request.
+  \item The system extracts editable fields and marks low-confidence, missing,
+  or conflicting information. Unreliable extraction returns to re-entry or
+  correction rather than continuing to assessment.
+  \item The patient verifies that the extracted details match the source. This
+  confirmation concerns transcription accuracy, not medical correctness. Any
+  edit invalidates the previous normalized result and starts normalization again.
+  \item The system performs NLP, DAV identification, ingredient normalization,
+  and reviewed DDInter mapping, then checks whether the required safety context
+  is sufficient. Missing information is requested before reassessment.
+  \item The system assesses supported risks and chooses one of three routing
+  outcomes: routine/no significant risk detected from available information,
+  professional review required or uncertain, or emergency/red flags.
+  \item Routine cases receive qualified guidance. Review-required cases remain
+  pending until reviewed; if review is unavailable, the system gives
+  conservative guidance and recommends contacting a qualified doctor or
+  pharmacist. Emergency cases receive immediate urgent guidance without waiting
+  for professional review in the prototype.
+  \item After reviewing and confirming the final medication plan, the patient
+  may explicitly opt in to reminders. Dose responses and possible adverse
+  reactions are then recorded for follow-up and triage.
+\end{enumerate}
+
+OCR transforms printed or digital Vietnamese prescriptions into editable
+fields. Speech-to-text transforms voice into an editable transcript. NLP
+identifies one or more intents and medication entities from verified text and
+may explain structured results, but it does not independently infer safety.
+DAV publication data supports Vietnamese product and active-ingredient
+identification. DDInter 2.0 supplies supported interaction information after a
+reliable mapping is established. External service failure, ambiguous mapping,
+or insufficient data produces an unavailable, unresolved, incomplete, or
+unassessed state rather than a safe result. A simulated professional reviewer
+may approve guidance, request more information, or leave a case pending. An
+unreviewed case can never be represented as professionally approved.
 
 \subsection{Assumptions and Dependencies}
-
-\instruction{List factors that affect the product features. Include assumptions or dependencies whose change would require this Vision document to be revised.}
 
 \begin{longtable}{|L{0.16\textwidth}|L{0.43\textwidth}|L{0.31\textwidth}|}
 \hline
 \textbf{Type} & \textbf{Assumption / dependency} & \textbf{Effect if invalid or unavailable}\\ \hline
-\field{Assumption / Dependency} & \field{Description} & \field{Effect}\\ \hline
+Assumption & Users can read, correct, and explicitly confirm OCR results, voice transcripts, medicines, relevant health context, and schedules. & Unconfirmed information cannot enter safety assessment or create an active reminder.\\ \hline
+Dependency & DAV medicine-registration data remains accessible and usable for identifying Vietnamese products and active ingredients. & Identification coverage is reduced; affected products remain unresolved. The system must show the source date and limitations.\\ \hline
+Dependency & Prepared DAV-derived normalization data and DAV-to-DDInter mappings can be versioned and reviewed before use. & Unreviewed or ambiguous mappings must be excluded from automatic assessment until corrected.\\ \hline
+Dependency & DDInter 2.0 remains accessible and its permitted use supports the course prototype. & Interaction checks may use a permitted controlled snapshot or be unavailable; the interface must disclose coverage and date.\\ \hline
+Dependency & OCR can process sufficiently clear printed or digital Vietnamese prescriptions. & Poor-quality, complex, or handwritten content requires manual correction or entry and remains unsupported when unresolved.\\ \hline
+Dependency & Speech-to-text supports the user's language, microphone, and browser with acceptable recognition. & Users must receive a clear error and retain typed/manual input; an unconfirmed transcript cannot be assessed.\\ \hline
+Dependency & The selected NLP service or model can identify intents/entities and explain only supplied structured facts. & NLP output is withheld or replaced with deterministic text when constraints cannot be enforced or the service is unavailable.\\ \hline
+Assumption & Professional review is simulated for the course prototype. & No claim may be made that a real clinician has reviewed a case. Pending or unavailable review remains explicit, while emergency and other appropriate cases direct the user to actual professional care.\\ \hline
+Assumption & Modern desktop and mobile browsers provide the required Web, camera, microphone, and notification capabilities. & Unsupported permissions or capabilities require graceful fallback to manual entry and in-application schedules.\\ \hline
+Constraint & The team uses synthetic or de-identified development and demonstration data. & Real patient deployment, retention, and clinical integration remain outside the initial scope.\\ \hline
 \end{longtable}
 

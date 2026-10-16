@@ -1,14 +1,111 @@
 \section{Product Features}
 
-\instruction{List and briefly describe externally visible, high-level capabilities that deliver user benefits. Focus on what and why, not implementation details. Keep descriptions understandable to all stakeholders and relate them to future use cases where appropriate.}
+The following features describe externally visible capabilities of the initial
+product. They express user value and safety behavior rather than prescribing a
+specific implementation.
 
-\subsection{\field{Feature name}}
+\subsection{PF-01: Multimodal Medication and Request Intake}
 
-\instruction{Describe the capability, intended users, value, major inputs/results, relevant usability concerns, and priority.}
+Users can upload or capture a printed/digital Vietnamese prescription, enter
+medicine information manually, type a request, or speak a request. OCR converts
+prescription content to editable fields, while speech-to-text converts voice to
+an editable transcript. The interface shows recording/processing state,
+permission errors, extraction confidence or uncertainty, and a manual fallback.
+This feature is high priority.
 
-\subsection{\field{Feature name}}
+\subsection{PF-02: Verification and Correction}
 
-\instruction{Describe the capability, intended users, value, major inputs/results, relevant usability concerns, and priority.}
+Before medication identification or assessment, users can inspect and correct
+extracted or transcribed medicine names, strengths, dosage instructions, and
+schedules. Low-confidence, missing, conflicting, and unresolved fields are
+visibly identified. Explicit confirmation creates the verified input used by
+downstream functions. The user confirms that the extracted details match the
+source, not that they are medically correct. Any later edit invalidates the
+previous normalization, mapping, and assessment and causes them to be run again.
+This feature is high priority and safety-critical.
 
-% Copy the subsection pattern above for each agreed high-level feature.
+\subsection{PF-03: Intent Identification and Conversational Assistance}
+
+The system identifies one or more supported intents from typed or confirmed
+transcribed requests, such as checking interactions, explaining a structured
+finding, managing a reminder, or recording a possible reaction. It requests
+clarification when the intent or medicine is ambiguous. Conversational output
+may restate structured findings in plain language but cannot create an
+independent safety conclusion. This feature is high priority.
+
+\subsection{PF-04: Vietnamese Medicine Identification and Normalization}
+
+The system matches verified Vietnamese medicine information to prepared DAV
+records, identifies active ingredients and relevant registration attributes,
+and preserves source and version information. Ambiguous or unmatched products
+are clearly unresolved. Prepared data and active-ingredient mappings are
+versioned and reviewed before use. This feature is high priority and
+safety-critical.
+
+\subsection{PF-05: Medication Safety and Interaction Assessment}
+
+Reliably identified active ingredients are mapped to reviewed DDInter 2.0
+entities. The system checks supported drug--drug interactions and severity. A
+result has an explicit state: interaction detected, no known interaction found
+within the available data, incomplete, unassessed, or temporarily unavailable.
+Before assessment, the system checks for required context such as the complete
+medicine list, dose, route, allergies, age, pregnancy, symptoms, and relevant
+kidney or liver impairment. It requests missing information instead of assuming
+that an unknown condition is safe. The resulting route is routine/no significant
+risk detected from available information, professional review required or
+uncertain, or emergency/red flags.
+Therapeutic duplication and drug--disease checks are included only when the
+team can establish adequate data, mapping, and acceptance tests. This feature
+is high priority and safety-critical.
+
+\subsection{PF-06: Safety Findings and Explainable Guidance}
+
+Users receive the involved medicines, severity where available, a concise
+explanation grounded in the structured interaction record, source/coverage
+limitations, and an appropriate next step. Warnings never instruct users to
+start, stop, replace, or change a prescribed medicine independently. Severe,
+uncertain, unresolved, or concerning cases advise qualified professional
+review. Emergency red flags receive immediate instructions to seek urgent
+real-world help and never wait for the simulated review workflow. This feature
+is high priority and safety-critical.
+
+\subsection{PF-07: Professional Review Support}
+
+The prototype prepares a structured case summary containing verified medicines,
+active ingredients, mapping status, detected findings, limitations, schedules,
+and reported symptoms. A simulated professional reviewer can record guidance or
+schedule confirmation, or request more information from the patient before the
+case is reassessed. A case without a response remains pending or unavailable;
+the system provides conservative interim guidance and recommends an external
+doctor or pharmacist rather than implying approval. The product labels this
+workflow as a simulation and does not imply that real clinical review has
+occurred. This feature is high priority for demonstrating the safety workflow.
+
+\subsection{PF-08: Confirmed-Schedule Medication Reminders}
+
+After reviewing and confirming the medication plan, users can separately opt in
+to reminders based on verified prescription instructions and choose notification
+times that remain within those instructions. Plan confirmation does not
+automatically activate reminders. Changes to the prescribed dosing schedule
+require professional confirmation and user acceptance. A new reminder for a
+medicine involved in a detected severe interaction remains on hold until review
+and confirmation; unrelated reminders may proceed. This feature is medium
+priority.
+
+\subsection{PF-09: Adherence and Possible Adverse-Reaction Follow-up}
+
+Users can respond to a reminder by recording a dose as taken, missed, or skipped,
+and the system stores the resulting adherence event. Users can also record
+symptoms for follow-up. Symptoms are labeled as possible adverse drug reactions,
+not proven causation, and are triaged into mild/self-monitoring, professional
+review required, or emergency/red flags. Review and emergency outcomes follow
+their respective routes. This feature is medium priority.
+
+\subsection{PF-10: Medication and Assessment History}
+
+Users can review their verified medicine list, prior assessments, result states,
+reminders, adherence events, possible-reaction records, and review guidance.
+History preserves the relevant data-source/version context so that a previous
+result is not presented as a current guarantee. This feature is medium priority
+and may be reduced if the prototype cannot provide adequate privacy controls.
 
