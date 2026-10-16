@@ -1,0 +1,46 @@
+[
+  {
+    "date": "2026-10-16",
+    "macrostructure": "Workbench + Daily Timeline (playful surface pass)",
+    "theme": "custom",
+    "theme_axes": "light / rounded-sans / cool-teal",
+    "vibe": "playful, reassuring, soft, accessible",
+    "enrichment": "pastel surfaces and gentle depth",
+    "nav": "N7 Bold Slab",
+    "footer": "Ft1 Mast-headed",
+    "brief": "Friendlier interface with stronger navigation emphasis"
+  },
+  {
+    "date": "2026-10-16",
+    "macrostructure": "Workbench + Daily Timeline",
+    "theme": "custom",
+    "theme_axes": "light / rounded-sans / cool-teal",
+    "vibe": "calm clinical, accessible, reassuring, information-dense",
+    "enrichment": "Tier-B hand-built prescription SVG",
+    "nav": "N1b always-solid top navigation",
+    "footer": "inherited from public landing",
+    "brief": "Denser medication intake, daily reminder timeline, and user profile"
+  },
+  {
+    "date": "2026-10-16",
+    "macrostructure": "Narrative Workflow",
+    "theme": "custom",
+    "theme_axes": "light / rounded-sans / cool-teal",
+    "vibe": "calm clinical, accessible, reassuring, exact",
+    "enrichment": "H9 Tier-B hand-built SVG",
+    "nav": "N1b always-solid",
+    "footer": "Ft1 Mast-headed",
+    "brief": "Medication Safety Assistant for older adults and family caregivers"
+  },
+  {
+    "date": "2026-10-16",
+    "macrostructure": "Shared system with task-focused pages",
+    "theme": "custom",
+    "theme_axes": "light / rounded-sans / cool-teal",
+    "vibe": "calm clinical, accessible, reassuring, exact",
+    "enrichment": "H9 Tier-B hand-built SVG on landing",
+    "nav": "N1b always-solid top navigation",
+    "footer": "Ft1 Mast-headed on public landing",
+    "brief": "Multi-page Medication Safety Assistant with login, user modules, safe chat and admin review"
+  }
+]
