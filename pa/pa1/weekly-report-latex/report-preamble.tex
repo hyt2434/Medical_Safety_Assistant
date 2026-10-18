@@ -1,0 +1,28 @@
+% !TeX program = xelatex
+\documentclass[10pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage[a4paper,margin=2.2cm,headheight=15pt]{geometry}
+\usepackage{array,booktabs,longtable,tabularx,graphicx,float,xcolor,fancyhdr}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.4em,nosep}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\renewcommand{\arraystretch}{1.18}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Medication Safety Assistant -- PA1}
+\fancyhead[R]{Weekly Report}
+\fancyfoot[R]{\thepage}
+\newcommand{\TaskLink}[2]{\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/#1}{\##1 -- #2}}
+\newcommand{\EvidenceShot}[2]{%
+  \begin{figure}[H]\centering
+  \IfFileExists{evidence/#1}{\includegraphics[width=\linewidth,height=.62\textheight,keepaspectratio]{evidence/#1}}{\fbox{\parbox{.85\linewidth}{Missing evidence: #1}}}
+  \caption{#2}\end{figure}}
+\newcommand{\MemberBlock}[4]{%
+  \subsection*{#1}
+  \textbf{Done tasks.} #2\par
+  \textbf{To-do tasks.} #3\par
+  \textbf{Issues for team discussion.} #4\par}
