@@ -1,34 +1,67 @@
+
 \section{Project Organization}
 
 \subsection{Organizational Structure}
 
-The project is executed by a self-managing team of three students. Hoàng Yến
-Trang is the Team Leader and Project Manager and is the primary contact with the
-instructors and teaching assistants. Planning decisions are discussed by the
-whole team. A decision that changes product scope, medical-safety behavior, or
-a committed sprint objective requires team review and must be recorded in the
-project workspace.
+The project is developed by a team of three students,
+led by Hoàng Yến Trang as the Project Manager and Team Leader.
+The Team Leader manages project activities and communicates
+with instructors and teaching assistants.
 
-Work is organized as a shared product backlog and five sprint backlogs. Each
-work item has one accountable owner, acceptance criteria, and a tracked status.
-Another member reviews safety-critical requirements, code, and test evidence
-before the item is accepted. The proposed role allocation below is an initial
-working arrangement and may be adjusted at sprint retrospectives according to
-workload and demonstrated skills.
+Tasks are assigned based on each member's responsibilities
+and tracked using a shared project management tool.
+Major decisions about project scope and safety requirements
+are discussed by the whole team.
 
 \subsection{Roles and Responsibilities}
 
-\begin{longtable}{|L{0.20\textwidth}|L{0.20\textwidth}|L{0.50\textwidth}|}
+\begin{longtable}{|L{0.22\textwidth}|L{0.20\textwidth}|L{0.48\textwidth}|}
 \hline
-\textbf{Role} & \textbf{Assigned member(s)} & \textbf{Responsibilities}\\ \hline
-Project Manager / Team Leader & Hoàng Yến Trang & Maintain the plan and sprint goals; coordinate meetings; track dependencies, risks, and blockers; communicate with teaching staff; ensure evidence and deliverables are submitted on time.\\ \hline
-NLP and Conversational Processing Developer & Cao Hoàng Long & Implement intent identification and medication-entity processing for typed and transcribed requests; constrain generated explanations to structured safety findings; test multi-intent, ambiguous, and unsafe requests; maintain NLP acceptance criteria.\\ \hline
-OCR and Prescription Intake Developer & Hoàng Yến Trang & Implement image upload/capture, preprocessing, OCR extraction, confidence/error handling, and the editable prescription-verification flow; test printed and digital Vietnamese prescriptions and unsupported handwriting cases.\\ \hline
-Voice Input and Speech-to-Text Developer & Lỗ Chí Thành & Implement microphone permission, audio capture, speech-to-text integration, medication-term transcription, confidence/error handling, and the editable transcript-confirmation flow; minimize retention of sensitive audio.\\ \hline
-Medication Data Preparation and Risk Integration Developer & Cao Hoàng Long & Collect, inspect, clean, deduplicate, and version the DAV medicine-registration data; normalize Vietnamese products and active ingredients; prepare and review mappings to DDInter 2.0; create controlled test datasets; maintain data provenance, coverage notes, and explicit assessment states.\\ \hline
-UI/UX and Accessibility Reviewer & Hoàng Yến Trang & Design and evaluate responsive multimodal input, verification, result, warning, reminder, and follow-up interfaces; ensure that voice input has an accessible manual fallback.\\ \hline
-Safety and Quality Reviewers & All members & Review safety-critical behavior; design positive, negative, boundary, and incomplete-data tests; verify that severe or uncertain cases are not presented as safe; record defects and regression evidence.\\ \hline
-Configuration and Build Coordinator & Hoàng Yến Trang & Maintain repository structure, branch and pull-request conventions, development configuration, reproducible builds, tagged releases, and recovery copies of project artifacts.\\ \hline
-Documentation and Evidence Coordinator & Hoàng Yến Trang; Cao Hoàng Long & Maintain reports, diagrams, meeting notes, UI evidence, accessible document links, and consistent terminology across the proposal, plan, vision, backlog, and prototype. Trang coordinates final document and evidence reviews as Team Leader.\\ \hline
-\end{longtable}
+\textbf{Role} &
+\textbf{Assigned Member} &
+\textbf{Responsibilities}\\ \hline
 
+Project Manager / Team Leader
+& Hoàng Yến Trang
+& Manage project plans, schedules, tasks, risks,
+and deliverables; communicate with teaching staff.
+\\ \hline
+
+NLP and Medication Safety Developer
+& Cao Hoàng Long
+& Develop the NLP chatbot for intent detection and
+medication information extraction; collect, clean,
+and prepare medication data; implement medication
+identification (Module 2) and drug interaction
+checks using DDInter 2.0 (Module 3).
+\\ \hline
+
+OCR, UI/UX and HCP Review Developer
+& Hoàng Yến Trang
+& Design the Web interface, develop prescription
+OCR and user confirmation screens, and implement
+the simulated HCP review workflow (Module 4).
+\\ \hline
+
+Voice, Manual Input and Reminder Developer
+& Lỗ Chí Thành
+& Develop voice input and speech-to-text,
+manual medication forms with search suggestions
+and auto-fill, and medication reminders,
+safety gates, and adherence tracking (Module 5).
+\\ \hline
+
+Integration and Quality Reviewers
+& All members
+& Integrate system modules, test core workflows,
+review safety-related features, and fix defects.
+\\ \hline
+
+Documentation and Configuration
+& All members
+& Maintain source code, project documents,
+test results, and weekly reports.
+Trang coordinates final submissions.
+\\ \hline
+
+\end{longtable}

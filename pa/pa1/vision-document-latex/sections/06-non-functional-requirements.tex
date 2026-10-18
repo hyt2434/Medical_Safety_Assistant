@@ -1,33 +1,100 @@
+
 \section{Non-Functional Requirements}
 
-The following requirements apply across the product. ``Must'' identifies an
-acceptance condition for the initial prototype; targets may be refined after
-technical experiments, but changes require review because several conditions
-are safety-critical.
+The following requirements define the main
+quality goals and constraints of the
+Medication Safety Assistant.
 
-\begin{longtable}{|L{0.08\textwidth}|L{0.17\textwidth}|L{0.43\textwidth}|L{0.10\textwidth}|L{0.12\textwidth}|}
+\begin{longtable}{|L{0.13\textwidth}|L{0.68\textwidth}|L{0.10\textwidth}|}
 \hline
-\textbf{ID} & \textbf{Category} & \textbf{Measurable requirement} & \textbf{Priority} & \textbf{Source}\\ \hline
-NFR-01 & Medical safety & The system must never independently prescribe, diagnose, or instruct a user to start, stop, replace, or change the dose or schedule of a prescribed medicine. Safety-critical acceptance tests must find no prohibited instruction in supported result flows. & High & Proposal / interviews\\ \hline
-NFR-02 & Input safety & Every OCR extraction and voice transcript used for identification or assessment must have an explicit user-confirmed version. Tests must verify that unconfirmed input cannot start an assessment and that editing confirmed medication data invalidates and recomputes normalization, mapping, and assessment. & High & Product constraint\\ \hline
-NFR-03 & Uncertainty & Every assessment must display an explicit data state (detected interaction, no known interaction in available data, incomplete, unassessed, or unavailable) and a routing outcome (routine, review required/uncertain, or emergency). Missing or unresolved data must never be rendered as safe. & High & Product constraint\\ \hline
-NFR-04 & AI safety & NLP-generated explanations must be grounded only in structured system findings and approved guidance fields. Unsupported medication conclusions must be rejected or replaced with deterministic safe text in the test suite. & High & Project scope\\ \hline
-NFR-05 & Mapping integrity & Each assessed medicine must link to its verified input, DAV record/version, normalized ingredient, reviewed DDInter mapping, and interaction-source version. Ambiguous mappings must remain unresolved. & High & Data workflow\\ \hline
-NFR-06 & Reminder safety & Reminder activation must require a confirmed medication plan and a separate explicit user opt-in. A new reminder for a medicine involved in a detected severe interaction must remain inactive until the recorded professional-review and user-confirmation conditions are satisfied. & High & Proposal\\ \hline
-NFR-07 & Privacy & The prototype must request microphone/camera permission at the point of use, collect only data required for the selected function, and avoid retaining raw audio after transcription unless the user explicitly agrees and retention is necessary. & High & User need\\ \hline
-NFR-08 & Test-data privacy & Source control, screenshots, logs, demonstrations, and shared evidence must contain only synthetic or de-identified health data; repository review must find no API secret or real patient record. & High & Project constraint\\ \hline
-NFR-09 & Access control & Professional-review information and user history must not be accessible through another user's ordinary session. Authorization tests must cover direct URL/API access to protected records. & High & Stakeholder need\\ \hline
-NFR-10 & Failure behavior & If OCR, speech-to-text, NLP, DAV data, or DDInter is unavailable, the system must identify the failed step, preserve entered data when safe, provide a retry or manual fallback, and avoid presenting a completed assessment. & High & Reliability need\\ \hline
-NFR-11 & Performance & Under the course test environment, 95\% of ordinary page actions excluding external OCR, speech, NLP, and interaction-service latency should respond within two seconds; external processing must show progress within one second. & Medium & User need\\ \hline
-NFR-12 & Responsive use & All primary patient flows must be usable without horizontal page scrolling at representative widths of 360, 768, and 1280 pixels, except intrinsically wide data visualizations. & Medium & Product scope\\ \hline
-NFR-13 & Accessibility & Primary flows should conform to applicable WCAG 2.2 Level AA success criteria. All functions must have a keyboard-accessible path; warnings must not rely on color alone; voice and camera input must have manual alternatives. & Medium & W3C WCAG 2.2\\ \hline
-NFR-14 & Understandability & In usability review, at least 4 of 5 representative participants must correctly distinguish ``no known interaction in available data'' from ``safe'' and identify the recommended next step for a severe or unresolved case. & High & Interview objective\\ \hline
-NFR-15 & Compatibility & The release candidate must pass the primary intake-to-guidance flow on the latest stable Chrome and Edge desktop versions and on at least one Android mobile browser available to the team. & Medium & User environment\\ \hline
-NFR-16 & Auditability & Safety-critical processing must record time, verified input version, source/mapping versions, result state, and review/reminder decision without storing raw secrets or unnecessary sensitive content in logs. & High & Safety review\\ \hline
-NFR-17 & Maintainability & NLP, OCR, speech-to-text, DAV preparation/mapping, DDInter assessment, reminders, and presentation must have documented boundaries so one external service can be replaced without rewriting unrelated product flows. & Medium & Project team\\ \hline
-NFR-18 & Documentation & The prototype must include a concise user guide covering supported input, verification, result states, limitations, privacy choices, professional escalation, reminder rules, and known unsupported cases. & Medium & Stakeholders\\ \hline
-NFR-19 & Context completeness & Before assessment, the system must validate the required medication and health-context fields. Missing required context must produce a correction/request state and must not produce a routine or safe conclusion. & High & Safety workflow\\ \hline
-NFR-20 & Escalation behavior & Emergency/red-flag outcomes must immediately display urgent real-world guidance without waiting for review. Review-required cases without a response must remain pending or unavailable and must never be automatically approved. & High & Safety workflow\\ \hline
-NFR-21 & ADR triage & Each possible adverse-reaction report must receive exactly one routing outcome: mild/self-monitoring, professional review required, or emergency/red flags. Emergency routing must satisfy NFR-20. & High & Follow-up workflow\\ \hline
-\end{longtable}
+\textbf{ID} &
+\textbf{Requirement} &
+\textbf{Priority}\\ \hline
 
+NFR-01
+& \textbf{Performance:}
+The system should respond quickly to common
+requests. Medication safety checks should
+finish within 10 seconds for at least 90\%
+of standard test cases under normal conditions.
+Longer tasks should show processing status.
+& High
+\\ \hline
+
+NFR-02
+& \textbf{Reliability and Fault Tolerance:}
+The system should handle errors and missing
+data without crashing. If OCR, Voice/STT,
+or NLP fails, users can correct information
+or use another input method. Failed safety
+checks must not be reported as safe.
+& High
+\\ \hline
+
+NFR-03
+& \textbf{Medication Safety:}
+The system must clearly show uncertain or
+incomplete results. It must not independently
+change prescribed treatment. New reminders
+affected by severe interactions require
+HCP review before activation.
+& High
+\\ \hline
+
+NFR-04
+& \textbf{Security and Privacy:}
+The system must protect user accounts and
+medication records. Patients can access
+their own information, while HCPs can only
+access cases they are allowed to review.
+& High
+\\ \hline
+
+NFR-05
+& \textbf{Usability and Accessibility:}
+The interface should be simple, responsive,
+and easy to use. Medication warnings must
+be clear, readable, and understandable,
+including for users with limited
+technical experience.
+& High
+\\ \hline
+
+NFR-06
+& \textbf{Platform Compatibility:}
+The application should work on modern
+desktop and mobile Web browsers.
+Camera, microphone, and notification
+features depend on browser support
+and user permissions.
+& High
+\\ \hline
+
+NFR-07
+& \textbf{Data Integrity and History:}
+The system should keep medication records,
+assessment results, and review history
+accurate and consistent. Past results
+must be clearly distinguished from
+current assessments.
+& High
+\\ \hline
+
+NFR-08
+& \textbf{Maintainability and Extensibility:}
+The system should use a modular design
+to support updates, new data sources,
+and future medication safety features
+without major changes to existing modules.
+& Medium
+\\ \hline
+
+NFR-09
+& \textbf{Documentation:}
+The project should provide basic setup
+instructions, user guidance, and
+documentation of system limitations.
+& Medium
+\\ \hline
+
+\end{longtable}
