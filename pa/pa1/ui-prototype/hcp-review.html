@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="description" content="Yêu cầu chuyên gia y tế xem lại kết quả thuốc."><title>Yêu cầu HCP review — Tiểu Bạch</title><link rel="stylesheet" href="styles.css"></head>
+<body data-portal="patient" data-page="results">
+  <a class="skip-link" href="#main-content">Bỏ qua menu</a>
+  <main id="main-content" class="portal-main"><div class="container narrow">
+    <header class="portal-header"><div><h1>Yêu cầu chuyên gia xem lại</h1><p>Gửi kết quả đã xác nhận cho bác sĩ hoặc dược sĩ tham gia prototype. Chỉ chia sẻ phần thông tin được liệt kê bên dưới.</p></div></header>
+    <ol class="stepper" aria-label="Tiến trình yêu cầu review"><li class="is-complete"><strong>1</strong><span>Xác nhận thuốc</span></li><li class="is-current"><strong>2</strong><span>Gửi yêu cầu</span></li><li><strong>3</strong><span>Nhận phản hồi</span></li></ol>
+    <form class="work-panel" id="hcp-request-form">
+      <div class="panel-heading"><div><h2>Thông tin sẽ được gửi</h2><p>Tên thuốc, hoạt chất đã xác nhận, kết quả tương tác mẫu và câu hỏi của bạn.</p></div><span class="status-chip status-chip--warning">Chưa gửi</span></div>
+      <div class="prototype-note"><strong>Giới hạn prototype</strong><p>Yêu cầu này chỉ được lưu trong giao diện mẫu; chưa gửi tới cơ sở y tế thật.</p></div>
+      <label class="field"><span>Câu hỏi cho chuyên gia</span><textarea name="question" rows="5" required placeholder="Ví dụ: Tôi nên trao đổi gì về hai thuốc này?"></textarea><small class="field-note">Không nhập số căn cước, địa chỉ hoặc dữ liệu định danh không cần thiết.</small></label>
+      <label class="check-row"><input type="checkbox" required><span>Tôi đồng ý chia sẻ thông tin thuốc trong yêu cầu mẫu này.</span></label>
+      <div class="page-actions"><a class="button button--secondary" href="results.html">Quay lại kết quả</a><button class="button" type="submit">Gửi yêu cầu mẫu</button></div>
+      <p class="form-status" id="hcp-request-status" aria-live="polite"></p>
+    </form>
+  </div></main>
+  <script src="ui-shell.js"></script><script src="app.js"></script>
+</body></html>

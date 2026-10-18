@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="description" content="Kiểm tra và chỉnh sửa dữ liệu toa thuốc trong HCP Portal."><title>Review ca TC01 — Tiểu Bạch HCP</title><link rel="stylesheet" href="styles.css"></head>
+<body class="professional-page" data-portal="hcp" data-page="hcp-case">
+  <a class="skip-link" href="#main-content">Bỏ qua menu</a>
+  <main id="main-content" class="portal-main"><div class="container">
+    <nav class="breadcrumb" aria-label="Tiến trình HCP"><a href="hcp-queue.html">Hàng chờ</a><span>›</span><strong>1. Kiểm tra thuốc</strong><span>›</span><span>2. Tương tác</span><span>›</span><span>3. Xác nhận</span></nav>
+    <header class="portal-header"><div><h1>Review & chỉnh sửa đơn thuốc</h1><p>Đối chiếu ảnh gốc, dữ liệu OCR và hoạt chất trước khi chuyển sang đánh giá tương tác.</p></div><div class="portal-header__actions"><span class="status-chip status-chip--warning">TC01 · đang review</span></div></header>
+    <ol class="stepper" aria-label="Các bước review"><li class="is-current"><strong>1</strong><span>Kiểm tra thuốc</span></li><li><strong>2</strong><span>Đánh giá tương tác</span></li><li><strong>3</strong><span>Phản hồi</span></li></ol>
+    <div class="split-workspace">
+      <aside class="work-panel"><div class="panel-heading"><div><h2>Ảnh đơn thuốc</h2><p>Ảnh minh họa do bệnh nhân gửi.</p></div><span class="status-chip">2 trang</span></div><figure class="prescription-preview"><svg viewBox="0 0 300 390" role="img" aria-label="Đơn thuốc mẫu"><rect x="8" y="8" width="284" height="374" rx="8" fill="var(--color-paper)" stroke="var(--color-rule)"/><text x="150" y="48" text-anchor="middle" class="rx-heading">ĐƠN THUỐC</text><path d="M48 67h204M48 82h146M48 282h90M48 301h148" class="rx-rule"/><text x="48" y="132" class="rx-hand">1. Clopidogrel 75 mg</text><text x="48" y="205" class="rx-hand">2. Getzome 20 mg</text></svg><figcaption>Dữ liệu mẫu · không phải hồ sơ thật.</figcaption></figure><button class="button button--secondary button--wide" type="button">Xem ảnh lớn</button></aside>
+      <form class="work-panel" id="case-review-form"><div class="panel-heading"><div><h2>Thuốc OCR đã trích xuất</h2><p>Sửa trường chưa chính xác và xác nhận hoạt chất.</p></div><button class="button button--secondary" type="button">Thêm thuốc</button></div>
+        <section class="medicine-draft"><header><span class="medicine-index">01</span><div><h3>Clopidogrel 75 mg</h3><span class="status-chip status-chip--success">Đã ánh xạ</span></div></header><div class="draft-fields"><label class="field"><span>Tên thuốc</span><input value="Clopidogrel"></label><label class="field"><span>Hàm lượng</span><input value="75 mg"></label><label class="field"><span>Hoạt chất</span><input value="Clopidogrel"></label><label class="field"><span>DDInter ID</span><input value="DDInter413" readonly></label></div></section>
+        <section class="medicine-draft"><header><span class="medicine-index">02</span><div><h3>Getzome Capsules 20 mg</h3><span class="status-chip status-chip--warning">Cần xác nhận</span></div></header><div class="draft-fields"><label class="field"><span>Tên thuốc</span><input value="Getzome Capsules"></label><label class="field"><span>Hàm lượng</span><input value="20 mg"></label><label class="field"><span>Hoạt chất</span><input value="Omeprazole"></label><label class="field"><span>DDInter ID</span><input value="DDInter1340" readonly></label></div></section>
+        <label class="field"><span>Ghi chú chuyên môn</span><textarea rows="4">Đã đối chiếu tên thuốc với ảnh toa mẫu. Cần xác nhận hoạt chất trước khi đánh giá tương tác.</textarea></label>
+        <div class="page-actions"><a class="button button--secondary" href="hcp-queue.html">Lưu và quay lại</a><a class="button" href="hcp-assessment.html">Xác nhận thuốc</a></div>
+      </form>
+    </div>
+  </div></main>
+  <script src="ui-shell.js"></script><script src="app.js"></script>
+</body></html>

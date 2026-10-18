@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="description" content="Xác nhận và gửi phản hồi HCP."><title>Xác nhận phản hồi — Tiểu Bạch HCP</title><link rel="stylesheet" href="styles.css"></head>
+<body class="professional-page" data-portal="hcp" data-page="hcp-assessment">
+  <a class="skip-link" href="#main-content">Bỏ qua menu</a>
+  <main id="main-content" class="portal-main"><div class="container">
+    <nav class="breadcrumb" aria-label="Tiến trình HCP"><a href="hcp-queue.html">Hàng chờ</a><span>›</span><a href="hcp-case.html">1. Kiểm tra thuốc</a><span>›</span><a href="hcp-assessment.html">2. Tương tác</a><span>›</span><strong>3. Xác nhận</strong></nav>
+    <header class="portal-header"><div><h1>Xác nhận và phản hồi</h1><p>Xem lại kết luận, ghi chú chuyên môn và nội dung sẽ gửi cho người dùng.</p></div><div class="portal-header__actions"><span class="status-chip status-chip--success">Thuốc đã xác nhận</span></div></header>
+    <ol class="stepper" aria-label="Các bước review"><li class="is-complete"><strong>✓</strong><span>Kiểm tra thuốc</span></li><li class="is-complete"><strong>✓</strong><span>Đánh giá tương tác</span></li><li class="is-current"><strong>3</strong><span>Phản hồi</span></li></ol>
+    <div class="split-workspace"><form class="work-panel" id="hcp-confirmation-form"><div class="panel-heading"><div><h2>Phản hồi cho người dùng</h2><p>Viết bằng ngôn ngữ dễ hiểu và không đưa ra chỉ định ngoài phạm vi chuyên môn.</p></div></div><label class="field"><span>Kết luận review</span><select><option>Cần trao đổi trực tiếp với bác sĩ hoặc dược sĩ</option><option>Đã kiểm tra — cần theo dõi thêm</option><option>Cần bổ sung dữ liệu thuốc</option></select></label><label class="field"><span>Nội dung phản hồi</span><textarea rows="7" required>Thông tin tương tác cần được bác sĩ hoặc dược sĩ xem xét cùng liều dùng, bệnh nền và các thuốc khác. Không tự ngưng hoặc thay đổi liều thuốc.</textarea><small class="field-note">Nội dung trong prototype không được gửi ra ngoài trình duyệt.</small></label><label class="check-row"><input type="checkbox" required><span>Tôi đã phân biệt kết quả hệ thống với nhận định chuyên môn.</span></label><div class="page-actions"><a class="button button--secondary" href="hcp-assessment.html">Chỉnh đánh giá</a><button class="button" type="submit">Xác nhận và gửi mẫu</button></div><p class="form-status" id="hcp-confirmation-status" aria-live="polite"></p></form>
+      <aside class="work-panel"><div class="panel-heading"><div><h2>Lịch sử ca TC01</h2><p>Các mốc xử lý minh họa.</p></div></div><ol class="history-list"><li><div><strong>Bệnh nhân gửi đơn thuốc</strong><p>12/10/2024 · 09:14</p></div></li><li><div><strong>OCR trích xuất thông tin</strong><p>12/10/2024 · 09:15</p></div></li><li><div><strong>HCP xác nhận thuốc</strong><p>12/10/2024 · 10:20</p></div></li><li><div><strong>Đang soạn phản hồi</strong><p>Chưa gửi</p></div></li></ol></aside>
+    </div>
+  </div></main>
+  <script src="ui-shell.js"></script><script src="app.js"></script>
+</body></html>

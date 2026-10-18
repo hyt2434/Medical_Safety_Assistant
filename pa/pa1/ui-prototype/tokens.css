@@ -14,11 +14,26 @@
   --color-accent-strong: oklch(43% 0.083 183);
   --color-accent-soft: oklch(68% 0.078 181);
   --color-accent-ink: oklch(98% 0.012 172);
+  --color-nav: oklch(25% 0.055 174);
+  --color-nav-hover: oklch(31% 0.062 176);
+  --color-nav-ink: oklch(98% 0.018 100);
+  --color-nav-active: oklch(96% 0.095 99);
+  --color-nav-active-ink: oklch(22% 0.04 174);
+  --color-nav-rule: oklch(62% 0.105 181);
+  --color-nav-focus: oklch(90% 0.12 99);
+  --color-clinical-canvas: oklch(84% 0.035 174);
+  --color-overlay: oklch(18% 0.035 174 / 0.18);
   --color-focus: oklch(48% 0.16 185);
   --color-danger: oklch(46% 0.17 28);
   --color-danger-soft: oklch(94% 0.035 28);
+  --color-danger-ink: oklch(98% 0.012 172);
   --color-warning: oklch(50% 0.12 74);
+  --color-warning-soft: oklch(95% 0.055 88);
   --color-success: oklch(43% 0.10 151);
+  --color-success-soft: oklch(94% 0.045 151);
+  --color-info: oklch(47% 0.12 245);
+  --color-info-soft: oklch(95% 0.035 235);
+  --color-blush: oklch(82% 0.10 28);
   --color-shadow: oklch(24% 0.035 176 / 0.12);
 
   --font-display: "Bricolage Grotesque", sans-serif;
@@ -46,7 +61,9 @@
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1.25rem;
+  --radius-pill: 99rem;
   --rule-thin: 1px;
+  --rule-strong: 2px;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
@@ -54,6 +71,7 @@
   --dur-micro: 120ms;
   --dur-short: 180ms;
   --dur-long: 360ms;
+  --dur-mascot: 5s;
 
   --page-max: 76rem;
   --page-gutter: clamp(1rem, 4vw, 3rem);
@@ -61,4 +79,5 @@
   --z-base: 1;
   --z-raised: 10;
   --z-sticky: 200;
+  --z-assistant: 260;
 }

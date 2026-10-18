@@ -1,9 +1,9 @@
 {
   "date": "2026-10-16",
   "framework": "vanilla-html",
-  "font_stack": null,
-  "palette": null,
+  "font_stack": "Bricolage Grotesque + IBM Plex Sans",
+  "palette": "custom OKLCH teal/mint with cream support and semantic medical statuses",
   "motion": "motion-cut",
-  "spacing": null,
-  "notes": "No existing frontend or design-system signals were found. Full Hallmark stack introduced in an isolated prototype."
+  "spacing": "4-point named CSS token scale",
+  "notes": "design.md locks a multi-page vanilla HTML prototype. Patient and HCP portals use role-specific N1b always-solid horizontal menus; sidebar navigation is prohibited by user choice."
 }

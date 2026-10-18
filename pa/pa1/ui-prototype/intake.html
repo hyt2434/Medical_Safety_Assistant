@@ -7,7 +7,7 @@
   <title>Nhập thuốc — Medication Safety Assistant</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-portal="patient" data-page="upload">
   <a class="skip-link" href="#main-content">Bỏ qua menu</a>
   <header class="site-header">
     <div class="nav container">
@@ -27,21 +27,12 @@
 
       <div class="intake-workbench">
         <aside class="source-panel" aria-labelledby="source-title">
-          <div class="compact-heading"><div><span class="panel-kicker">Nguồn đầu vào</span><h2 id="source-title">Toa đang xử lý</h2></div><span class="status-chip">Trang 1 / 2</span></div>
+          <div class="compact-heading"><div><span class="panel-kicker">Nguồn đầu vào</span><h2 id="source-title">Toa đang xử lý</h2></div><span class="status-chip" id="prescription-source-badge">Ảnh mẫu 1 / 2</span></div>
           <figure class="prescription-preview">
-            <svg viewBox="0 0 300 390" role="img" aria-labelledby="rx-title rx-desc">
-              <title id="rx-title">Toa thuốc minh họa</title><desc id="rx-desc">Tờ toa có hai dòng thuốc viết tay để minh họa vùng xem trước.</desc>
-              <rect x="8" y="8" width="284" height="374" rx="8" fill="var(--color-paper)" stroke="var(--color-rule)"/>
-              <text x="150" y="48" text-anchor="middle" class="rx-heading">ĐƠN THUỐC</text>
-              <path d="M48 67h204M48 82h146" class="rx-rule"/>
-              <text x="48" y="132" class="rx-hand">1. Amlodipine 5 mg</text><path d="M48 151c48 7 99 4 154 0" class="rx-handline"/>
-              <text x="48" y="205" class="rx-hand">2. Simvastatin 20 mg</text><path d="M48 224c55 7 111 4 171-1" class="rx-handline"/>
-              <path d="M48 282h90M48 301h148M48 320h119" class="rx-rule"/>
-              <path d="M188 336c18-24 34 20 56-11" class="rx-sign"/>
-            </svg>
-            <figcaption id="source-caption">Ảnh minh họa — chưa có tệp thật được tải lên.</figcaption>
+            <img id="prescription-image" src="assets/prescription-sample-01.png" alt="Toa thuốc mẫu số 1 có hai thuốc Amlodipine và Simvastatin, đóng dấu ĐƠN THUỐC MẪU" width="1024" height="1536" decoding="async">
+            <figcaption id="source-caption">Đơn thuốc mẫu 1 — dữ liệu giả để thử giao diện, không phải đơn thuốc thật.</figcaption>
           </figure>
-          <div class="page-thumbs" aria-label="Các trang toa thuốc"><button class="page-thumb is-active" type="button" aria-pressed="true"><span>01</span>Trang đầu</button><button class="page-thumb" type="button" aria-pressed="false"><span>02</span>Trang sau</button></div>
+          <div class="page-thumbs" aria-label="Chọn ảnh đơn thuốc mẫu"><button class="page-thumb is-active" type="button" data-sample-image="assets/prescription-sample-01.png" data-sample-alt="Toa thuốc mẫu số 1: Amlodipine và Simvastatin" aria-pressed="true"><img src="assets/prescription-sample-01.png" alt="" width="64" height="96"><span>Mẫu 01</span></button><button class="page-thumb" type="button" data-sample-image="assets/prescription-sample-02.png" data-sample-alt="Toa thuốc mẫu số 2: Clopidogrel và Omeprazole" aria-pressed="false"><img src="assets/prescription-sample-02.png" alt="" width="64" height="96"><span>Mẫu 02</span></button></div>
           <label class="button button--secondary button--wide" for="prescription-file">Thay ảnh toa thuốc</label>
           <input class="sr-only" id="prescription-file" type="file" accept="image/png,image/jpeg">
           <label class="field source-note"><span>Ghi chú của người dùng</span><textarea rows="3" placeholder="Ví dụ: thuốc mới được kê hôm nay…"></textarea></label>
@@ -72,6 +63,7 @@
       </div>
     </div>
   </main>
+  <script src="ui-shell.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

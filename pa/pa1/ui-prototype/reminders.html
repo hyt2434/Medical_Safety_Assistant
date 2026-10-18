@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="vi">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Lịch nhắc uống thuốc minh họa."><title>Lịch nhắc — Medication Safety Assistant</title><link rel="stylesheet" href="styles.css"></head>
-<body>
+<body data-portal="patient" data-page="reminders">
   <a class="skip-link" href="#main-content">Bỏ qua menu</a>
   <header class="site-header"><div class="nav container"><a class="brand" href="dashboard.html"><span class="brand__mark" aria-hidden="true">M</span><span class="brand__text">Medication Safety Assistant</span></a><button class="nav__toggle" type="button" aria-expanded="false" aria-controls="primary-menu"><span class="sr-only">Mở menu</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><div class="nav__menu" id="primary-menu"><nav class="nav__center"><a class="nav__link" href="dashboard.html">Tổng quan</a><a class="nav__link" href="intake.html">Nhập thuốc</a><a class="nav__link" href="chatbot.html">Chat hỗ trợ</a><a class="nav__link" href="reminders.html" aria-current="page">Lịch nhắc</a></nav><a class="button button--quiet nav__cta" href="index.html">Đăng xuất</a></div></div></header>
   <main id="main-content" class="app-main app-main--dense">
@@ -35,6 +35,7 @@
       </div>
     </div>
   </main>
+  <script src="ui-shell.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

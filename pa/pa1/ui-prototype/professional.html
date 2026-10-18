@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Không gian tư vấn dành cho bác sĩ và chuyên viên y tế trong Medication Safety Assistant.">
+  <title>Không gian chuyên môn — Medication Safety Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="professional-page" data-portal="hcp" data-page="hcp-dashboard">
+  <a class="skip-link" href="#main-content">Bỏ qua menu</a>
+  <header class="professional-header">
+    <div class="professional-nav container">
+      <a class="brand" href="professional.html"><span class="brand__mark" aria-hidden="true">M</span><span class="brand__text">Medication Safety Assistant</span></a>
+      <div class="professional-nav__actions"><span class="professional-role">Không gian chuyên môn</span><a class="button professional-logout" href="index.html">Đăng xuất</a></div>
+    </div>
+  </header>
+
+  <main id="main-content" class="professional-main container">
+    <section class="professional-intro" aria-labelledby="professional-title">
+      <div><h1 id="professional-title">Tổng quan review hôm nay</h1><p>Theo dõi các yêu cầu cần ưu tiên, mở hồ sơ và ghi lại phản hồi trong phạm vi chuyên môn.</p></div>
+      <aside class="professional-boundary"><strong>Prototype học tập</strong><p>Tất cả số liệu và hồ sơ đều là dữ liệu minh họa. Ẩn menu phía frontend không phải là cơ chế phân quyền.</p></aside>
+    </section>
+
+    <section class="metric-strip" aria-label="Tổng quan hàng chờ">
+      <article class="metric"><span class="metric__mark" aria-hidden="true">□</span><div><strong>12</strong><span>Ca chờ review</span></div></article>
+      <article class="metric metric--danger"><span class="metric__mark" aria-hidden="true">!</span><div><strong>5</strong><span>Tương tác Major</span></div></article>
+      <article class="metric metric--warning"><span class="metric__mark" aria-hidden="true">?</span><div><strong>3</strong><span>Ca cần chỉnh sửa</span></div></article>
+      <article class="metric metric--success"><span class="metric__mark" aria-hidden="true">✓</span><div><strong>18</strong><span>Đã xử lý mẫu</span></div></article>
+    </section>
+
+    <section class="consultation-studio" aria-label="Không gian xử lý yêu cầu tư vấn">
+      <aside class="consultation-queue" aria-labelledby="queue-title">
+        <div class="queue-heading"><h2 id="queue-title">Ca cần ưu tiên</h2><a class="table-action" href="hcp-queue.html">Xem toàn bộ</a></div>
+        <div class="case-list" role="list">
+          <article class="case-card is-selected"><div class="case-card__top"><button class="case-card__select" type="button" data-case="case-024" aria-pressed="true">Mở hồ sơ 024</button><span class="status-chip status-chip--review">Cần phản hồi</span></div><p class="case-card__question">Hỏi về thời điểm dùng hai thuốc trong buổi sáng.</p><small>Cập nhật gần nhất: hôm nay</small></article>
+          <article class="case-card"><div class="case-card__top"><button class="case-card__select" type="button" data-case="case-031" aria-pressed="false">Mở hồ sơ 031</button><span class="status-chip">Cần xem sớm</span></div><p class="case-card__question">Ghi nhận cảm giác chóng mặt sau liều dùng buổi tối.</p><small>Cập nhật gần nhất: hôm qua</small></article>
+          <article class="case-card"><div class="case-card__top"><button class="case-card__select" type="button" data-case="case-018" aria-pressed="false">Mở hồ sơ 018</button><span class="status-chip">Chờ đối chiếu</span></div><p class="case-card__question">Cần xác nhận ánh xạ hoạt chất từ nguồn DAV sang DDInter.</p><small>Cập nhật gần nhất: hai ngày trước</small></article>
+        </div>
+      </aside>
+
+      <article class="consultation-detail" aria-labelledby="case-title">
+        <header class="case-summary"><div><h2 id="case-title">Hồ sơ 024</h2><p id="case-subtitle">Người dùng lớn tuổi · có người thân hỗ trợ</p></div><span class="status-chip status-chip--review" id="case-status">Cần phản hồi</span></header>
+
+        <div class="case-facts" aria-label="Thông tin hồ sơ"><div><span>Nhóm tuổi</span><strong id="case-age">65–74</strong></div><div><span>Kênh nhận câu hỏi</span><strong id="case-channel">Người thân nhập</strong></div><div><span>Mức xác nhận dữ liệu</span><strong id="case-verification">Đã kiểm tra tên thuốc</strong></div></div>
+
+        <section class="case-section" aria-labelledby="medication-title"><div class="case-section__heading"><h3 id="medication-title">Thuốc đang được ghi nhận</h3><span>Nguồn do người dùng xác nhận</span></div><ul class="medication-list" id="case-medications"><li><strong>Amlodipine</strong><span>5 mg · buổi sáng</span></li><li><strong>Clopidogrel</strong><span>75 mg · buổi sáng</span></li></ul></section>
+
+        <section class="case-section case-question" aria-labelledby="question-title"><h3 id="question-title">Câu hỏi cần tư vấn</h3><p id="case-question">Hai thuốc trên có thể dùng cùng thời điểm buổi sáng hay cần tách thời gian?</p></section>
+
+        <form class="consultation-form" id="consultation-form"><label class="field" for="professional-note"><span>Ghi chú chuyên môn</span><textarea id="professional-note" name="note" rows="5" placeholder="Ghi lại nội dung cần trao đổi với người dùng"></textarea><small class="field-note">Không ghi chẩn đoán hoặc dữ liệu định danh trong prototype.</small></label><div class="consultation-actions"><p class="form-status" id="consultation-status" aria-live="polite"></p><button class="button button--secondary" type="button" id="mark-reviewed">Đánh dấu đã xem</button><button class="button" type="submit">Lưu ghi chú</button></div></form>
+      </article>
+    </section>
+  </main>
+
+  <footer class="professional-footer"><div class="container"><span>Medication Safety Assistant · Prototype học tập</span><span>Thông tin minh họa, không thay thế quyết định chuyên môn.</span></div></footer>
+  <script src="ui-shell.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

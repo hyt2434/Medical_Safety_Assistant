@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="description" content="Danh sách thuốc đã ghi nhận của người dùng."><title>Thuốc của tôi — Tiểu Bạch</title><link rel="stylesheet" href="styles.css"></head>
+<body data-portal="patient" data-page="medications">
+  <a class="skip-link" href="#main-content">Bỏ qua menu</a>
+  <main id="main-content" class="portal-main"><div class="container">
+    <header class="portal-header"><div><h1>Thuốc của tôi</h1><p>Xem các thuốc đang dùng, thuốc đã lưu và những thông tin cần kiểm tra lại.</p></div><div class="portal-header__actions"><a class="button" href="intake.html">Thêm thuốc</a></div></header>
+    <section class="work-panel" aria-labelledby="medicine-list-title">
+      <div class="panel-heading"><div><h2 id="medicine-list-title">Danh sách thuốc</h2><p>Dữ liệu dưới đây là nội dung minh họa và chưa được đồng bộ với hồ sơ y tế.</p></div><span class="status-chip">4 thuốc mẫu</span></div>
+      <div class="toolbar"><label class="field toolbar__search"><span>Tìm thuốc hoặc hoạt chất</span><input type="search" placeholder="Ví dụ: Amlodipine"></label><div class="toolbar__filters" aria-label="Lọc thuốc"><button class="filter-chip is-active" type="button">Tất cả</button><button class="filter-chip" type="button">Đang dùng</button><button class="filter-chip" type="button">Cần xem lại</button></div></div>
+      <ul class="record-list">
+        <li class="record-row"><div class="medicine-token"><span class="medicine-token__shape" aria-hidden="true"></span><div class="record-row__main"><strong>Amlodipine 5 mg</strong><p>Viên nén · 1 viên mỗi sáng · đã xác nhận</p></div></div><div class="record-row__actions"><span class="status-chip status-chip--success">Đang dùng</span><a class="medicine-detail-link" href="verify.html">Xem chi tiết <span aria-hidden="true">→</span></a></div></li>
+        <li class="record-row"><div class="medicine-token"><span class="medicine-token__shape medicine-token__shape--capsule" aria-hidden="true"></span><div class="record-row__main"><strong>Simvastatin 20 mg</strong><p>Viên nén · 1 viên buổi tối · từ toa mẫu</p></div></div><div class="record-row__actions"><span class="status-chip status-chip--warning">Cần xem lại</span><a class="medicine-detail-link" href="verify.html">Kiểm tra <span aria-hidden="true">→</span></a></div></li>
+        <li class="record-row"><div class="medicine-token"><span class="medicine-token__shape" aria-hidden="true"></span><div class="record-row__main"><strong>Clopidogrel 75 mg</strong><p>Viên bao phim · thông tin sử dụng đã lưu</p></div></div><div class="record-row__actions"><span class="status-chip status-chip--info">Đã lưu</span><a class="medicine-detail-link" href="verify.html">Xem chi tiết <span aria-hidden="true">→</span></a></div></li>
+        <li class="record-row"><div class="medicine-token"><span class="medicine-token__shape medicine-token__shape--capsule" aria-hidden="true"></span><div class="record-row__main"><strong>Getzome Capsules 20 mg</strong><p>Viên nang cứng · hoạt chất Omeprazole</p></div></div><div class="record-row__actions"><span class="status-chip status-chip--success">Đang dùng</span><a class="medicine-detail-link" href="verify.html">Xem chi tiết <span aria-hidden="true">→</span></a></div></li>
+      </ul>
+    </section>
+  </div></main>
+  <script src="ui-shell.js"></script><script src="app.js"></script>
+</body></html>

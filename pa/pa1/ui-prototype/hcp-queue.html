@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="description" content="Hàng chờ đánh giá thuốc dành cho HCP."><title>Hàng chờ review — Tiểu Bạch HCP</title><link rel="stylesheet" href="styles.css"></head>
+<body class="professional-page" data-portal="hcp" data-page="hcp-queue">
+  <a class="skip-link" href="#main-content">Bỏ qua menu</a>
+  <main id="main-content" class="portal-main"><div class="container">
+    <header class="portal-header"><div><h1>Hàng chờ review</h1><p>Tìm, lọc và mở các yêu cầu được phép truy cập. Mức ưu tiên không thay thế đánh giá chuyên môn.</p></div><div class="portal-header__actions"><button class="button button--secondary" type="button">Lọc hồ sơ</button></div></header>
+    <section class="work-panel" aria-labelledby="queue-table-title">
+      <div class="panel-heading"><div><h2 id="queue-table-title">Ca đang chờ</h2><p>Dữ liệu bệnh nhân và trạng thái dưới đây đều là nội dung mẫu.</p></div><span class="status-chip status-chip--info">12 ca mẫu</span></div>
+      <div class="toolbar"><label class="field toolbar__search"><span>Tìm theo mã ca hoặc thuốc</span><input type="search" placeholder="Ví dụ: TC01 hoặc Clopidogrel"></label><div class="toolbar__filters"><button class="filter-chip is-active" type="button">Tất cả</button><button class="filter-chip" type="button">Major</button><button class="filter-chip" type="button">Cần sửa</button></div></div>
+      <div class="responsive-table"><table class="portal-table"><thead><tr><th>Mã ca</th><th>Mã bệnh nhân</th><th>Thuốc liên quan</th><th>Nguy cơ</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+        <tr><td data-label="Mã ca"><strong>TC01</strong></td><td data-label="Bệnh nhân">BN00123</td><td data-label="Thuốc">Clopidogrel + Omeprazole</td><td data-label="Nguy cơ"><span class="status-chip status-chip--danger">Major</span></td><td data-label="Trạng thái"><span class="status-chip status-chip--warning">Chờ xác nhận</span></td><td data-label="Thao tác"><a class="table-action" href="hcp-case.html">Mở ca</a></td></tr>
+        <tr><td data-label="Mã ca"><strong>TC02</strong></td><td data-label="Bệnh nhân">BN00456</td><td data-label="Thuốc">Warfarin + Aspirin</td><td data-label="Nguy cơ"><span class="status-chip status-chip--danger">Major</span></td><td data-label="Trạng thái"><span class="status-chip status-chip--info">Đang review</span></td><td data-label="Thao tác"><a class="table-action" href="hcp-case.html">Tiếp tục</a></td></tr>
+        <tr><td data-label="Mã ca"><strong>TC03</strong></td><td data-label="Bệnh nhân">BN00789</td><td data-label="Thuốc">Metformin + Atorvastatin</td><td data-label="Nguy cơ"><span class="status-chip status-chip--warning">Trung bình</span></td><td data-label="Trạng thái"><span class="status-chip status-chip--warning">Cần sửa</span></td><td data-label="Thao tác"><a class="table-action" href="hcp-case.html">Kiểm tra</a></td></tr>
+        <tr><td data-label="Mã ca"><strong>TC04</strong></td><td data-label="Bệnh nhân">BN00234</td><td data-label="Thuốc">Enalapril + Spironolactone</td><td data-label="Nguy cơ"><span class="status-chip status-chip--warning">Trung bình</span></td><td data-label="Trạng thái"><span class="status-chip status-chip--success">Hoàn tất</span></td><td data-label="Thao tác"><a class="table-action" href="hcp-case.html">Xem lại</a></td></tr>
+      </tbody></table></div>
+    </section>
+  </div></main>
+  <script src="ui-shell.js"></script><script src="app.js"></script>
+</body></html>
