@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>Tiểu Bạch MedSafety AI - Tổng quan Y tế An toàn</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              teal: "#287a74",
+              "teal-dark": "#1d5c58",
+              "teal-light": "#e6f4f2",
+              mint: "#55a9a0",
+              "mint-soft": "#aeeed3",
+              "mint-light": "#e8faf3"
+            },
+            accent: {
+              cream: "#fff8b0",
+              "cream-light": "#fef9c3",
+              border: "#facc15"
+            },
+            surface: {
+              DEFAULT: "#ffffff",
+              soft: "#f8fafc",
+              border: "#e2e8f0"
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Bricolage Grotesque"', '"Plus Jakarta Sans"', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+    }
+  </style>
+</head>
+<body class="bg-surface-soft min-h-full flex flex-col font-sans antialiased text-slate-800">
+<!-- Header Chuẩn Y Khoa Tiểu Bạch -->
+<header class="sticky top-0 z-50 bg-white border-b border-surface-border shadow-sm">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+<!-- Logo Tiểu Bạch MedSafety AI -->
+<a class="flex items-center gap-3 shrink-0" href="#">
+<div class="w-11 h-11 rounded-xl bg-brand-teal flex items-center justify-center text-white shadow-sm">
+<span class="material-symbols-outlined text-[26px]">medical_services</span>
+</div>
+<div class="flex flex-col">
+<span class="font-display font-extrabold text-xl text-brand-teal tracking-tight leading-tight">Tiểu Bạch</span>
+<span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">MedSafety AI • Y Tế Gia Đình</span>
+</div>
+</a>
+<!-- Navigation Menu -->
+<nav class="hidden lg:flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-surface-border">
+<a class="px-3.5 py-2 rounded-lg font-medium text-sm text-slate-600 hover:text-brand-teal hover:bg-white transition-all" href="#">Trang chủ</a>
+<a class="px-4 py-2 rounded-lg font-bold text-sm bg-brand-teal text-white shadow-sm" href="#">Tổng quan</a>
+<a class="px-3.5 py-2 rounded-lg font-medium text-sm text-slate-600 hover:text-brand-teal hover:bg-white transition-all" href="#">Nhập toa thuốc</a>
+<a class="px-3.5 py-2 rounded-lg font-medium text-sm text-slate-600 hover:text-brand-teal hover:bg-white transition-all" href="#">Thuốc của tôi</a>
+<a class="px-3.5 py-2 rounded-lg font-medium text-sm text-slate-600 hover:text-brand-teal hover:bg-white transition-all" href="#">Chat Tiểu Bạch</a>
+<a class="px-3.5 py-2 rounded-lg font-medium text-sm text-slate-600 hover:text-brand-teal hover:bg-white transition-all" href="#">Hồ sơ cá nhân</a>
+</nav>
+<!-- Right Controls: Font Sizer, Alerts, Avatar, Logout -->
+<div class="flex items-center gap-3">
+<!-- Chỉnh cỡ chữ A / A+ hỗ trợ người cao tuổi -->
+<div class="hidden sm:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-surface-border" title="Điều chỉnh cỡ chữ thân thiện">
+<button class="w-8 h-8 rounded-lg bg-white text-slate-700 font-bold text-xs flex items-center justify-center shadow-xs hover:text-brand-teal transition-all" id="btn-font-normal" type="button">A</button>
+<button class="w-8 h-8 rounded-lg bg-brand-teal text-white font-bold text-sm flex items-center justify-center shadow-xs hover:bg-brand-teal-dark transition-all" id="btn-font-large" type="button">A+</button>
+</div>
+<!-- Notification Bell -->
+<button class="relative w-10 h-10 rounded-xl bg-slate-50 border border-surface-border text-slate-600 hover:text-brand-teal hover:bg-white flex items-center justify-center transition-all" title="Thông báo y tế">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+<span class="absolute top-2 right-2 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white"></span>
+</button>
+<!-- User profile badge (Dược sĩ / Gia đình) -->
+<div class="flex items-center gap-2.5 pl-2 border-l border-surface-border">
+<div class="w-10 h-10 rounded-full bg-brand-teal-light text-brand-teal border border-brand-teal/20 flex items-center justify-center font-bold text-base shadow-xs">
+            BM
+          </div>
+<div class="hidden xl:flex flex-col text-left">
+<span class="text-sm font-bold text-slate-900 leading-tight">Bác Mai</span>
+<span class="text-xs text-brand-mint font-semibold">Tài khoản cao tuổi</span>
+</div>
+<button class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors ml-1" title="Đăng xuất">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6" id="overview-content">
+<!-- 1. Banner chào đón cá nhân hóa -->
+<section class="bg-white rounded-2xl border border-surface-border p-6 lg:p-7 shadow-xs">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+<div class="space-y-2">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-mint-light text-brand-teal border border-brand-mint-soft/60 text-xs font-bold tracking-wide">
+<span class="material-symbols-outlined text-[16px] text-brand-mint">verified</span>
+<span>HỆ THỐNG KIỂM SOÁT AN TOÀN DƯỢC ĐANG HOẠT ĐỘNG</span>
+</div>
+<h1 class="text-2xl sm:text-3xl font-display font-extrabold text-slate-900 tracking-tight">
+            Chào Bác Mai, hôm nay Bác cảm thấy thế nào?
+          </h1>
+<p class="text-slate-600 text-base max-w-2xl leading-relaxed">
+            Hôm nay Bác đã hoàn thành <strong class="text-brand-teal">1/3 cữ thuốc</strong>. Mọi chỉ số tương tác đều an toàn, không có ghi nhận tương kỵ nguy hiểm.
+          </p>
+</div>
+<!-- Weather & Sync Status Widgets -->
+<div class="flex flex-wrap sm:flex-nowrap items-center gap-3">
+<!-- Weather Widget -->
+<div class="flex items-center gap-3 bg-slate-50 border border-surface-border px-4 py-3 rounded-xl min-w-[160px]">
+<span class="material-symbols-outlined text-[28px] text-amber-500">wb_sunny</span>
+<div>
+<div class="text-xs font-semibold text-slate-500">Hà Nội • Hôm nay</div>
+<div class="text-sm font-bold text-slate-800">26°C - Dễ chịu</div>
+</div>
+</div>
+<!-- Đồng bộ thiết bị y tế -->
+<div class="flex items-center gap-3 bg-slate-50 border border-surface-border px-4 py-3 rounded-xl min-w-[170px]">
+<span class="material-symbols-outlined text-[28px] text-brand-teal">sync_saved_locally</span>
+<div>
+<div class="text-xs font-semibold text-slate-500">Đồng bộ y tế</div>
+<div class="text-sm font-bold text-emerald-600 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span>Vừa cập nhật</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Khối cảnh báo quan trọng màu Vàng kem (#fff8b0, viền #facc15) -->
+<section class="bg-accent-cream-light border-2 border-accent-border rounded-2xl p-6 lg:p-7 shadow-xs">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="flex items-start gap-4">
+<div class="w-14 h-14 rounded-2xl bg-amber-400/30 border border-amber-500/30 text-amber-800 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[32px]">alarm</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded-full bg-amber-300 text-amber-900 font-extrabold text-xs tracking-wide uppercase">
+                Lưu ý quan trọng
+              </span>
+<span class="text-xs font-bold text-slate-600">Còn 20 phút nữa</span>
+</div>
+<h2 class="text-xl sm:text-2xl font-bold text-slate-900">
+              Nhắc uống thuốc trưa nay: <span class="text-brand-teal font-extrabold">11:30</span>
+</h2>
+<p class="text-slate-800 text-base font-semibold">
+              💊 <span class="underline decoration-amber-400 underline-offset-4 decoration-2">Metformin 500mg</span> (01 viên) — Uống ngay sau bữa ăn trưa no để tránh cồn cào dạ dày.
+            </p>
+</div>
+</div>
+<!-- Nút bấm to rõ "Đã uống thuốc" -->
+<div class="flex items-center gap-3 shrink-0">
+<button class="min-h-[54px] px-6 sm:px-8 py-3 rounded-xl bg-brand-teal hover:bg-brand-teal-dark active:scale-[0.98] text-white font-bold text-lg flex items-center justify-center gap-2.5 shadow-md transition-all" onclick="confirmMedication()" type="button">
+<span class="material-symbols-outlined text-[24px]">check_circle</span>
+<span>Đã uống thuốc</span>
+</button>
+<button class="min-h-[54px] px-4 py-3 rounded-xl bg-white hover:bg-amber-100 border border-amber-300 text-slate-700 font-semibold text-sm transition-colors" title="Báo lại sau 15 phút" type="button">
+<span class="material-symbols-outlined text-[20px]">snooze</span>
+</button>
+</div>
+</div>
+<!-- Hộp cảnh báo tương tác thực phẩm/thuốc -->
+<div class="mt-4 pt-4 border-t border-amber-200/80 flex items-start gap-2.5 text-slate-700 text-sm">
+<span class="material-symbols-outlined text-amber-700 text-[20px] shrink-0 mt-0.5">info</span>
+<span><strong>Lưu ý bác sĩ:</strong> Không uống Metformin chung với trà đậm đặc hoặc lúc đói bụng. Bác Mai nên chuẩn bị sẵn một cốc nước lọc ấm nhé.</span>
+</div>
+</section>
+<!-- 3. Hai thẻ tính năng lớn nổi bật (Grid 2 cột) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Thẻ 1: Chụp hoặc nạp đơn thuốc mới -->
+<section class="lg:col-span-5 bg-white rounded-2xl border-2 border-brand-teal p-6 lg:p-7 shadow-xs flex flex-col justify-between">
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-xl bg-brand-teal-light text-brand-teal flex items-center justify-center border border-brand-teal/20">
+<span class="material-symbols-outlined text-[28px]">document_scanner</span>
+</div>
+<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+              Nhận diện tự động AI
+            </span>
+</div>
+<div>
+<h3 class="text-xl font-bold text-slate-900">Chụp hoặc nạp đơn thuốc mới</h3>
+<p class="text-slate-600 text-sm mt-1.5 leading-relaxed">
+              Bác vừa tái khám hoặc có đơn thuốc mới? Hãy chụp ảnh toa thuốc hoặc tải tệp lên để Tiểu Bạch kiểm tra liều lượng và cảnh báo tương tác ngay lập tức.
+            </p>
+</div>
+<!-- Khu vực upload mô phỏng -->
+<div class="border-2 border-dashed border-slate-300 hover:border-brand-teal rounded-xl p-6 bg-slate-50/70 hover:bg-brand-teal-light/20 flex flex-col items-center justify-center text-center cursor-pointer transition-all group">
+<div class="w-12 h-12 rounded-full bg-white shadow-xs border border-surface-border text-brand-teal flex items-center justify-center group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[26px]">photo_camera</span>
+</div>
+<span class="mt-3 text-base font-bold text-slate-800">Bấm vào đây để chụp toa thuốc</span>
+<span class="text-xs text-slate-500 mt-1">Hỗ trợ ảnh rõ nét, đơn thuốc tay hoặc hóa đơn thuốc</span>
+</div>
+</div>
+<div class="pt-6 mt-4 border-t border-surface-border flex gap-3">
+<button class="flex-1 min-h-[50px] px-5 py-2.5 rounded-xl bg-brand-teal hover:bg-brand-teal-dark text-white font-bold text-base flex items-center justify-center gap-2 shadow-xs transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">upload_file</span>
+<span>Tải đơn thuốc</span>
+</button>
+<button class="min-h-[50px] px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-colors" type="button">
+            Lịch sử đơn
+          </button>
+</div>
+</section>
+<!-- Thẻ 2: Tủ thuốc gia đình của bạn (3 thuốc đang dùng) -->
+<section class="lg:col-span-7 bg-white rounded-2xl border border-surface-border p-6 lg:p-7 shadow-xs flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-xl bg-brand-mint-light text-brand-teal flex items-center justify-center border border-brand-mint-soft/60">
+<span class="material-symbols-outlined text-[28px]">medication</span>
+</div>
+<div>
+<h3 class="text-xl font-bold text-slate-900">Tủ thuốc gia đình của bạn</h3>
+<p class="text-slate-500 text-xs font-semibold">Hiện có 3 loại thuốc đang điều trị định kỳ</p>
+</div>
+</div>
+<span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">verified</span> Không xung đột
+            </span>
+</div>
+<!-- Tóm tắt 3 loại thuốc -->
+<div class="space-y-3 mt-4">
+<!-- Thuốc 1: Amlodipine 5mg -->
+<div class="p-3.5 rounded-xl border border-surface-border bg-slate-50 hover:bg-white hover:border-brand-teal/40 transition-all flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-10 rounded-full bg-brand-teal"></span>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-bold text-slate-900 text-base">Amlodipine</h4>
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-200 text-slate-700">5mg</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Huyết áp</span>
+</div>
+<p class="text-xs text-slate-600 mt-0.5">01 viên vào buổi sáng sau ăn • Còn đủ 18 ngày</p>
+</div>
+</div>
+<span class="text-xs font-bold text-brand-teal px-2.5 py-1 bg-white border border-surface-border rounded-lg shadow-2xs">
+                Đã uống 07:00
+              </span>
+</div>
+<!-- Thuốc 2: Metformin 500mg -->
+<div class="p-3.5 rounded-xl border-2 border-accent-border bg-accent-cream-light/60 flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-10 rounded-full bg-amber-500"></span>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-bold text-slate-900 text-base">Metformin</h4>
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-200 text-amber-900">500mg</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Đường huyết</span>
+</div>
+<p class="text-xs text-slate-700 mt-0.5">01 viên vào bữa trưa • Uống cùng hoặc sau bữa ăn</p>
+</div>
+</div>
+<span class="text-xs font-extrabold text-amber-800 px-2.5 py-1 bg-white border border-accent-border rounded-lg animate-pulse shadow-2xs">
+                Sắp đến giờ
+              </span>
+</div>
+<!-- Thuốc 3: Atorvastatin 20mg -->
+<div class="p-3.5 rounded-xl border border-surface-border bg-slate-50 hover:bg-white hover:border-brand-teal/40 transition-all flex items-center justify-between gap-3">
+<div class="flex items-center gap-3">
+<span class="w-2.5 h-10 rounded-full bg-slate-400"></span>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-bold text-slate-900 text-base">Atorvastatin</h4>
+<span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-200 text-slate-700">20mg</span>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Mỡ máu</span>
+</div>
+<p class="text-xs text-slate-600 mt-0.5">01 viên lúc 20:30 tối trước khi đi ngủ • Còn 6 viên</p>
+</div>
+</div>
+<span class="text-xs font-medium text-slate-500 px-2.5 py-1 bg-white border border-surface-border rounded-lg shadow-2xs">
+                Tối 20:30
+              </span>
+</div>
+</div>
+</div>
+<div class="pt-4 mt-4 border-t border-surface-border flex items-center justify-between">
+<span class="text-xs text-slate-500">Cập nhật bởi BS. Nguyễn (BV Lão Khoa)</span>
+<a class="text-sm font-bold text-brand-teal hover:underline flex items-center gap-1" href="#">
+<span>Xem chi tiết tủ thuốc</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</section>
+</div>
+<!-- 4. Thống kê tuân thủ & Người thân bảo hộ kết nối -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Thống kê tỷ lệ tuân thủ tuần này (95%) -->
+<section class="bg-white rounded-2xl border border-surface-border p-6 shadow-xs flex items-center justify-between gap-4">
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-brand-teal text-[22px]">trending_up</span>
+<h4 class="font-bold text-slate-900 text-base">Tỷ lệ tuân thủ tuần này</h4>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-extrabold text-slate-900 font-display">95%</span>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Rất xuất sắc</span>
+</div>
+<p class="text-xs text-slate-500">Bác Mai chỉ quên 1 cữ trong 7 ngày qua. Hãy tiếp tục duy trì nhé!</p>
+<!-- Thanh tiến trình màu Mint -->
+<div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-2">
+<div class="bg-brand-mint h-full rounded-full transition-all duration-500" style="width: 95%"></div>
+</div>
+</div>
+<div class="w-20 h-20 rounded-2xl bg-brand-mint-light/50 border border-brand-mint-soft flex flex-col items-center justify-center shrink-0 text-center p-2">
+<span class="material-symbols-outlined text-[30px] text-brand-teal">military_tech</span>
+<span class="text-[10px] font-bold text-brand-teal uppercase mt-0.5">Chuẩn y tế</span>
+</div>
+</section>
+<!-- Người thân bảo hộ đang kết nối -->
+<section class="bg-white rounded-2xl border border-surface-border p-6 shadow-xs flex items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-brand-teal-light text-brand-teal border border-brand-teal/20 flex items-center justify-center font-bold text-lg shrink-0">
+            QH
+          </div>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<h4 class="font-bold text-slate-900 text-base">Trần Quốc Huy</h4>
+<span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">Con trai</span>
+</div>
+<p class="text-xs text-slate-500">Người bảo hộ chính • Nhận tin nhắn khi uống thuốc</p>
+<div class="flex items-center gap-1.5 text-xs text-emerald-600 font-medium pt-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Đang kết nối giám sát an toàn</span>
+</div>
+</div>
+</div>
+<button class="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-surface-border text-slate-700 font-semibold text-xs transition-colors shrink-0 flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">call</span>
+<span>Gọi con</span>
+</button>
+</section>
+</div>
+</main>
+<!-- Footer Chuẩn Y Khoa Tiểu Bạch -->
+<footer class="mt-12 bg-white border-t border-surface-border py-8 text-slate-600">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+<div class="flex flex-col md:flex-row items-center justify-between gap-4 pb-6 border-b border-surface-border">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-brand-teal text-white flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-[20px]">medical_services</span>
+</div>
+<span class="font-display font-bold text-lg text-brand-teal">Tiểu Bạch MedSafety AI</span>
+<span class="text-xs text-slate-400 hidden sm:inline">|</span>
+<span class="text-xs text-slate-500 hidden sm:inline">Trợ lý y tế thông minh &amp; cảnh báo tương tác thuốc</span>
+</div>
+<div class="flex items-center gap-6 text-sm font-medium">
+<a class="hover:text-brand-teal transition-colors" href="#">Hướng dẫn sử dụng</a>
+<a class="hover:text-brand-teal transition-colors" href="#">Tổng đài y tế: 1900-8888</a>
+<a class="hover:text-brand-teal transition-colors" href="#">Chính sách bảo mật</a>
+</div>
+</div>
+<div class="flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-500 leading-relaxed">
+<p class="max-w-3xl text-center md:text-left">
+<strong>Tuyên bố trách nhiệm y khoa:</strong> Tiểu Bạch là hệ thống AI hỗ trợ quản trị tuân thủ dùng thuốc và cảnh báo tương tác dựa trên Dược thư Quốc gia Việt Nam. Mọi quyết định thay đổi liều dùng cần có ý kiến chỉ định trực tiếp từ Bác sĩ điều trị.
+        </p>
+<p class="shrink-0 text-slate-400">© 2025 Tiểu Bạch. Chuẩn Y Khoa Toàn Diện.</p>
+</div>
+</div>
+</footer>
+<script>
+    // Logic nút chỉnh cỡ chữ thân thiện cho người lớn tuổi
+    const btnNormal = document.getElementById('btn-font-normal');
+    const btnLarge = document.getElementById('btn-font-large');
+    const mainContent = document.getElementById('overview-content');
+
+    btnLarge.addEventListener('click', () => {
+      mainContent.style.fontSize = '112%';
+      btnLarge.classList.add('ring-2', 'ring-offset-1', 'ring-brand-teal');
+      btnNormal.classList.remove('ring-2');
+    });
+
+    btnNormal.addEventListener('click', () => {
+      mainContent.style.fontSize = '100%';
+      btnNormal.classList.add('ring-2', 'ring-offset-1', 'ring-slate-400');
+      btnLarge.classList.remove('ring-2');
+    });
+
+    // Thông báo xác nhận uống thuốc
+    function confirmMedication() {
+      alert("Đã ghi nhận Bác Mai uống Metformin 500mg lúc " + new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) + ". Thông báo an tâm đã được gửi tới người thân Trần Quốc Huy.");
+    }
+  </script>
+</body></html>
