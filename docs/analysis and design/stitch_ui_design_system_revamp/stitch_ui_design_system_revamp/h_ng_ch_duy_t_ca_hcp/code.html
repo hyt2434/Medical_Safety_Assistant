@@ -1,0 +1,792 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-bright":"#e7fef9","surface-container-highest":"#d0e7e2","tertiary-container":"#3c7963","surface-dim":"#c8dfda","primary-container":"#287a74","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","background":"#e7fef9","on-error":"#ffffff","on-surface-variant":"#3f4947","tertiary-fixed":"#b0f0d5","on-tertiary-fixed":"#002116","tertiary":"#20604b","secondary-container":"#9ef2e7","on-secondary-fixed-variant":"#00504a","on-secondary-container":"#097169","outline":"#6f7977","surface-container-high":"#d6ede8","surface-variant":"#d0e7e2","on-secondary":"#ffffff","tertiary-fixed-dim":"#94d3b9","on-secondary-fixed":"#00201d","on-primary-container":"#bbfff8","inverse-on-surface":"#dff6f1","outline-variant":"#bec9c7","error":"#ba1a1a","inverse-surface":"#203431","on-primary":"#ffffff","secondary":"#006a63","surface-container":"#dcf3ee","on-error-container":"#93000a","primary-fixed":"#a3f1e9","on-primary-fixed":"#00201e","surface-tint":"#0e6a64","on-primary-fixed-variant":"#00504b","on-tertiary-fixed-variant":"#0b513d","on-tertiary-container":"#c0ffe4","surface":"#e7fef9","secondary-fixed-dim":"#82d5cb","inverse-primary":"#87d4cd","error-container":"#ffdad6","surface-container-low":"#e1f8f3","primary":"#00615b","primary-fixed-dim":"#87d4cd","on-surface":"#0a1f1c","secondary-fixed":"#9ef2e7","on-background":"#0a1f1c"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-xl":"2.5rem","space-md":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","space-lg":"1.5rem","gutter-mobile":"1rem",gutter:"1.5rem",margin:"2rem","margin-mobile":"1rem"},fontFamily:{"body-md":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"]},fontSize:{"body-md":["14px",{lineHeight:"22px",fontWeight:"400"}],"headline-sm":["16px",{lineHeight:"24px",fontWeight:"600"}],"label-sm":["10px",{lineHeight:"14px",letterSpacing:"0.04em",fontWeight:"700"}],"body-lg":["16px",{lineHeight:"26px",fontWeight:"400"}],"headline-lg":["28px",{lineHeight:"36px",letterSpacing:"-0.015em",fontWeight:"600"}],"headline-xl":["36px",{lineHeight:"44px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-lg-mobile":["22px",{lineHeight:"30px",letterSpacing:"-0.01em",fontWeight:"600"}],"headline-xl-mobile":["28px",{lineHeight:"36px",letterSpacing:"-0.01em",fontWeight:"700"}],"label-lg":["14px",{lineHeight:"20px",letterSpacing:"0.01em",fontWeight:"600"}],"headline-md":["20px",{lineHeight:"28px",letterSpacing:"-0.01em",fontWeight:"600"}],"label-md":["12px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"18px",fontWeight:"400"}]}}}};</script></head><body class="bg-surface-container-lowest font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-surface-container-highest"><div class="h-20 w-full px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm"><span class="material-symbols-outlined text-[24px]">verified_user</span></div><div><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">Tiểu Bạch</span><span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm uppercase">HCP Portal</span></div><p class="font-body-sm text-body-sm text-on-surface-variant">Cổng Dược sĩ &amp; Bác sĩ lâm sàng</p></div></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-label-lg rounded-lg shadow-sm"><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="tong-quan-hcp" href="#">Tổng quan HCP</a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors inline-flex items-center gap-2" data-path="hang-cho-duyet-ca" href="#">Hàng chờ duyệt ca<span class="px-1.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">12 ca</span></a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="danh-gia-tuong-tac" href="#">Đánh giá tương tác</a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="danh-sach-benh-nhan" href="#">Danh sách bệnh nhân</a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="co-so-du-lieu-duoc" href="#">Cơ sở dữ liệu Dược (DAV / DDInter)</a></nav></div><div class="flex items-center gap-space-md"><div class="hidden 2xl:flex items-center gap-space-xs px-3 py-1.5 rounded-full bg-surface-container-low border border-surface-container-highest"><span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span><span class="font-body-sm text-body-sm text-on-surface-variant">Trực tuyến • Bệnh viện Chợ Rẫy / ĐH Y Dược</span></div><button class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-highest text-on-surface-variant hover:border-outline-variant hover:text-on-surface transition-all" type="button"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-body-sm text-body-sm">Tra cứu thuốc</span><kbd class="px-1.5 py-0.5 rounded bg-surface-container-lowest border border-outline-variant font-label-sm text-label-sm text-on-surface-variant">⌘K</kbd></button><button aria-label="Thông báo lâm sàng" class="relative w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><div class="h-6 w-px bg-surface-container-highest hidden sm:block"></div><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:block text-left"><div class="font-label-md text-label-md text-on-surface leading-tight">DS. Lê Minh An</div><div class="flex items-center gap-space-xs"><span class="font-body-sm text-body-sm text-on-surface-variant">Dược sĩ lâm sàng</span><span class="text-outline-variant">•</span><a class="font-label-sm text-label-sm text-secondary hover:underline" data-path="chuyen-giao-dien-benh-nhan" href="#">Chuyển Portal Bệnh nhân</a></div></div></div></div></div></header><main class="w-full pt-20 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full">
+<!-- Subtle Clinical Background Ambient Glow -->
+<div class="relative w-full px-gutter py-space-lg flex flex-col gap-space-lg">
+<!-- Top Action & Breadcrumb Header Section -->
+<div class="w-full p-3.5 rounded-xl border border-[#facc15]/50 flex items-center justify-between gap-space-md shadow-sm" style="background: linear-gradient(90deg, rgb(255, 249, 196) 0%, rgb(254, 240, 138) 100%);"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-[#eab308]/20 flex items-center justify-center text-[#854d0e] shrink-0"><span class="material-symbols-outlined text-[20px]">tips_and_updates</span></div><div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-space-sm"><span class="font-label-md text-label-md text-[#713f12] font-bold">Cập nhật Dược lâm sàng:</span><span class="font-body-sm text-body-sm text-[#854d0e]">Ưu tiên thẩm định ngay 3 đơn thuốc OCR mờ và các ca tương tác phối hợp NSAID/Kháng đông trước giờ giao ban chiều.</span></div></div><div class="hidden md:flex items-center gap-2 shrink-0"><span class="px-2 py-0.5 rounded-full bg-white/80 text-[#854d0e] font-label-sm text-label-sm font-semibold border border-[#facc15]">Hôm nay: 12 ca chờ</span></div></div><section class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs max-w-3xl">
+<nav class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
+<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px]">domain</span>
+<span class="">Trang chủ HCP</span>
+</a>
+<span class="text-outline-variant font-body-sm text-body-sm">›</span>
+<span class="text-primary font-label-md text-label-md">Hàng chờ duyệt ca lâm sàng</span>
+</nav>
+<div class="flex items-center gap-space-sm pt-1">
+<div class="w-2.5 h-7 bg-primary rounded-full hidden sm:block"></div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Hàng chờ duyệt ca lâm sàng</h1>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+            12 ca ưu tiên
+          </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          Danh sách hồ sơ đơn thuốc được gửi từ ứng dụng bệnh nhân và hệ thống OCR tự động, cần dược sĩ/bác sĩ lâm sàng thẩm định tính an toàn tương tác thuốc.
+        </p>
+</div>
+<!-- Action Control Buttons -->
+<div class="flex items-center gap-space-xs flex-wrap self-start lg:self-end">
+<button class="px-3.5 py-2.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container hover:text-primary transition-all flex items-center gap-2 font-label-md text-label-md shadow-sm" id="btnRefresh" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary" id="refreshIcon">autorenew</span>
+<span class="">Làm mới <span class="text-outline text-label-sm">(10s)</span></span>
+</button>
+<button class="px-3.5 py-2.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-all flex items-center gap-2 font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-secondary">tune</span>
+<span class="">Bộ lọc nâng cao</span>
+</button>
+<button class="px-4 py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center gap-2 font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span class="">Xuất danh sách Excel</span>
+</button>
+</div>
+</section>
+<!-- Metrics Strip & Interactive Queue Filters -->
+<section class="grid grid-cols-2 md:grid-cols-5 gap-space-sm">
+<button class="filter-tab active text-left p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col gap-1 shadow-sm border-l-4 border-primary" data-filter="all" type="button">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tất cả chờ duyệt</span>
+<span class="material-symbols-outlined text-[18px] text-primary">inbox</span>
+</div>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-lg text-headline-lg text-on-surface">12</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">hồ sơ</span>
+</div>
+</button>
+<button class="filter-tab text-left p-3.5 rounded-xl bg-surface-container-lowest hover:bg-error-container/20 transition-all flex flex-col gap-1 shadow-sm" data-filter="major" type="button">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-error uppercase tracking-wider">Mức độ Major</span>
+<span class="material-symbols-outlined text-[18px] text-error">dangerous</span>
+</div>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-lg text-headline-lg text-error">05</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">nghiêm trọng</span>
+</div>
+</button>
+<button class="filter-tab text-left p-3.5 rounded-xl transition-all flex flex-col gap-1 shadow-sm border border-[#facc15] hover:shadow-md" data-filter="moderate" style="background-color: rgb(255, 248, 176);" type="button"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-[#854d0e] uppercase tracking-wider font-bold">Mức độ Moderate</span><span class="material-symbols-outlined text-[18px] text-[#ca8a04]">warning_amber</span></div><div class="flex items-baseline gap-1.5"><span class="font-headline-lg text-headline-lg text-[#713f12] font-bold">04</span><span class="font-label-sm text-label-sm text-[#854d0e]">theo dõi sát</span></div></button>
+<button class="filter-tab text-left p-3.5 rounded-xl transition-all flex flex-col gap-1 shadow-sm border border-[#fde047] hover:shadow-md" data-filter="ocr" style="background-color: rgb(254, 249, 195);" type="button"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm text-[#854d0e] uppercase tracking-wider font-bold">Cần sửa OCR</span><span class="material-symbols-outlined text-[18px] text-[#eab308]">document_scanner</span></div><div class="flex items-baseline gap-1.5"><span class="font-headline-lg text-headline-lg text-[#713f12] font-bold">03</span><span class="font-label-sm text-label-sm text-[#854d0e]">đơn scan mờ</span></div></button>
+<button class="filter-tab text-left p-3.5 rounded-xl bg-surface-container-lowest hover:bg-surface-container-low transition-all flex flex-col gap-1 shadow-sm col-span-2 md:col-span-1" data-filter="resolved" type="button">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider">Đã giải quyết</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary">task_alt</span>
+</div>
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-lg text-headline-lg text-tertiary">18</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">hôm nay</span>
+</div>
+</button>
+</section>
+<!-- Search & Facet Bar -->
+<section class="bg-surface-container-lowest p-space-sm rounded-xl shadow-sm flex flex-col md:flex-row gap-space-sm items-stretch md:items-center justify-between">
+<!-- Search Input -->
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">search</span>
+<input class="w-full pl-11 pr-4 py-2.5 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md placeholder:text-outline-variant focus:outline-none focus:bg-surface-container-lowest transition-all" id="tableSearch" placeholder="Tìm theo Mã ca (TC...), Mã bệnh nhân, Tên thuốc hoặc Bác sĩ kê đơn..." type="text">
+<span class="absolute right-3 top-1/2 -translate-y-1/2 text-outline font-label-sm text-label-sm bg-surface-container-highest/60 px-1.5 py-0.5 rounded pointer-events-none">
+          ESC xóa
+        </span>
+</div>
+<!-- Facet Selection Dropdown -->
+<div class="flex items-center gap-space-sm">
+<div class="relative min-w-[220px]">
+<select class="w-full appearance-none pl-3.5 pr-10 py-2.5 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md focus:outline-none focus:bg-surface-container-lowest transition-all cursor-pointer" id="facilityFilter">
+<option value="all">Tất cả cơ sở khám chữa</option>
+<option value="cr">Bệnh viện Chợ Rẫy (Khoa Tim mạch/Ghép thận)</option>
+<option value="dhyd">Bệnh viện ĐH Y Dược TP.HCM</option>
+<option value="outpatient">Phòng khám Ngoại trú Kê đơn</option>
+<option value="ocr-manual">Đơn gửi tự do từ ứng dụng bệnh nhân</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant text-[18px]">keyboard_arrow_down</span>
+</div>
+<div class="hidden lg:flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm px-2">
+<span class="">Sắp xếp:</span>
+<span class="font-label-md text-label-md text-primary font-semibold">Ưu tiên mức độ cao nhất</span>
+</div>
+</div>
+</section>
+<!-- Main Clinical Queue Data Table Card -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse min-w-[1100px]">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
+<th class="py-3.5 px-4 w-[160px]" scope="col">Mã ca &amp; Gửi</th>
+<th class="py-3.5 px-4 w-[220px]" scope="col">Bệnh nhân &amp; Thông tin</th>
+<th class="py-3.5 px-4" scope="col">Đơn thuốc &amp; Cặp tương tác chính</th>
+<th class="py-3.5 px-4 w-[170px]" scope="col">Mức độ cảnh báo</th>
+<th class="py-3.5 px-4 w-[150px]" scope="col">Nguồn chuẩn hóa</th>
+<th class="py-3.5 px-4 w-[150px]" scope="col">Trạng thái</th>
+<th class="py-3.5 px-4 text-right w-[160px]" scope="col">Thao tác</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface" id="queueTableBody">
+<!-- Row 1: Clopidogrel + Omeprazole (Major) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">TC-0982</span>
+<span class="w-2 h-2 rounded-full bg-error" title="Cần xử lý khẩn cấp"></span>
+</div>
+<span class="text-outline font-label-sm text-label-sm mt-0.5">15 phút trước</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm text-[11px]">BS. Trần Quốc Khải</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Nguyễn Văn An</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="">BN00123</span>
+<span class="">•</span>
+<span class="">68 tuổi</span>
+<span class="">•</span>
+<span class="">Nam</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 text-[11px] text-outline font-label-sm">
+<span class="material-symbols-outlined text-[13px]">monitor_heart</span>
+<span class="">Hậu NMCT, Loét dạ dày tá tràng</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1.5">
+<div class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="">Clopidogrel 75mg</span>
+<span class="text-error font-bold">⇄</span>
+<span class="">Omeprazole 20mg</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    Omeprazole ức chế enzyme CYP2C19, làm giảm chuyển hóa Clopidogrel thành chất có hoạt tính sinh học, tăng nguy cơ biến cố huyết khối tái phát.
+                  </p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Khuyến cáo: Thay Pantoprazole</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">report</span>
+                  Major (Nghiêm trọng)
+                </span>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface">DAV Cục Dược</span>
+<span class="text-outline font-body-sm text-body-sm">CV 1238/QLD-CL</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                  Chờ duyệt
+                </span>
+</td>
+<td class="py-4 px-4 align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors font-label-sm text-label-sm flex items-center gap-1 shadow-sm" type="button">
+<span class="">Thẩm định</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+<button aria-label="Xem đơn gốc OCR" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Xem ảnh đơn gốc" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Simvastatin + Amlodipine (Moderate) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">TC-0981</span>
+</div>
+<span class="text-outline font-label-sm text-label-sm mt-0.5">38 phút trước</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm text-[11px]">BS. Phan Mỹ Linh</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Trần Thị Bích Mai</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="">BN00459</span>
+<span class="">•</span>
+<span class="">54 tuổi</span>
+<span class="">•</span>
+<span class="">Nữ</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 text-[11px] text-outline font-label-sm">
+<span class="material-symbols-outlined text-[13px]">cardiology</span>
+<span class="">Tăng huyết áp vô căn, RLLP máu</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1.5">
+<div class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="">Simvastatin 40mg</span>
+<span class="text-secondary font-bold">⇄</span>
+<span class="">Amlodipine 10mg</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    Amlodipine ức chế nhẹ CYP3A4, tăng nồng độ Simvastatin trong huyết tương dẫn đến tăng nguy cơ bệnh cơ và tiêu cơ vân (Rhabdomyolysis).
+                  </p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm text-[#713f12] font-semibold border border-[#fde047]" style="background-color: rgb(255, 248, 176);">Giới hạn Simvastatin ≤ 20mg/ngày</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">info</span>
+                  Moderate (Theo dõi)
+                </span>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface">DDInter 2.0</span>
+<span class="text-outline font-body-sm text-body-sm">Cơ chế CYP3A4</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                  Đang phân tích
+                </span>
+</td>
+<td class="py-4 px-4 align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-high text-on-surface hover:bg-primary hover:text-on-primary transition-colors font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="">Thẩm định</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+<button aria-label="Xem đơn gốc OCR" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Xem ảnh đơn gốc" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Warfarin + Ciprofloxacin (Major) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">TC-0980</span>
+<span class="w-2 h-2 rounded-full bg-error" title="Cần xử lý khẩn cấp"></span>
+</div>
+<span class="text-outline font-label-sm text-label-sm mt-0.5">52 phút trước</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm text-[11px]">BS. Hoàng Gia Bảo</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Đặng Văn Khoa</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="">BN00812</span>
+<span class="">•</span>
+<span class="">72 tuổi</span>
+<span class="">•</span>
+<span class="">Nam</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 text-[11px] text-outline font-label-sm">
+<span class="material-symbols-outlined text-[13px]">favorite</span>
+<span class="">Rung nhĩ van cơ học, Viêm đường tiết niệu</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1.5">
+<div class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="">Warfarin 5mg</span>
+<span class="text-error font-bold">⇄</span>
+<span class="">Ciprofloxacin 500mg</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    Ciprofloxacin ức chế CYP1A2 và giảm chuyển hóa Warfarin; suy giảm hệ vi sinh tổng hợp vitamin K, gây kéo dài INR đột ngột và nguy cơ xuất huyết tiêu hóa / não nặng.
+                  </p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="px-2 py-0.5 rounded bg-error-container/40 text-on-error-container font-label-sm text-label-sm">Theo dõi INR mỗi 48h hoặc đổi kháng sinh</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">report</span>
+                  Major (Nghiêm trọng)
+                </span>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface">DAV / Dược thư QG</span>
+<span class="text-outline font-body-sm text-body-sm">Đồng thuận AHFS</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">outgoing_mail</span>
+                  Chờ BS phản hồi
+                </span>
+</td>
+<td class="py-4 px-4 align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors font-label-sm text-label-sm flex items-center gap-1 shadow-sm" type="button">
+<span class="">Thẩm định</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+<button aria-label="Xem đơn gốc OCR" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Xem ảnh đơn gốc" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: OCR Check required (Methotrexate + NSAID) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-secondary tracking-tight font-semibold">TC-0979</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container text-outline font-label-sm text-[10px]">OCR Mờ</span>
+</div>
+<span class="text-outline font-label-sm text-label-sm mt-0.5">1 giờ trước</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm text-[11px]">Đơn ảnh tải lên</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Vũ Thị Lan Hương</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="">BN00931</span>
+<span class="">•</span>
+<span class="">49 tuổi</span>
+<span class="">•</span>
+<span class="">Nữ</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 text-[11px] text-outline font-label-sm">
+<span class="material-symbols-outlined text-[13px]">elderly</span>
+<span class="">Viêm khớp dạng thấp, Hội chứng cổ vai cánh tay</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1.5">
+<div class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="">Methotrexate 10mg/tuần</span>
+<span class="text-error font-bold">⇄</span>
+<span class="">Meloxicam 7.5mg (?)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    NSAID làm giảm thải trừ qua ống thận và thanh thải Methotrexate, làm tăng độc tính tủy xương và suy thận cấp. Cần xác nhận lại liều meloxicam từ bản viết tay.
+                  </p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold text-[#713f12] border border-[#facc15] inline-flex items-center gap-1" style="background-color: rgb(254, 240, 138);"><span class="material-symbols-outlined text-[14px] text-[#b45309]">priority_high</span>Độ chính xác OCR: 78% (Cần sửa chuỗi liều)</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">report</span>
+                  Major (Nghiêm trọng)
+                </span>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-secondary">Đơn viết tay (OCR)</span>
+<span class="text-outline font-body-sm text-body-sm">PK Đa khoa quận</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px] text-secondary">edit_document</span>
+                  Cần sửa OCR
+                </span>
+</td>
+<td class="py-4 px-4 align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container transition-colors font-label-sm text-label-sm flex items-center gap-1 shadow-sm" type="button">
+<span class="">Soát OCR</span>
+<span class="material-symbols-outlined text-[14px]">edit</span>
+</button>
+<button aria-label="Xem đơn gốc OCR" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Xem ảnh đơn gốc" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: ACEi + Spironolactone + K+ Supplement (Major) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">TC-0978</span>
+</div>
+<span class="text-outline font-label-sm text-label-sm mt-0.5">1 giờ 20 phút trước</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm text-[11px]">BS. Lê Văn Trí</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Phạm Thành Đạt</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="">BN00572</span>
+<span class="">•</span>
+<span class="">61 tuổi</span>
+<span class="">•</span>
+<span class="">Nam</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 text-[11px] text-outline font-label-sm">
+<span class="material-symbols-outlined text-[13px]">vital_signs</span>
+<span class="">Suy tim mạn NYHA II, Đái tháo đường T2</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1.5">
+<div class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="">Lisinopril 10mg</span>
+<span class="text-error font-bold">⇄</span>
+<span class="">Spironolactone 25mg</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    Phối hợp làm tăng giữ Kali máu nghiêm trọng, đặc biệt nguy cơ cao trên bệnh nhân kèm bệnh thận đái tháo đường (Diabetic Nephropathy).
+                  </p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Kiểm tra eGFR &amp; Điện giải đồ K+</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">report</span>
+                  Major (Nghiêm trọng)
+                </span>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface">DAV / DDInter</span>
+<span class="text-outline font-body-sm text-body-sm">Mã TTT-K09</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                  Chờ duyệt
+                </span>
+</td>
+<td class="py-4 px-4 align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors font-label-sm text-label-sm flex items-center gap-1 shadow-sm" type="button">
+<span class="">Thẩm định</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+<button aria-label="Xem đơn gốc OCR" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Xem ảnh đơn gốc" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6: Levothyroxine + Canxi Cacbonat (Moderate) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">TC-0975</span>
+</div>
+<span class="text-outline font-label-sm text-label-sm mt-0.5">2 giờ trước</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm text-[11px]">BS. Đỗ Thị Thu Cúc</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Hoàng Mỹ Duyên</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="">BN01004</span>
+<span class="">•</span>
+<span class="">36 tuổi</span>
+<span class="">•</span>
+<span class="">Nữ</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 text-[11px] text-outline font-label-sm">
+<span class="material-symbols-outlined text-[13px]">healing</span>
+<span class="">Suy giáp sau phẫu thuật, Loãng xương</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1.5">
+<div class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="">Levothyroxine 50mcg</span>
+<span class="text-secondary font-bold">⇄</span>
+<span class="">Canxi Carbonate 500mg</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    Canxi tạo phức chelat không tan với Levothyroxine tại đường tiêu hóa, làm giảm đáng kể khả năng hấp thu hormone tuyến giáp.
+                  </p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm text-[#713f12] font-semibold border border-[#fde047]" style="background-color: rgb(255, 248, 176);">Khuyến cáo: Uống cách nhau ít nhất 4 giờ</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">info</span>
+                  Moderate (Theo dõi)
+                </span>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface">DDInter 2.0</span>
+<span class="text-outline font-body-sm text-body-sm">Cơ chế Hấp thu</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                  Chờ duyệt
+                </span>
+</td>
+<td class="py-4 px-4 align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-high text-on-surface hover:bg-primary hover:text-on-primary transition-colors font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="">Thẩm định</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+<button aria-label="Xem đơn gốc OCR" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Xem ảnh đơn gốc" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 7: Metformin + Cản quang tĩnh mạch (Minor / Cảnh báo nhẹ) -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group">
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary tracking-tight font-semibold">TC-0972</span>
+</div>
+<span class="text-outline font-label-sm text-label-sm mt-0.5">3 giờ trước</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm text-[11px]">BS. Nguyễn Minh Tuấn</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-lg text-label-lg font-semibold text-on-surface">Lê Hoàng Nam</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="">BN00344</span>
+<span class="">•</span>
+<span class="">58 tuổi</span>
+<span class="">•</span>
+<span class="">Nam</span>
+</div>
+<div class="inline-flex items-center gap-1 mt-1 text-[11px] text-outline font-label-sm">
+<span class="material-symbols-outlined text-[13px]">radiology</span>
+<span class="">Chỉ định chụp CT cản quang, ĐTĐ Type 2</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1.5">
+<div class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="">Metformin 850mg</span>
+<span class="text-tertiary font-bold">⇄</span>
+<span class="">Iodinated Contrast Media</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+                    Thuốc cản quang đường tĩnh mạch có nguy cơ gây suy thận cấp, dẫn đến tích lũy Metformin và tăng nguy cơ nhiễm toan acid lactic.
+                  </p>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Tạm ngừng 48h trước và sau chụp CT</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">check_circle</span>
+                  Minor (Lưu ý)
+                </span>
+</td>
+<td class="py-4 px-4 align-top">
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-on-surface">DAV Cục Dược</span>
+<span class="text-outline font-body-sm text-body-sm">QĐ 342/SYT</span>
+</div>
+</td>
+<td class="py-4 px-4 align-top">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-tertiary-container/30 text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">done_all</span>
+                  Đã duyệt hướng dẫn
+                </span>
+</td>
+<td class="py-4 px-4 align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-colors font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="">Xem lại</span>
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+</button>
+<button aria-label="Xem đơn gốc OCR" class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" title="Xem ảnh đơn gốc" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer: Pagination & Legend Section -->
+<div class="bg-surface-container-low p-space-md flex flex-col md:flex-row items-center justify-between gap-space-md">
+<!-- Status Counter -->
+<div class="flex items-center gap-space-sm">
+<span class="font-body-md text-body-md text-on-surface">
+            Đang hiển thị <strong class="font-semibold text-primary">1-7</strong> trong tổng số <strong class="font-semibold text-primary">12 ca</strong> đang chờ duyệt
+          </span>
+<span class="text-outline hidden sm:inline">•</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm hidden sm:inline">Thời gian trung bình xử lý: 3.4 phút/ca</span>
+</div>
+<!-- Clinical Safety Severity Legend -->
+<div class="flex items-center gap-space-sm flex-wrap justify-center text-label-sm font-label-sm">
+<span class="text-outline font-semibold">Chú giải mức độ:</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+            Major: Nguy hiểm, chống chỉ định
+          </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+            Moderate: Cần chỉnh liều/theo dõi
+          </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+            Minor: Nhẹ, ít biểu hiện
+          </span>
+</div>
+<!-- Pagination Controls -->
+<div class="flex items-center gap-1">
+<button aria-label="Trang trước" class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors disabled:opacity-40" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm font-bold flex items-center justify-center shadow-sm" type="button">
+            1
+          </button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-label-sm hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+            2
+          </button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-label-sm hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+            3
+          </button>
+<button aria-label="Trang tiếp" class="w-8 h-8 rounded-lg bg-surface-container-lowest text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bottom Advisory Clinical Bento Context Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-space-md pt-space-xs">
+<!-- Card 1: Nguồn chuẩn hóa DAV & DDInter -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">database</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Đồng bộ Dược thư &amp; DAV</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Dữ liệu đối soát tự động theo Thông tư 30/2020/TT-BYT và danh mục cập nhật thuốc tương tác chống chỉ định từ Cục Quản lý Dược Việt Nam.
+          </p>
+</div>
+</div>
+<!-- Card 2: Quy trình thẩm định nhanh -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-secondary-fixed text-on-secondary-fixed-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">speed</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Hỗ trợ Phê duyệt 1 chạm</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Mẫu khuyến cáo can thiệp dựng sẵn cho phép Dược sĩ gửi phản hồi lập tức tới Bác sĩ điều trị hoặc thông báo dặn dò cho Bệnh nhân qua ứng dụng di động.
+          </p>
+</div>
+</div>
+<!-- Card 3: Cảnh báo đơn OCR cần can thiệp -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-error-container/40 text-error flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">document_scanner</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Kiểm tra Chữ ký &amp; OCR</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            3 đơn viết tay tải từ ứng dụng có độ tương phản thấp. Dược sĩ vui lòng bấm <strong>"Soát OCR"</strong> để xác thực hoạt chất và hàm lượng trước khi duyệt cảnh báo.
+          </p>
+</div>
+</div>
+</section>
+</div>
+<!-- Interactive JavaScript for Tab Filtering and Search Filter -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const searchInput = document.getElementById('tableSearch');
+      const tableRows = document.querySelectorAll('#queueTableBody tr');
+      const filterTabs = document.querySelectorAll('.filter-tab');
+      const btnRefresh = document.getElementById('btnRefresh');
+      const refreshIcon = document.getElementById('refreshIcon');
+
+      // Live search input filtering across multiple table text targets
+      if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+          const query = e.target.value.toLowerCase().trim();
+          tableRows.forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            if (rowText.includes(query)) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          });
+        });
+
+        // Keydown ESC clear support
+        searchInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            searchInput.value = '';
+            tableRows.forEach(row => row.style.display = '');
+          }
+        });
+      }
+
+      // Filter tabs interaction (simulate categorization)
+      filterTabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+          filterTabs.forEach(t => {
+            t.classList.remove('bg-surface-container-low', 'border-l-4', 'border-primary');
+            t.classList.add('bg-surface-container-lowest');
+          });
+          this.classList.remove('bg-surface-container-lowest');
+          this.classList.add('bg-surface-container-low', 'border-l-4', 'border-primary');
+
+          const filterType = this.getAttribute('data-filter');
+          tableRows.forEach(row => {
+            const rowText = row.innerText.toLowerCase();
+            if (filterType === 'all') {
+              row.style.display = '';
+            } else if (filterType === 'major') {
+              row.style.display = rowText.includes('major') ? '' : 'none';
+            } else if (filterType === 'moderate') {
+              row.style.display = rowText.includes('moderate') ? '' : 'none';
+            } else if (filterType === 'ocr') {
+              row.style.display = (rowText.includes('ocr') || rowText.includes('viết tay')) ? '' : 'none';
+            } else if (filterType === 'resolved') {
+              row.style.display = rowText.includes('đã duyệt') ? '' : 'none';
+            }
+          });
+        });
+      });
+
+      // Quick auto-refresh simulation with icon rotation
+      if (btnRefresh && refreshIcon) {
+        btnRefresh.addEventListener('click', function () {
+          refreshIcon.classList.add('animate-spin');
+          setTimeout(() => {
+            refreshIcon.classList.remove('animate-spin');
+          }, 600);
+        });
+      }
+    });
+  </script>
+</div></main><footer class="w-full bg-surface-container-low border-t border-surface-container-highest py-6"><div class="w-full px-gutter flex flex-col sm:flex-row items-center justify-between gap-space-sm text-center sm:text-left"><div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm"><span class="material-symbols-outlined text-primary text-[18px]">health_and_safety</span><span class="">Tiểu Bạch HCP Portal • Dữ liệu đối soát chuẩn hóa từ Cục Quản lý Dược (DAV) &amp; DDInter.</span></div><p class="font-label-sm text-label-sm text-outline">Không thay thế hội chẩn lâm sàng trực tiếp.</p></div></footer>
+
+</body></html>
