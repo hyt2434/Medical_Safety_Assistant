@@ -1,0 +1,57 @@
+\input{report-preamble}
+\begin{document}
+\begin{center}
+{\Large\bfseries Weekly Report 2 -- Inception}\\[3pt]
+Sprint 1 \quad 12--18 October 2026\\
+Group 2 -- Medication Safety Assistant
+\end{center}
+\textbf{Report date:} 18 October 2026. \textbf{Project board:} \url{https://github.com/users/hyt2434/projects/3/views/1}\\
+\textbf{Planning baseline:} Software Development Plan v1.0 and Vision Document v1.0, both dated 18 October 2026.
+
+\section{Weekly summary}
+The team reports raw medicine-data collection, preliminary processing, feasibility checks, refinement of the concept and requirements, and a UI prototype. The repository confirms planning-document commits on 16 October and frontend/prototype commits on 16--18 October. The submitted Software Development Plan and Vision Document are both version 1.0 dated 18 October; this report follows those updated baselines rather than treating the earlier commits as proof of final acceptance. The plan's Sprint 1 output is the PA1 package: Project Plan, Vision, 3--6 representative UI screens, two weekly reports and tracking evidence. The raw-data and feasibility outputs were described by the team but are not evidenced by a linked result in this report; attach their files, sample counts and measurements before claiming them as verified deliverables. At capture time, PA1 issues \#11--\#14 remained open in GitHub Project (\#11 In Review, the rest In Progress).
+
+\section{Individual contributions}
+\MemberBlock{Cao Hoàng Long}{Team-reported: collect raw DAV data, perform preliminary cleaning and feasibility checks, and refine the requirements and data approach. Add source/version, sample count, cleaning log and test result as evidence; the current issue/commit record does not independently confirm completion.}{19--25 Oct, Sprint 2: review requirements, medication-data provenance and the Module 1--2 interface; prepare \TaskLink{44}{a shared input/output contract and expected--actual tests}. Begin limited \TaskLink{45}{NLP intent} and \TaskLink{46}{DAV normalization/ingredient mapping feasibility} slices with measured outputs. \TaskLink{47}{Module 3 result-state design} is optional; \TaskLink{48}{E2E smoke test} is conditional. The full medication-safety PoC remains a Sprint 3 target.}{Discuss incomplete DAV records, brand-to-ingredient ambiguity, DDInter coverage, licensing/reuse rights and the Module 2/3 boundary: identification in Module 2; interaction and duplicate-ingredient assessment in Module 3.}
+\MemberBlock{Hoàng Yến Trang -- Team Lead}{Project Plan and Vision v1.0 are dated 18 October; the UI prototype and React frontend have 16--18 Oct commits. GitHub keeps \#11 In Review and \#12 In Progress, so the PA1 package still needs an acceptance review.}{19--25 Oct, Sprint 2: review the main workflows, user-confirmation screens, module interface and tests; begin \TaskLink{41}{a limited OCR feasibility implementation/report} for clear printed or digital prescriptions, with editable confirmation. Coordinate \TaskLink{48}{a smoke test} only if prerequisite slices run. \TaskLink{43}{manual input} is assigned to hyt2434 although its issue body plans Thành; reconcile that assignment.}{Discuss OCR image quality, privacy-safe test images and the shared confirmation schema. Handwritten prescription support is outside the initial release.}
+\MemberBlock{Lỗ Chí Thành}{The team reports feasibility work on multimodal input. No personal implementation commit is visible in the exported Git log for this week; confirm the actual result and attach evidence.}{19--25 Oct, Sprint 2: review voice/manual input requirements and module fields; begin \TaskLink{42}{voice-to-text feasibility and confirmation tests}. \TaskLink{43}{manual entry with verified suggestions} is planned for Thành in the issue body but currently assigned to hyt2434; confirm/reassign. Join \TaskLink{48}{the E2E smoke test} only if the required slices are runnable. Reminder design may be reviewed now; full Module 5 implementation belongs to Sprint 5.}{Discuss Vietnamese medicine-name recognition, microphone permission, editable transcripts, verified suggestion data and manual fallback.}
+
+\section{Current PA1 task register}
+\small
+\begin{longtable}{p{1.0cm}p{3.0cm}p{2.0cm}p{1.7cm}p{2.1cm}p{3.2cm}}
+\toprule Task & GitHub assignee(s) & Created & Due field & Last update & Name / current Project status \\ \midrule
+\#11 & hyt2434, DRAGON-1312 & 16 Oct & Not set & 16 Oct 06:13 UTC & Plan and Vision; In Review \\ 
+\#12 & hyt2434 & 16 Oct & Not set & 16 Oct 03:39 UTC & 3--6 UI screens; In Progress \\ 
+\#13 & hyt2434, DRAGON-1312 & 16 Oct & Not set & 16 Oct 03:39 UTC & Reports and PA1 package; In Progress \\ 
+\#14 & hyt2434 & 16 Oct & Not set & 16 Oct 03:39 UTC & Tools/tracking; In Progress \\ \bottomrule
+\end{longtable}
+\normalsize
+The issues' descriptions give a planned PA1 target of 18 October, but a distinct GitHub due-date field is not visible in the public Project/issue view. GitHub handles do not identify every team member with certainty; planned owners come from issue descriptions and the Project Plan. Screenshots below show name, description and assignee; exact creation/update timestamps are transcribed from the public GitHub API.
+
+\section{Next-week to-do: PA2, 19--25 October}
+The following PA2 issues were created in GitHub on 18 October. They are future to-do items, \emph{not} completed Week 2 work. Their issue bodies specify a 19 October start and 25 October target, except \#44's proposed 23 October target. These are target dates in issue descriptions, not a verified GitHub Project Due Date field. According to the updated Project Plan, 19--25 October is Sprint 2's \emph{design-review} week: review requirements/workflows/architecture, agree on confirmation, interfaces, data formats, safety rules and test plans. Issue descriptions also ask for early implementation/feasibility work; treat any such work as a limited Sprint 2 slice, not as completion of the Sprint 3 modules. Build 0.1, integrating four input modes and safety checks, is targeted for 15 November.
+\small
+\begin{longtable}{p{0.8cm}p{4.9cm}p{2.4cm}p{2.2cm}p{1.4cm}p{1.7cm}}
+\toprule Issue & Task / expected output & Current GitHub assignee & Planned owner & Created & Last update (UTC) \\ \midrule
+\#41 & OCR code, feasibility report and measured tests & hyt2434 & Trang & 18 Oct & 09:46 \\
+\#42 & Voice-to-text code, report and confirmation tests & thanh12388h & Thành & 18 Oct & 09:46 \\
+\#43 & Manual input with validated suggestions & hyt2434 & Thành & 18 Oct & 09:48 \\
+\#44 & Shared input/output contract and expected--actual tests & DRAGON-1312 & Long & 18 Oct & 09:48 \\
+\#45 & Chatbot/NLP intent flow and constrained explanation & DRAGON-1312 & Long & 18 Oct & 09:48 \\
+\#46 & DAV normalization, ingredient mapping and DDInter lookup feasibility & DRAGON-1312 & Long & 18 Oct & 09:48 \\
+\#47 & Module 3 safety interface/result-state design (stretch) & DRAGON-1312 & Long & 18 Oct & 09:48 \\
+\#48 & E2E smoke test across OCR, voice, manual and Module 2 (stretch) & hyt2434, thanh12388h, DRAGON-1312 & Whole team & 18 Oct & 09:48 \\ \bottomrule
+\end{longtable}
+\normalsize
+Issue details and acceptance criteria: \TaskLink{41}{OCR}; \TaskLink{42}{voice}; \TaskLink{43}{manual entry}; \TaskLink{44}{shared contract}; \TaskLink{45}{NLP}; \TaskLink{46}{Module 2 data work}; \TaskLink{47}{Module 3 design}; \TaskLink{48}{E2E test}. All eight issues were Open at verification time. \#43's assignee differs from its planned owner and should be corrected or explicitly agreed by the team. Module 3 and E2E are stretch tasks. In the Vision baseline, Module 2 identifies medicines/ingredients; Module 3 performs DDInter 2.0 drug--drug interaction and duplicate-ingredient checks. An unmatched or unassessed case must never be presented as safe. The initial release excludes handwriting OCR, ADR reporting, drug--food interaction checks and production healthcare integration.
+
+\textbf{Evidence follow-up:} The Project screenshot below is an earlier 18 October capture of PA0/PA1 items and does not show the newly added PA2 rows. Before submission, attach a fresh Project screenshot and one issue-detail screenshot for each PA2 to-do task. The report table records the public issue metadata verified on 18 October; a distinct Due Date field remains unverified.
+
+\section{Git and Project evidence}
+\textbf{Commit export:} \texttt{evidence/commit-log-week-02.txt}. The export supports documentation and UI work only; no raw-data/feasibility implementation result should be inferred from a generic commit title. No PR linked to \#11--\#14 is visible in the Project screenshot.
+\EvidenceShot{github-project-2026-10-18.png}{Public GitHub Project board, captured 18 October 2026. PA1 task statuses and assignees are visible.}
+\EvidenceShot{issue-11-2026-10-18.png}{Issue \#11: Project Plan and Vision scope, assignees, target in body and review criteria.}
+\EvidenceShot{issue-12-2026-10-18.png}{Issue \#12: UI prototype task, scope, assignee and acceptance criteria.}
+\EvidenceShot{issue-13-2026-10-18.png}{Issue \#13: weekly reports and submission package task.}
+\EvidenceShot{issue-14-2026-10-18.png}{Issue \#14: tool setup, task tracking and evidence workflow.}
+\end{document}
