@@ -8,24 +8,82 @@ guide, review, or supply information to the prototype.
 
 \begin{longtable}{|L{0.20\textwidth}|L{0.27\textwidth}|L{0.43\textwidth}|}
 \hline
-\textbf{Name / type} & \textbf{Description} & \textbf{Responsibilities and interest}\\ \hline
-Project team & Three student developers responsible for the course prototype. & Define and prioritize scope; implement NLP, OCR, voice-to-text, data preparation, UI, safety controls, testing, and documentation; disclose limitations and progress.\\ \hline
-Course instructors and teaching assistants & Reviewers and evaluators of the software-engineering process and deliverables. & Review scope, planning, evidence, traceability, teamwork, and whether the prototype demonstrates the stated requirements.\\ \hline
-Healthcare professionals & Doctors, pharmacists, nurses, or other qualified professionals represented in the review workflow. & Validate the usefulness and clarity of medication summaries; review high-risk or uncertain cases in the prototype; provide professional guidance rather than ceding clinical decisions to the system.\\ \hline
-Family caregivers & People who help another person organize and understand medicines. & Represent the needs of users who may have low digital confidence, complex schedules, accessibility needs, or difficulty entering prescription information.\\ \hline
-Drug Administration of Vietnam & Government authority whose publication is the primary product-identification source for Vietnamese medicines. & Publishes registration information. It does not endorse this prototype or guarantee that the project's processed copy is current or complete.\\ \hline
-DDInter maintainers & Maintainers of the external drug-interaction resource used after active-ingredient mapping. & Provide interaction records, risk levels, mechanisms, recommendations, and coverage information subject to the resource's terms and limitations.\\ \hline
+\textbf{Name / Type} &
+\textbf{Description} &
+\textbf{Responsibilities and Interests}\\ \hline
+
+Project Team
+& Three student developers responsible for the
+Medication Safety Assistant prototype.
+& Define requirements, develop and test the system,
+manage project progress, and ensure that the
+software meets its objectives and safety requirements.
+\\ \hline
+
+Course Instructors and Teaching Assistants
+& Academic supervisors and evaluators of the project.
+& Review requirements, development plans,
+deliverables, and project progress; provide
+feedback and evaluate the final results.
+\\ \hline
+
+Potential Healthcare Advisors
+& Healthcare professionals who may provide
+feedback on the prototype.
+& Help review the clarity and usefulness of
+medication information, safety warnings, and
+HCP workflows. They do not provide formal
+clinical approval for the prototype.
+\\ \hline
+
 \end{longtable}
+
 
 \subsection{User Summary}
 
 \begin{longtable}{|L{0.18\textwidth}|L{0.23\textwidth}|L{0.31\textwidth}|L{0.18\textwidth}|}
 \hline
-\textbf{User type} & \textbf{Description} & \textbf{Responsibilities / activities} & \textbf{Represented by}\\ \hline
-Patient or general user & A person taking one or more medicines who wants help understanding and organizing them. & Upload or capture a prescription, speak or type a request, correct extracted information, provide relevant health context, confirm medicines and schedules, review findings and limitations, optionally enable reminders, and record adherence or possible reactions. & Potential-user interview participants and project team\\ \hline
-Family caregiver & A person assisting a relative or dependent with medication management. & Enter and verify medicine information with permission, review schedules and warnings, and help seek professional advice when instructed. & Caregiver interview participants\\ \hline
-Healthcare professional reviewer & A qualified professional represented by a simulated review role in the prototype. & Review structured medication summaries, detected risks, unresolved items, possible adverse reactions, and schedule-change requests; request missing information; and record guidance or confirmation. & Healthcare-professional interview participant\\ \hline
+\textbf{User Type} &
+\textbf{Description} &
+\textbf{Responsibilities / Activities} &
+\textbf{Represented By}\\ \hline
+
+Patient / General User
+& People who take one or more medications,
+especially those managing multiple prescriptions.
+& Enter medication information through OCR,
+NLP, Voice, or Manual Input; review and confirm
+medication details; check safety warnings;
+request professional review when needed;
+manage confirmed schedules and track adherence.
+& Potential patient representatives and
+planned user feedback.
+\\ \hline
+
+Family Caregiver
+& People who help patients, especially older
+adults, manage their medications.
+& Assist patients with medication entry,
+verification, understanding warnings,
+and following confirmed schedules,
+with the patient's permission.
+& Potential caregiver representatives
+and planned user feedback.
+\\ \hline
+
+Healthcare Professional Reviewer
+& A simulated HCP role representing qualified
+healthcare professionals in the prototype.
+& Review medication summaries, detected risks,
+and uncertain cases; request corrections
+or missing information; record review decisions
+and confirm proposed schedule changes.
+& Project team and potential
+healthcare professional feedback.
+\\ \hline
+
 \end{longtable}
+
 
 \subsection{User Environment}
 
@@ -46,36 +104,182 @@ system must preserve an explicit incomplete/unassessed state. The prototype
 uses synthetic or de-identified data and is not integrated with hospital,
 pharmacy, electronic health-record, or real professional-review systems.
 
-Healthcare professional reviewers use a structured Web view, preferably on a
-desktop or tablet, to inspect verified medicines, source and mapping status,
-detected risks, stated limitations, symptoms, and review requests.
+Healthcare professionals use dedicated HCP accounts
+to access a structured Web review interface,
+preferably on a desktop or tablet. They can review
+verified medications, detected risks, data limitations,
+relevant case information, and review requests.
+
 
 \subsection{Summary of Key Stakeholder or User Needs}
 
 \begin{longtable}{|L{0.21\textwidth}|L{0.09\textwidth}|L{0.20\textwidth}|L{0.20\textwidth}|L{0.20\textwidth}|}
 \hline
-\textbf{Need} & \textbf{Priority} & \textbf{Concerns / cause} & \textbf{Current solution} & \textbf{Proposed solution}\\ \hline
-Enter medicines with low effort & High & Long prescriptions, spelling, Vietnamese brands, accessibility, or typing difficulty. & Manually copy information or ask another person. & OCR, manual, typed, and voice input with one editable verification flow.\\ \hline
-Prevent input errors from becoming safety results & High & OCR and speech recognition may alter names, strengths, or schedules. & Re-read the prescription without systematic validation. & Require correction and explicit confirmation; flag low-confidence or unresolved fields.\\ \hline
-Provide enough safety context & High & Interaction significance can depend on the complete medicine list, dose, route, allergies, age, pregnancy, symptoms, and kidney or liver impairment. & Users may omit information or search several sources independently. & Ask for required context, show what is missing, and keep the case incomplete or unassessed until sufficient information is available.\\ \hline
-Identify local products and active ingredients & High & Brand names can hide related ingredients or differ from international names. & Search labels or multiple websites manually. & Match verified information to DAV records and retain source provenance.\\ \hline
-Understand potential medicine interactions & High & Users may not recognize a risky combination or its significance. & Search the Web or ask a professional when available. & Map ingredients to DDInter 2.0 and present supported interaction findings and severity.\\ \hline
-Understand uncertainty and coverage & High & A missing match or absent record may be mistaken for safety. & Results from different sources may be inconsistent or unexplained. & Distinguish detected, no known interaction in available data, incomplete, and unassessed states.\\ \hline
-Know when to seek professional advice & High & Users may overreact, ignore a warning, delay emergency care, or change treatment independently. & Contact a doctor or pharmacist without a structured summary. & Separate emergency red flags from review-required cases, provide immediate urgent guidance when needed, and prepare uncertain or unresolved cases for review.\\ \hline
-Follow a confirmed medication schedule & Medium & Users forget doses or misread instructions. & Paper notes, alarms, or generic reminder applications. & Offer reminders as an explicit opt-in only after the prescription schedule has been verified and confirmed, then record taken/missed status.\\ \hline
-Record possible adverse reactions & Medium & Symptoms may be forgotten or described inconsistently. & Personal notes or memory. & Record symptoms as possible, not confirmed, adverse reactions for follow-up and review.\\ \hline
-Protect sensitive health information & High & Images, audio, transcripts, medicine lists, and symptoms are sensitive. & Store information across uncontrolled notes or messaging applications. & Minimize collection and retention, obtain permission, restrict access, and avoid real patient data in the prototype.\\ \hline
+\textbf{Need} &
+\textbf{Priority} &
+\textbf{Concerns / Cause} &
+\textbf{Current Solution} &
+\textbf{Proposed Solution}\\ \hline
+
+Enter medication information easily
+& High
+& Long prescriptions, unfamiliar names,
+and difficulty typing.
+& Manually enter information or ask others for help.
+& Support OCR, natural-language text,
+voice, and manual input.
+\\ \hline
+
+Ensure accurate medication information
+& High
+& OCR, NLP, or voice input may produce
+incorrect medication details.
+& Manually check prescriptions and labels.
+& Allow users to review, correct,
+and confirm medication information
+before safety assessment.
+\\ \hline
+
+Identify Vietnamese medications
+& High
+& Different brand names may contain
+the same or related active ingredients.
+& Search medicine labels or websites.
+& Identify medicines and active ingredients
+using supported Vietnamese medication data.
+\\ \hline
+
+Understand medication safety risks
+& High
+& Users may not recognize drug interactions
+or duplicate active ingredients.
+& Search online or consult a healthcare professional.
+& Check supported drug interactions and
+duplicate ingredients; provide clear
+risk levels and warnings.
+\\ \hline
+
+Understand incomplete or uncertain results
+& High
+& Missing medication details or limited data
+may lead to misleading conclusions.
+& Compare information from different sources.
+& Report missing information, unresolved
+medicines, and assessment limitations.
+Never treat unknown results as safe.
+\\ \hline
+
+Know when professional review is needed
+& High
+& Users may misunderstand safety warnings
+or change medications without advice.
+& Contact a doctor or pharmacist when possible.
+& Provide clear warnings and identify
+high-risk or uncertain cases that
+require professional review.
+\\ \hline
+
+Review medication safety cases
+& High
+& Healthcare professionals need reliable,
+organized information to review cases.
+& Review prescriptions and medication
+information manually.
+& Provide structured medication summaries,
+safety findings, and a simulated
+HCP review workflow.
+\\ \hline
+
+Follow confirmed medication schedules
+& High
+& Users may forget doses or misunderstand
+medication schedules.
+& Use paper notes, alarms, or reminder apps.
+& Provide reminders based on confirmed
+schedules, apply a safety gate to affected
+new reminders, and track adherence.
+\\ \hline
+
+Use the system easily
+& High
+& Older adults and users with limited digital
+skills may have difficulty using applications.
+& Ask caregivers for help or use
+simpler manual methods.
+& Provide clear interfaces, readable text,
+simple guidance, and alternative input methods.
+\\ \hline
+
+Protect personal health information
+& High
+& Medication records, prescription images,
+and voice data may contain sensitive information.
+& Store information in personal notes
+or separate applications.
+& Limit data collection, restrict access,
+and use synthetic or non-identifying
+test data in the prototype.
+\\ \hline
+
 \end{longtable}
+
 
 \subsection{Alternatives and Competition}
 
 \begin{longtable}{|L{0.23\textwidth}|L{0.23\textwidth}|L{0.24\textwidth}|L{0.20\textwidth}|}
 \hline
-\textbf{Alternative} & \textbf{Strengths} & \textbf{Weaknesses} & \textbf{Our differentiation}\\ \hline
-Direct consultation with a doctor or pharmacist & Qualified clinical judgment and individualized advice. & Access, time, and cost may be limited; users may arrive with incomplete medicine information. & The product does not replace consultation; it prepares a verified, structured summary and signals cases needing review.\\ \hline
-General Web search or general-purpose AI chatbot & Convenient and flexible natural-language access. & Source quality and coverage may be unclear; generated responses may imply unsupported certainty. & NLP is limited to input understanding and explanation of structured system findings, with explicit provenance and uncertainty.\\ \hline
-Standalone interaction checker & Focused interaction lookup and often broad international drug coverage. & May require users to know normalized ingredient names; may not recognize Vietnamese product names or support intake and follow-up. & DAV-based local product identification precedes DDInter mapping and is connected to verification, guidance, and follow-up.\\ \hline
-Medication reminder application & Useful alarms and adherence tracking. & May not verify prescription information or check severe interactions before creating reminders. & Reminders use confirmed schedules and apply a safety gate to affected medicines.\\ \hline
-Paper prescription, notes, or phone alarms & Familiar, inexpensive, and usable offline. & Manual transcription, scattered information, limited risk explanation, and weak traceability. & A unified workflow connects capture, verification, safety assessment, guidance, reminders, and follow-up.\\ \hline
-\end{longtable}
+\textbf{Alternative} &
+\textbf{Strengths} &
+\textbf{Weaknesses} &
+\textbf{Our Differentiation}\\ \hline
 
+Direct consultation with a doctor or pharmacist
+& Provides qualified medical judgment and
+personalized advice.
+& May require time, travel, or additional cost.
+Patients may provide incomplete medication information.
+& Helps users prepare structured medication
+summaries and identify cases needing professional review.
+It does not replace medical consultation.
+\\ \hline
+
+General Web search or AI chatbot
+& Easy to access and supports flexible
+information searches.
+& Information quality and coverage may vary.
+AI-generated answers may contain unsupported claims.
+& Provides medication safety information
+based on supported data, with clear warnings
+and assessment limitations.
+\\ \hline
+
+Standalone drug interaction checker
+& Provides focused drug interaction information
+and may cover many medications.
+& Some tools may not recognize Vietnamese
+brand names or support medication management.
+& Combines Vietnamese medication identification,
+interaction checks, and follow-up features
+in one application.
+\\ \hline
+
+Medication reminder application
+& Helps users follow medication schedules
+and track adherence.
+& Some applications may not check medication
+interactions before creating reminders.
+& Uses confirmed schedules and applies
+safety checks before activating new reminders
+for affected medications.
+\\ \hline
+
+Paper prescriptions, notes, or phone alarms
+& Familiar, inexpensive, and can work offline.
+& Information may be scattered, difficult to update,
+and lack medication safety checks.
+& Combines medication input, verification,
+safety warnings, and reminders
+in a single workflow.
+\\ \hline
+
+\end{longtable}

@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+module1_intake/ocr/node/ocr/node_modules/
+module1_intake/ocr/node/ocr/tessdata/
+.env

@@ -1,111 +1,139 @@
+
 \section{Product Features}
 
-The following features describe externally visible capabilities of the initial
-product. They express user value and safety behavior rather than prescribing a
-specific implementation.
+The following features describe the main
+capabilities of the Medication Safety Assistant.
+They focus on user needs while allowing
+future improvements and extensions.
 
-\subsection{PF-01: Multimodal Medication and Request Intake}
+\subsection{PF-01: Multimodal Medication Intake}
 
-Users can upload or capture a printed/digital Vietnamese prescription, enter
-medicine information manually, type a request, or speak a request. OCR converts
-prescription content to editable fields, while speech-to-text converts voice to
-an editable transcript. The interface shows recording/processing state,
-permission errors, extraction confidence or uncertainty, and a manual fallback.
-This feature is high priority.
+Users can provide medication information
+through four input methods: prescription-image
+OCR, NLP Chatbot, Voice/STT, and Manual Input.
 
-\subsection{PF-02: Verification and Correction}
+The system supports information extraction,
+medication search suggestions, and user
+corrections. Users can switch to another
+input method when needed.
 
-Before medication identification or assessment, users can inspect and correct
-extracted or transcribed medicine names, strengths, dosage instructions, and
-schedules. Low-confidence, missing, conflicting, and unresolved fields are
-visibly identified. Explicit confirmation creates the verified input used by
-downstream functions. The user confirms that the extracted details match the
-source, not that they are medically correct. Any later edit invalidates the
-previous normalization, mapping, and assessment and causes them to be run again.
-This feature is high priority and safety-critical.
+\subsection{PF-02: Intent Recognition and User Confirmation}
 
-\subsection{PF-03: Intent Identification and Conversational Assistance}
+The system identifies user intent through
+UI selection or NLP analysis of text and
+voice requests. Supported actions include
+checking medication interactions and
+managing medication reminders.
 
-The system identifies one or more supported intents from typed or confirmed
-transcribed requests, such as checking interactions, explaining a structured
-finding, managing a reminder, or recording a possible reaction. It requests
-clarification when the intent or medicine is ambiguous. Conversational output
-may restate structured findings in plain language but cannot create an
-independent safety conclusion. This feature is high priority.
+Unclear requests require clarification.
+Users can review, correct, and confirm
+medication information before processing.
+Confirmation ensures input accuracy,
+not medical correctness.
 
-\subsection{PF-04: Vietnamese Medicine Identification and Normalization}
+\subsection{PF-03: Vietnamese Medication Identification}
 
-The system matches verified Vietnamese medicine information to prepared DAV
-records, identifies active ingredients and relevant registration attributes,
-and preserves source and version information. Ambiguous or unmatched products
-are clearly unresolved. Prepared data and active-ingredient mappings are
-versioned and reviewed before use. This feature is high priority and
-safety-critical.
+The system identifies Vietnamese medicines
+and their active ingredients using available
+medication data sources.
 
-\subsection{PF-05: Medication Safety and Interaction Assessment}
+It supports matching different medicine
+names to their active ingredients and
+related medication information.
+Unknown or unclear matches are reported
+instead of being treated as confirmed.
 
-Reliably identified active ingredients are mapped to reviewed DDInter 2.0
-entities. The system checks supported drug--drug interactions and severity. A
-result has an explicit state: interaction detected, no known interaction found
-within the available data, incomplete, unassessed, or temporarily unavailable.
-Before assessment, the system checks for required context such as the complete
-medicine list, dose, route, allergies, age, pregnancy, symptoms, and relevant
-kidney or liver impairment. It requests missing information instead of assuming
-that an unknown condition is safe. The resulting route is routine/no significant
-risk detected from available information, professional review required or
-uncertain, or emergency/red flags.
-Therapeutic duplication and drug--disease checks are included only when the
-team can establish adequate data, mapping, and acceptance tests. This feature
-is high priority and safety-critical.
+\subsection{PF-04: Medication Risk Assessment}
 
-\subsection{PF-06: Safety Findings and Explainable Guidance}
+The system assesses supported medication
+risks, including drug--drug interactions
+using DDInter 2.0 and duplicate active
+ingredients.
 
-Users receive the involved medicines, severity where available, a concise
-explanation grounded in the structured interaction record, source/coverage
-limitations, and an appropriate next step. Warnings never instruct users to
-start, stop, replace, or change a prescribed medicine independently. Severe,
-uncertain, unresolved, or concerning cases advise qualified professional
-review. Emergency red flags receive immediate instructions to seek urgent
-real-world help and never wait for the simulated review workflow. This feature
-is high priority and safety-critical.
+It identifies potential risks, their
+severity when available, and cases
+that need further review. Missing data
+or no detected interaction does not
+guarantee that a medication plan is safe.
 
-\subsection{PF-07: Professional Review Support}
+The assessment can be extended to other
+medication risks when reliable data
+and suitable methods become available.
 
-The prototype prepares a structured case summary containing verified medicines,
-active ingredients, mapping status, detected findings, limitations, schedules,
-and reported symptoms. A simulated professional reviewer can record guidance or
-schedule confirmation, or request more information from the patient before the
-case is reassessed. A case without a response remains pending or unavailable;
-the system provides conservative interim guidance and recommends an external
-doctor or pharmacist rather than implying approval. The product labels this
-workflow as a simulation and does not imply that real clinical review has
-occurred. This feature is high priority for demonstrating the safety workflow.
+\subsection{PF-05: Safety Results and Recommendations}
 
-\subsection{PF-08: Confirmed-Schedule Medication Reminders}
+The system presents medication safety
+results in a clear and understandable way,
+including detected risks, involved medicines,
+available explanations, and data limitations.
 
-After reviewing and confirming the medication plan, users can separately opt in
-to reminders based on verified prescription instructions and choose notification
-times that remain within those instructions. Plan confirmation does not
-automatically activate reminders. Changes to the prescribed dosing schedule
-require professional confirmation and user acceptance. A new reminder for a
-medicine involved in a detected severe interaction remains on hold until review
-and confirmation; unrelated reminders may proceed. This feature is medium
-priority.
+It provides appropriate next steps and
+recommends professional review when needed.
+The system supports informed decisions
+without independently changing prescribed
+treatment.
 
-\subsection{PF-09: Adherence and Possible Adverse-Reaction Follow-up}
+\subsection{PF-06: Healthcare Professional Review}
 
-Users can respond to a reminder by recording a dose as taken, missed, or skipped,
-and the system stores the resulting adherence event. Users can also record
-symptoms for follow-up. Symptoms are labeled as possible adverse drug reactions,
-not proven causation, and are triaged into mild/self-monitoring, professional
-review required, or emergency/red flags. Review and emergency outcomes follow
-their respective routes. This feature is medium priority.
+HCPs can use dedicated accounts to review
+medication information, safety findings,
+and cases requiring professional attention.
 
-\subsection{PF-10: Medication and Assessment History}
+They can request additional information,
+provide feedback, and record review decisions.
+Cases awaiting required review remain pending.
 
-Users can review their verified medicine list, prior assessments, result states,
-reminders, adherence events, possible-reaction records, and review guidance.
-History preserves the relevant data-source/version context so that a previous
-result is not presented as a current guarantee. This feature is medium priority
-and may be reduced if the prototype cannot provide adequate privacy controls.
+The initial prototype uses simulated
+HCP review, with the possibility of
+supporting real professional workflows
+in future development.
 
+\subsection{PF-07: Medication Reminder Management}
+
+Users can create medication reminders
+directly or accept suggestions after
+safety assessment and any required
+HCP review.
+
+Users can manage reminder schedules
+based on confirmed prescription or
+HCP instructions. Changes that cannot
+be checked against these instructions
+require professional review.
+
+The system checks medication risks
+before activating new reminders.
+Reminders for medicines with severe
+interactions require HCP review before
+activation. Existing reminders are not
+automatically stopped.
+
+\subsection{PF-08: Medication Reminders and Adherence Tracking}
+
+The system provides medication reminders
+and allows users to record doses as
+taken, missed, or skipped.
+
+Users can review reminder schedules
+and medication adherence records.
+This information helps users manage
+medication use and may support future
+adherence analysis and personalized support.
+
+\subsection{PF-09: Medication and Health History}
+
+The system maintains medication records,
+previous safety assessments, detected risks,
+HCP review decisions, reminder schedules,
+and adherence history.
+
+Users can review their history, while HCPs
+can access relevant records to support
+medication review.
+
+Historical data may support future
+capabilities such as personalized risk
+assessment, medication recommendations,
+and treatment decision support when
+reliable data and professional oversight
+are available.

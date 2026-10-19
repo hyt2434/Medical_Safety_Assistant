@@ -1,0 +1,314 @@
+{
+  "schema_version": "unified.independent_image_truth.v1",
+  "created_at_utc": "2026-10-15T14:08:59.806550+00:00",
+  "expectations_established_before_predictions": true,
+  "synthetic_test_documents": true,
+  "synthetic_products": false,
+  "clinical_validation": false,
+  "official_index_sha256": "357c8f48681aeea222f1085a2be87d33099619f7b3403e459330788c799f3a8e",
+  "oracle_method": "Explicit generic annotations + retained source product facts + direct read-only source_rows SQL. No prediction modules imported.",
+  "cases": [
+    {
+      "id": "TC01",
+      "group": "Previous images",
+      "title": "Unified regression: TC01",
+      "image_path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\TC01.png",
+      "image_sha256": "5520c3c62dc71ad83e6ce9659a1cee199ecdff5f4491e6357652b55e97471d04",
+      "medications": [
+        {
+          "name_raw": "Clopidogrel 75 mg",
+          "strength_raw": "75mg",
+          "dosage_form_raw": "Viên nén bao phim",
+          "expected": {
+            "identity": "VERIFIED",
+            "source_product_codes": [
+              "RETAINED:893110129826"
+            ],
+            "ddinter_ids": [
+              "DDInter413"
+            ],
+            "ready": true,
+            "ingredients_raw": null,
+            "generic_entity_annotations": [
+              "Clopidogrel"
+            ],
+            "source_fact_shard": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\Medication-Safety-Assistant\\data\\reference\\research_supplements\\batch02_20261014\\products\\product_001.json",
+            "source_fact_sha256": "f8e01729ba6f95a25ad522bb464b60bfd06ad2e90f54cdf28dde508cdf039e77",
+            "original_product": {
+              "brand_name": "Clopidogrel 75 mg",
+              "ingredients": "Clopidogrel (dưới dạng clopidogrel hydrogen sulfate 97,86 mg)",
+              "strength": "75mg",
+              "dosage_form": "Viên nén bao phim",
+              "manufacturer": "Công ty TNHH Liên Doanh Stellapharm - Chi nhánh 1",
+              "packaging": "Hộp 2 vỉ x 14 viên, vỉ PCTFE/PE/PVC-Nhôm; hộp 3 vỉ x 10 viên, hộp 6 vỉ x 10 viên, hộp 10 vỉ x 10 viên, vỉ nhôm/nhôm",
+              "route": null,
+              "registration_number": "893110129826",
+              "original_observation_review_state": "REVIEW_REQUIRED",
+              "synthetic_fixture": false,
+              "current_regulatory_authorization": "UNKNOWN",
+              "source_product_code": "RETAINED:893110129826",
+              "coverage_role": "CARDIOVASCULAR"
+            },
+            "source_evidence": [
+              {
+                "source_url": "https://dav.gov.vn/upload_images/files/470_QD_QLD%202026_signed.pdf",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\clopidogrel_decision.pdf",
+                "sha256": "f1b29e1a36485942d0de412c7f9ece44d40f8343ff8beaeb50c36a4b5dea544a",
+                "locator": "Decision 470/QD-QLD 2026, product row 471; physical PDF pages [65]"
+              },
+              {
+                "source_url": "https://06dichvucong.dav.gov.vn/congbothuoc/index",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\DAV_line_349.json",
+                "sha256": "af26322cf86245cca010f9f03be99a6ce6df47b959bb822e4d1234509ef78b99",
+                "locator": "Retained bounded observation, original registry line 349; raw REVIEW_REQUIRED"
+              }
+            ]
+          }
+        },
+        {
+          "name_raw": "Getzome Capsules 20mg",
+          "strength_raw": "20mg",
+          "dosage_form_raw": "Viên nang cứng chứa vi hạt bao tan trong ruột",
+          "expected": {
+            "identity": "VERIFIED",
+            "source_product_codes": [
+              "RETAINED:896110195426"
+            ],
+            "ddinter_ids": [
+              "DDInter1340"
+            ],
+            "ready": true,
+            "ingredients_raw": null,
+            "generic_entity_annotations": [
+              "Omeprazole"
+            ],
+            "source_fact_shard": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\Medication-Safety-Assistant\\data\\reference\\research_supplements\\batch02_20261014\\products\\product_002.json",
+            "source_fact_sha256": "9ef1ecdb9b5b3f251f36fe628f66f3c2fd6a96591dd9435c708d77b3992e13ba",
+            "original_product": {
+              "brand_name": "Getzome Capsules 20mg",
+              "ingredients": "Omeprazole (dưới dạng vi hạt bao tan trong ruột omeprazole 8,5%)",
+              "strength": "20mg",
+              "dosage_form": "Viên nang cứng chứa vi hạt bao tan trong ruột",
+              "manufacturer": "Getz Pharma (Private) Limited",
+              "packaging": "Hộp 2 vỉ x 7 viên",
+              "route": null,
+              "registration_number": "896110195426",
+              "original_observation_review_state": "REVIEW_REQUIRED",
+              "synthetic_fixture": false,
+              "current_regulatory_authorization": "UNKNOWN",
+              "source_product_code": "RETAINED:896110195426",
+              "coverage_role": "DDI_SUPPORT"
+            },
+            "source_evidence": [
+              {
+                "source_url": "https://getzpharma.com/wp-content/uploads/2016/07/Getzome-Leaflet-Vietnam.pdf",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\getzome_leaflet.pdf",
+                "sha256": "173cf0bb11f95f084a6b955b177b5b9040fa67a63c115b0603b820bff2a7dcc3",
+                "locator": "Composition, page 1; physical PDF pages [1]"
+              },
+              {
+                "source_url": "https://06dichvucong.dav.gov.vn/congbothuoc/index",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\DAV_line_80.json",
+                "sha256": "5caaa54f9697abcd282e63e47c61d1e11d95339062095427b1a1a4b3c1c8439d",
+                "locator": "Retained bounded observation, original registry line 80; raw REVIEW_REQUIRED"
+              }
+            ]
+          }
+        }
+      ],
+      "layout": "legacy",
+      "expected_duplicate_ids": [],
+      "expected_pairs": [
+        {
+          "ids": [
+            "DDInter1340",
+            "DDInter413"
+          ],
+          "status": "INTERACTION_DETECTED",
+          "levels": [
+            "Major"
+          ],
+          "independent_source_sql_rows": [
+            {
+              "filename": "ddinter_downloads_code_A.csv",
+              "row_number": 8505,
+              "id_a": "DDInter1340",
+              "name_a": "Omeprazole",
+              "id_b": "DDInter413",
+              "name_b": "Clopidogrel",
+              "level": "Major",
+              "low_id": "DDInter1340",
+              "high_id": "DDInter413",
+              "url": "https://ddinter2.scbdd.com/static/media/download/ddinter_downloads_code_A.csv",
+              "csv_sha256": "a22ca451d2b755ca2331886f7e00540c86f555f9f55704a59a19c691251f52e0"
+            },
+            {
+              "filename": "ddinter_downloads_code_B.csv",
+              "row_number": 2320,
+              "id_a": "DDInter1340",
+              "name_a": "Omeprazole",
+              "id_b": "DDInter413",
+              "name_b": "Clopidogrel",
+              "level": "Major",
+              "low_id": "DDInter1340",
+              "high_id": "DDInter413",
+              "url": "https://ddinter2.scbdd.com/static/media/download/ddinter_downloads_code_B.csv",
+              "csv_sha256": "76de5115a55587f0e822e1096b684fd3ddde058fbefcbb19896df58820ace130"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "TC02",
+      "group": "Previous images",
+      "title": "Unified regression: TC02",
+      "image_path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\TC02.png",
+      "image_sha256": "e0d333ef52aa7f02a95abd291198a54e33cf6c5c63d88ed3d55a8a61c47e17c8",
+      "medications": [
+        {
+          "name_raw": "A.T Warfarin 1 mg",
+          "strength_raw": "1mg",
+          "dosage_form_raw": "Viên nén",
+          "expected": {
+            "identity": "VERIFIED",
+            "source_product_codes": [
+              "RETAINED:893110232123"
+            ],
+            "ddinter_ids": [
+              "DDInter1951"
+            ],
+            "ready": true,
+            "ingredients_raw": null,
+            "generic_entity_annotations": [
+              "Warfarin"
+            ],
+            "source_fact_shard": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\Medication-Safety-Assistant\\data\\reference\\research_supplements\\batch02_20261014\\products\\product_003.json",
+            "source_fact_sha256": "cfcce6465c9adebed06601af1f1447a484e048cc37aa511ab9cfb388041410af",
+            "original_product": {
+              "brand_name": "A.T Warfarin 1 mg",
+              "ingredients": "Warfarin sodium (dưới dạng warfarin sodium clathrate) 1mg",
+              "strength": "1mg",
+              "dosage_form": "Viên nén",
+              "manufacturer": "Công ty Cổ phần Dược phẩm An Thiên",
+              "packaging": "Hộp 3 vỉ x 10 viên; Hộp 6 vỉ x 10 viên; Hộp 10 vỉ x 10 viên; Chai 30 viên; Chai 60 viên; Chai 100 viên",
+              "route": null,
+              "registration_number": "893110232123",
+              "original_observation_review_state": "REVIEW_REQUIRED",
+              "synthetic_fixture": false,
+              "current_regulatory_authorization": "UNKNOWN",
+              "source_product_code": "RETAINED:893110232123",
+              "coverage_role": "CARDIOVASCULAR"
+            },
+            "source_evidence": [
+              {
+                "source_url": "https://dav.gov.vn/upload_images/files/618%20186%20phie%CC%82n%203_signed.pdf",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\warfarin_decision.pdf",
+                "sha256": "9f2b4321da30b692e904d86bfd06ed57726977ac5ac001603d174b44e441fae6",
+                "locator": "Decision 618, page 5, product row 30; physical PDF pages [7]"
+              },
+              {
+                "source_url": "https://06dichvucong.dav.gov.vn/congbothuoc/index",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\DAV_line_8906.json",
+                "sha256": "9a8950e9d5ca95d584bb1b420432ccce54647655a78bab9517cde96fbc02eb2a",
+                "locator": "Retained bounded observation, original registry line 8906; raw REVIEW_REQUIRED"
+              }
+            ]
+          }
+        },
+        {
+          "name_raw": "Aspirin DWP 100mg",
+          "strength_raw": "100mg",
+          "dosage_form_raw": "Viên nén",
+          "expected": {
+            "identity": "VERIFIED",
+            "source_product_codes": [
+              "RETAINED:893110265025"
+            ],
+            "ddinter_ids": [
+              "DDInter20"
+            ],
+            "ready": true,
+            "ingredients_raw": null,
+            "generic_entity_annotations": [
+              "Aspirin"
+            ],
+            "source_fact_shard": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\Medication-Safety-Assistant\\data\\reference\\research_supplements\\batch02_20261014\\products\\product_004.json",
+            "source_fact_sha256": "1e80db7d06436ca0ed56af5cd929347a090e3c4f885dfbabafcd00979537e217",
+            "original_product": {
+              "brand_name": "Aspirin DWP 100mg",
+              "ingredients": "Aspirin",
+              "strength": "100mg",
+              "dosage_form": "Viên nén",
+              "manufacturer": "Công ty cổ phần dược phẩm Wealphar",
+              "packaging": "Hộp 3 vỉ x 10 viên, Hộp 6 vỉ x 10 viên",
+              "route": null,
+              "registration_number": "893110265025",
+              "original_observation_review_state": "REVIEW_REQUIRED",
+              "synthetic_fixture": false,
+              "current_regulatory_authorization": "UNKNOWN",
+              "source_product_code": "RETAINED:893110265025",
+              "coverage_role": "CARDIOVASCULAR"
+            },
+            "source_evidence": [
+              {
+                "source_url": "https://dav.gov.vn/upload_images/files/285_QD_QLD%202025_signed.pdf",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\aspirin_decision.pdf",
+                "sha256": "81e4f1b0dd7942639673762721dc97a866605354d75768ff6591748ddf8c3fa7",
+                "locator": "Decision 285/QD-QLD 2025, page 45, product row 373; physical PDF pages [47]"
+              },
+              {
+                "source_url": "https://06dichvucong.dav.gov.vn/congbothuoc/index",
+                "path": "C:\\HCMUS\\SE\\Tieu Bach\\api_quicktests\\tests\\real_medication_e2e\\evidence\\DAV_line_3261.json",
+                "sha256": "e81afde994ff9ab5ac61a08e00028dde7415d7862fa3c2b0ef46da760b5e5b08",
+                "locator": "Retained bounded observation, original registry line 3261; raw REVIEW_REQUIRED"
+              }
+            ]
+          }
+        }
+      ],
+      "layout": "legacy",
+      "expected_duplicate_ids": [],
+      "expected_pairs": [
+        {
+          "ids": [
+            "DDInter1951",
+            "DDInter20"
+          ],
+          "status": "INTERACTION_DETECTED",
+          "levels": [
+            "Major"
+          ],
+          "independent_source_sql_rows": [
+            {
+              "filename": "ddinter_downloads_code_A.csv",
+              "row_number": 8466,
+              "id_a": "DDInter1951",
+              "name_a": "Warfarin",
+              "id_b": "DDInter20",
+              "name_b": "Acetylsalicylic acid",
+              "level": "Major",
+              "low_id": "DDInter1951",
+              "high_id": "DDInter20",
+              "url": "https://ddinter2.scbdd.com/static/media/download/ddinter_downloads_code_A.csv",
+              "csv_sha256": "a22ca451d2b755ca2331886f7e00540c86f555f9f55704a59a19c691251f52e0"
+            },
+            {
+              "filename": "ddinter_downloads_code_B.csv",
+              "row_number": 2308,
+              "id_a": "DDInter1951",
+              "name_a": "Warfarin",
+              "id_b": "DDInter20",
+              "name_b": "Acetylsalicylic acid",
+              "level": "Major",
+              "low_id": "DDInter1951",
+              "high_id": "DDInter20",
+              "url": "https://ddinter2.scbdd.com/static/media/download/ddinter_downloads_code_B.csv",
+              "csv_sha256": "76de5115a55587f0e822e1096b684fd3ddde058fbefcbb19896df58820ace130"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

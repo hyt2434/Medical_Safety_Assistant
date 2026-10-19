@@ -1,37 +1,67 @@
+
 \section{Introduction}
 
-This Vision Document defines the high-level stakeholder needs, product scope,
-and capabilities of the Medication Safety Assistant. It explains the problem
-the product addresses, the people who benefit from it, the intended position of
-the product, its principal features, and the quality and safety constraints
-that govern those features.
+This Vision Document describes the high-level needs,
+scope, and main features of the Medication Safety Assistant.
+It explains the problems faced by patients taking multiple
+medications, the benefits of the proposed solution,
+and the needs of its target users.
 
-The product is a responsive Web prototype for safer medication understanding
-and follow-up. It accepts prescription images, manual entries, typed requests,
-and voice input. OCR and speech-to-text produce editable text; NLP identifies
-the user's intent and relevant medication information. Only user-verified data
-continues to medicine identification and safety assessment. Vietnamese products
-and active ingredients are identified using medicine-registration data from the
-Drug Administration of Vietnam (DAV), then mapped to DDInter 2.0 for supported
-drug--drug interaction checks. The product communicates findings and
-limitations, distinguishes routine, review-required, and emergency outcomes,
-and provides immediate escalation guidance for red flags. It does not diagnose,
-prescribe, or independently change treatment.
+The Medication Safety Assistant is a responsive Web
+application that helps patients identify potential
+medication risks and follow confirmed medication
+schedules. It supports prescription images, natural-language
+requests, voice input, and manual forms. The system provides
+medication safety checks, warnings, simulated healthcare
+professional (HCP) review, and medication reminders.
+It does not replace professional medical advice or
+independently prescribe or change medications.
 
-This is an initial Inception-phase vision. Detailed use cases, supplementary
-specifications, implementation decisions, and acceptance tests will refine it
-during Elaboration and Construction.
+This initial Vision Document will be updated as
+requirements are reviewed and refined during development.
 
 \subsection{References}
 
 \begin{longtable}{|L{0.06\textwidth}|L{0.34\textwidth}|L{0.20\textwidth}|L{0.30\textwidth}|}
 \hline
-\textbf{No.} & \textbf{Document / source} & \textbf{Date / organization} & \textbf{Location}\\ \hline
-1 & Medication Safety Assistant Project Proposal & October 2026, Group 02 & Project repository, PA0 proposal\\ \hline
-2 & Medication Safety Assistant Software Development Plan, Version 1.0 & October 2026, Group 02 & Project repository, PA1 Project Plan\\ \hline
-3 & Medication Without Harm: Policy Brief & 7 March 2024, World Health Organization & \href{https://www.who.int/publications/i/item/9789240062764}{WHO publication page}\\ \hline
-4 & Publication of drug and medicinal-ingredient registration data in Vietnam & Accessed 16 October 2026, Drug Administration of Vietnam & \href{https://dichvucong.dav.gov.vn/congbothuoc/index}{DAV medicine-registration portal}\\ \hline
-5 & DDInter 2.0: an enhanced drug interaction resource with expanded data coverage, new interaction types, and improved user interface & 2025, Tian et al., Nucleic Acids Research, DOI: 10.1093/nar/gkae726 & \href{https://pubmed.ncbi.nlm.nih.gov/39180399}{PubMed record}\\ \hline
-6 & Web Content Accessibility Guidelines (WCAG) 2.2 & W3C Recommendation, 12 December 2024 & \href{https://www.w3.org/TR/WCAG22/}{W3C WCAG 2.2}\\ \hline
-\end{longtable}
+\textbf{No.} & \textbf{Document / Source} &
+\textbf{Date / Organization} & \textbf{Location}\\ \hline
 
+1 & Medication Safety Assistant Project Proposal
+& October 2026, Group 02
+& Project repository, PA0 proposal
+\\ \hline
+
+2 & Medication Safety Assistant Software Development Plan,
+Version 1.0
+& October 2026, Group 02
+& Project repository, PA1 Project Plan
+\\ \hline
+
+3 & Medication Without Harm: Policy Brief
+& 7 March 2024, World Health Organization
+& \href{https://www.who.int/publications/i/item/9789240062764}
+{WHO publication page}
+\\ \hline
+
+4 & Publication of Drug Registration Data in Vietnam
+& Accessed 16 October 2026,
+Drug Administration of Vietnam
+& \href{https://dichvucong.dav.gov.vn/congbothuoc/index}
+{DAV registration portal}
+\\ \hline
+
+5 & DDInter 2.0: An Enhanced Drug Interaction Resource
+& 2025, Tian et al.,
+Nucleic Acids Research
+& \href{https://doi.org/10.1093/nar/gkae726}
+{DOI: 10.1093/nar/gkae726}
+\\ \hline
+
+6 & Web Content Accessibility Guidelines (WCAG) 2.2
+& 12 December 2024, W3C
+& \href{https://www.w3.org/TR/WCAG22/}
+{W3C WCAG 2.2}
+\\ \hline
+
+\end{longtable}
