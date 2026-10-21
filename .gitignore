@@ -27,3 +27,11 @@
 *.xdv
 
 # Keep generated PDFs under version control when needed for submission.
+
+# Frontend dependencies and generated output
+/src/frontend/node_modules/
+/src/frontend/dist/
+/src/frontend/test-results/
+/src/frontend/playwright-report/
+/src/frontend/artifacts/
+/src/frontend/*.tsbuildinfo
