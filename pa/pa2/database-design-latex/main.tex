@@ -1,0 +1,125 @@
+% !TeX program = xelatex
+\documentclass[10pt,a4paper]{article}
+
+\input{metadata}
+
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage[a4paper,top=2.2cm,bottom=2.2cm,left=2.5cm,right=2.5cm,headheight=15pt]{geometry}
+\usepackage{setspace}
+\setstretch{1.05}
+\usepackage{xcolor}
+\usepackage{array,longtable,tabularx,booktabs}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{pdflscape}
+\usepackage[unicode,hidelinks]{hyperref}
+
+\definecolor{designblue}{RGB}{0,92,170}
+\definecolor{lightblue}{RGB}{235,245,252}
+\definecolor{lightamber}{RGB}{255,247,225}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\renewcommand{\arraystretch}{1.22}
+\setlength{\tabcolsep}{4pt}
+\emergencystretch=3em
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\titleformat{\section}{\bfseries\large}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\bfseries}{\thesubsubsection}{0.5em}{}
+\setlist[itemize]{topsep=2pt,itemsep=2pt,parsep=0pt}
+
+\urlstyle{tt}
+\newcommand{\db}[1]{\nolinkurl{#1}}
+\newcommand{\status}[1]{\textsc{#1}}
+\newcommand{\sourcefile}[1]{\nolinkurl{#1}}
+\newcommand{\portraitdiagram}[3]{%
+  \begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{#1}
+    \caption{#2}\label{#3}
+  \end{figure}
+  \clearpage
+}
+\newcommand{\landscapediagram}[3]{%
+  \clearpage
+  \begin{landscape}
+    \begin{figure}[p]
+      \centering
+      \includegraphics[width=\linewidth,height=0.82\textheight,keepaspectratio]{#1}
+      \caption{#2}\label{#3}
+    \end{figure}
+  \end{landscape}
+  \clearpage
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\ProjectName}
+\fancyhead[R]{Version \DocumentVersion}
+\fancyfoot[L]{\OrganizationName\ -- \ConfidentialityText}
+\fancyfoot[R]{Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\hypersetup{
+  pdftitle={\DocumentTitle\ (\ProjectName)},
+  pdfauthor={\GroupName},
+  pdfsubject={PA2 Database Design Report}
+}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{2.2cm}
+  {\Large\bfseries \ProjectName\par}
+  \vspace{2cm}
+  {\Huge\bfseries \DocumentTitle\par}
+  \vspace{0.35cm}
+  {\Large (\DocumentSubtitle)\par}
+  \vspace{1.6cm}
+  {\large Version \DocumentVersion\par}
+  \vfill
+  \begin{tabular}{rl}
+    \textbf{Document identifier:} & \DocumentIdentifier\\
+    \textbf{Prepared by:} & \GroupName\\
+    \textbf{Organization:} & \OrganizationName\\
+    \textbf{Date:} & \DocumentDate\\
+  \end{tabular}
+  \vfill
+\end{titlepage}
+
+\section*{Revision History}
+\begin{tabularx}{\textwidth}{|L{2.4cm}|L{1.7cm}|Y|L{3cm}|}
+\hline
+\textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author}\\ \hline
+29 Oct 2026 & 1.0 & Initial PA2 database design report derived from the approved ERD views and current CSV data profile & Group 02\\ \hline
+\end{tabularx}
+
+\clearpage
+\tableofcontents
+\clearpage
+\listoffigures
+\listoftables
+\clearpage
+
+\input{sections/01-introduction}
+\input{sections/02-data-and-design-basis}
+\input{sections/03-logical-architecture}
+\input{sections/04-module-design}
+\input{sections/05-shared-domain-design}
+\input{sections/06-data-ingestion-and-governance}
+\input{sections/07-integrity-security-performance}
+\input{sections/08-decisions-and-next-steps}
+
+\end{document}
+

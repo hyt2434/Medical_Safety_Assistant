@@ -1,0 +1,59 @@
+\section{Design Decisions and Next Steps}
+
+\subsection{Vector Embedding Decision}
+
+Vector embedding is \textbf{not required} for the authoritative drug--drug interaction check. The safety path should use reviewed ingredient identity, accepted component-to-safety mappings, canonical interaction pairs, and relational joins. A similarity score cannot establish that two drug identities are equivalent and must not independently generate or suppress a medical warning.
+
+Embeddings may be added later as an auxiliary retrieval feature for:
+\begin{itemize}
+  \item proposing medication or ingredient candidates from noisy OCR text;
+  \item retrieving similar unresolved names for reviewer triage; or
+  \item searching evidence passages semantically.
+\end{itemize}
+
+If introduced, embeddings should be stored separately with model name, model version, source-text hash, creation time, and entity reference. Candidate retrieval must still pass deterministic validation and, for safety mappings, medical review. This preserves a clean boundary between probabilistic assistance and operative clinical data.
+
+\subsection{Recommended Physical Platform}
+
+PostgreSQL is a suitable implementation target because the design benefits from UUIDs, robust constraints, transactional integrity, JSON support for preserved source payloads, partial indexes, and optional row-level security. This is a recommendation rather than a committed project constraint. The physical design should standardize UUID generation, timestamp/timezone handling, controlled status values, naming conventions, and migration tooling before schema creation.
+
+\subsection{Open Design Decisions}
+
+\begin{longtable}{L{5.0cm}L{6.2cm}L{4.0cm}}
+\caption{Open decisions before physical schema approval}\label{tab:open-decisions}\\
+\toprule
+\textbf{Decision} & \textbf{Options/impact} & \textbf{Required owner}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Decision} & \textbf{Options/impact} & \textbf{Required owner}\\
+\midrule
+\endhead
+Database engine and deployment topology & PostgreSQL version, managed/self-hosted, environments, HA, backup objectives & Technical lead\\
+Patient identity and minimum profile & Required demographics, identity verification, consent, account recovery & Product owner and privacy reviewer\\
+Professional/reviewer qualification & License fields, verification process, review scopes, second-review thresholds & Clinical owner and administrator\\
+Dataset release policy & Approval quorum, rollback, supersession, active channels, effective dates & Medical data owner\\
+Interaction severity vocabulary & Source-specific levels versus normalized severity and conflict handling & Clinical reviewer\\
+Retention and deletion & Intake documents, messages, tickets, audit, evidence, and health records & Privacy/legal owner\\
+Notification provider and delivery policy & Channels, retry, quiet hours, timezone, escalation, idempotency & Product and technical leads\\
+Physical column dictionary & Types, nullability, defaults, checks, unique constraints, and indexes for all 64 tables & Database designer\\
+\bottomrule
+\end{longtable}
+
+\subsection{Implementation Sequence}
+
+\begin{enumerate}
+  \item Approve entity boundaries, role responsibilities, review workflow, and release semantics in this logical model.
+  \item Produce a physical data dictionary for all tables, including types, nullability, constraints, and state values.
+  \item Implement access control, dataset governance, and reference catalog first because later modules depend on them.
+  \item Build a repeatable CSV staging/import pipeline with validation reports and reviewer work queues.
+  \item Load a non-operative draft dataset and verify row counts, unresolved records, hashes, and source traceability.
+  \item Add the separate interaction-pair dataset and evidence before enabling safety assessment.
+  \item Implement patient workflows incrementally: intake, identification, snapshot/assessment, HCP review, then regimen/reminder.
+  \item Run integrity, authorization, migration, backup/restore, performance, and clinical-review acceptance tests before any production release.
+\end{enumerate}
+
+\subsection{Conclusion}
+
+The proposed model separates patient operations from governed reference data while preserving the joins needed for end-to-end medication safety. Its most important control is the boundary between candidate data and released, operative data: OCR output, indication text, and DDInter mappings remain reviewable evidence until accepted by an authorized reviewer. With the remaining physical decisions resolved, the 64-entity logical model can be converted into a normalized SQL schema without changing the core workflows documented in PA2.
+

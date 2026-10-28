@@ -1,0 +1,133 @@
+\section{Shared-Domain Database Design}\label{sec:shared-domain-design}
+
+Shared-domain views group tables by business responsibility rather than by a single runtime module. They reveal the controls and lifecycle tables that would be difficult to understand in the unified diagram alone.
+
+\subsection{Users and Access Control}
+
+The access model uses RBAC with optional multiple roles per user. The five initial business roles are patient, HCP, administrator, technical support, and medical reviewer. Permissions are assigned to roles through \db{ROLE_PERMISSIONS}; role grant and revocation should record who performed the action and when.
+
+\landscapediagram{domain-01-users-access-control.png}{Shared domain -- Users and Access Control ERD}{fig:domain-access}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Users and access-control tables}\label{tab:access-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{USERS} & Authentication identity, account status, and security metadata.\\
+\db{ROLES} & Stable role catalog such as patient, HCP, administrator, technical support, and medical reviewer.\\
+\db{USER_ROLES} & Many-to-many role assignment with grant/revoke provenance.\\
+\db{PERMISSIONS} & Fine-grained operation catalog used by backend authorization.\\
+\db{ROLE_PERMISSIONS} & Role-to-permission mapping; prevents hard-coding every check by role name.\\
+\db{PATIENT_PROFILES} & Patient-specific profile and health-context identity.\\
+\db{PROFESSIONAL_PROFILES} & Professional qualification, specialty, license, and verification status.\\
+\db{STAFF_PROFILES} & Operational employee metadata for administrators, support staff, and reviewers when applicable.\\
+\db{CARE_RELATIONSHIPS} & Time-bounded HCP-to-patient authorization relationship.\\
+\db{AUDIT_LOGS} & Append-only record of sensitive reads, writes, grants, reviews, and support actions.\\
+\bottomrule
+\end{longtable}
+
+The medical reviewer is not a replacement for HCP. A qualified user may hold both roles, but review assignments must be scoped by dataset and task. Technical support may inspect diagnostic information attached to assigned tickets but cannot alter clinical conclusions or approve medication data.
+
+\subsection{Medication and Safety Catalog}
+
+This domain is the controlled reference catalog. \db{DATASET_VERSIONS} groups version-specific rows. Medication products decompose into components and ingredients; safety mappings connect accepted components to safety-source identifiers; interaction pairs connect to participants and evidence.
+
+\landscapediagram{domain-02-medication-safety-catalog.png}{Shared domain -- Medication and Safety Catalog ERD}{fig:domain-catalog}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Medication and safety catalog tables}\label{tab:catalog-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{DATASET_VERSIONS} & Immutable version boundary for imported and reviewed reference data.\\
+\db{MEDICATIONS} & Versioned medication product identity.\\
+\db{INGREDIENTS} & Versioned ingredient identity and acceptance scope.\\
+\db{MEDICATION_COMPONENTS} & Medication composition and optional accepted ingredient link.\\
+\db{STRENGTH_ASSERTIONS} & Source and normalized strength statements for a component.\\
+\db{MEDICATION_INDICATIONS} & Candidate or approved indication statement for a medication.\\
+\db{CONDITIONS} & Normalized, reviewed disease or condition concept.\\
+\db{INDICATION_CONDITIONS} & Many-to-many link from indication statements to conditions.\\
+\db{MEDICATION_PRIORITIES} & Data-collection and review priority metadata.\\
+\db{SAFETY_DRUG_ENTITIES} & Drug identifiers in a safety namespace.\\
+\db{COMPONENT_SAFETY_MAPPINGS} & Candidate/accepted/operative mapping from component to safety identifier.\\
+\db{DRUG_INTERACTIONS} & Canonical drug interaction with severity and description.\\
+\db{DRUG_INTERACTION_PARTICIPANTS} & Interaction endpoints.\\
+\db{EVIDENCE_SOURCES} & Provenance record such as file, URL, hash, source type, and retrieval date.\\
+\db{INTERACTION_EVIDENCE} & Evidence statements that support or conflict for one interaction.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Data Import, Review, and Release}
+
+Every source import belongs to a batch and version. Automated validation occurs before human review. The assigned medical reviewer makes explicit decisions on review items; evidence is linked to those items. Only an approved version receives a release record for operational use.
+
+\portraitdiagram{domain-03-data-import-review-release.png}{Shared domain -- Data Import, Review, and Release ERD}{fig:domain-data-governance}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Data import and review tables}\label{tab:governance-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{IMPORT_BATCHES} & One ingestion attempt, source package, checksum, importer, and processing state.\\
+\db{SOURCE_RECORDS} & Row-level source payload or locator retained for replay and evidence.\\
+\db{VALIDATION_RESULTS} & Machine validation output with rule, severity, location, and result.\\
+\db{DATA_REVIEW_REQUESTS} & Work package assigned to a medical reviewer.\\
+\db{DATA_REVIEW_ITEMS} & Individual entity, field, mapping, conflict, or change requiring review.\\
+\db{DATA_REVIEW_DECISIONS} & Append-only reviewer outcome, rationale, scope, and timestamp.\\
+\db{EVIDENCE_LINKS} & Links evidence sources to the exact review items they support.\\
+\db{DATASET_RELEASES} & Publication record that makes one approved version available to runtime modules.\\
+\bottomrule
+\end{longtable}
+
+No separate \db{APPROVAL_DOCUMENTS} table is used. Organizational authorization to perform review is represented by user-role history and assignment; the substantive medical decision is represented by \db{DATA_REVIEW_DECISIONS} with evidence and audit records.
+
+\subsection{Patient Medication Care}
+
+This domain connects the patient profile, care relationship, prescription entries, frozen medication list, safety assessment, HCP review, regimen, reminder, and adherence workflows.
+
+\portraitdiagram{domain-04-patient-medication-care.png}{Shared domain -- Patient Medication Care ERD}{fig:domain-patient-care}
+
+The key boundary is \db{CARE_RELATIONSHIPS}: a professional role does not imply access to every patient. A review request references the relationship or equivalent assignment that grants scope. Regimens are connected to the entries they operationalize and to HCP reviews where professional approval is required.
+
+\subsection{Communication and Technical Support}
+
+The communication model separates professional care from application support. A patient opens a technical support ticket for login, upload, OCR, or failed processing. The ticket is assigned to a support user and receives support-specific messages. Clinical questions and safety interpretation remain in the HCP review conversation.
+
+\landscapediagram{domain-05-communication-technical-support.png}{Shared domain -- Communication and Technical Support ERD}{fig:domain-support}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Communication and technical-support tables}\label{tab:support-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{CONVERSATIONS} & HCP-review-bound clinical communication channel.\\
+\db{CONVERSATION_PARTICIPANTS} & Explicit membership of a clinical conversation.\\
+\db{MESSAGES} & Direct patient--HCP messages.\\
+\db{SUPPORT_TICKETS} & User-reported technical/operational incident with category, priority, and status.\\
+\db{TICKET_ASSIGNMENTS} & Assignment and reassignment history for accountable support ownership.\\
+\db{SUPPORT_MESSAGES} & Ticket-specific user/support communication.\\
+\db{NOTIFICATIONS} & Recipient-targeted workflow and delivery notifications.\\
+\db{AUDIT_LOGS} & Sensitive access and action trace, including support access to diagnostic context.\\
+\bottomrule
+\end{longtable}
+

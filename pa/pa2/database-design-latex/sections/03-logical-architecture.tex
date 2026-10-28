@@ -1,0 +1,57 @@
+\section{Logical Database Architecture}
+
+\subsection{Unified Model}
+
+The unified ERD contains 64 entities. It provides the authoritative cross-module view: user and access entities are shared by care, review, and support workflows; a released reference dataset supports medication identification and safety assessment; assessment results flow into HCP review and then into an approved regimen and reminder schedule.
+
+\landscapediagram{unified-erd.png}{Unified SQL-style ERD for the Medication Safety Assistant}{fig:unified-erd}
+
+The unified view is intentionally dense. It is used for cross-domain integrity review and implementation planning, while Sections~\ref{sec:module-design} and~\ref{sec:shared-domain-design} provide smaller views for normal reading.
+
+\subsection{Entity Groups}
+
+\begin{longtable}{L{4.0cm}L{2.0cm}L{9.2cm}}
+\caption{Logical entity groups}\label{tab:entity-groups}\\
+\toprule
+\textbf{Group} & \textbf{Count} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Group} & \textbf{Count} & \textbf{Responsibility}\\
+\midrule
+\endhead
+Identity, access, and profiles & 10 & Accounts, roles, permissions, patient/professional/staff profiles, care scope, and audit records.\\
+Medication intake & 7 & Submission, document capture, extraction, prescription grouping, medication entries, and patient confirmation.\\
+Data import and governance & 11 & Dataset version/release, batches, source records, validation, review requests/items/decisions, and evidence.\\
+Medication reference and identification & 10 & Medication, ingredient, components, strength, indications, conditions, priorities, and entry identification.\\
+Safety assessment & 10 & Safety identifiers and mappings, interactions, participants, evidence, medication snapshots, pair results, and findings.\\
+HCP review and communication & 8 & Review requests/decisions, care conversation, participants, and messages.\\
+Regimen, reminder, and adherence & 8 & Regimens, items, review links, schedules, eligibility, events, adherence, and notifications.\\
+Technical support & 3 & Tickets, assignment history, and support messages.\\
+\bottomrule
+\end{longtable}
+
+Some entities participate in multiple groups; the counts above describe primary ownership and total 64 distinct tables in the unified model.
+
+\subsection{Key Architectural Boundaries}
+
+\subsubsection{Identity versus Domain Profiles}
+
+\db{USERS} stores authentication identity. Domain-specific data is held in \db{PATIENT_PROFILES}, \db{PROFESSIONAL_PROFILES}, and \db{STAFF_PROFILES}. This prevents support staff and administrators from receiving unnecessary health-profile columns merely because they have user accounts.
+
+\subsubsection{Roles versus Qualifications}
+
+\db{USER_ROLES} grants application roles. A professional qualification belongs in \db{PROFESSIONAL_PROFILES}; medical reviewer authority is granted through a role and recorded assignment. An HCP can also be a medical reviewer, but HCP status alone does not authorize reference-data approval.
+
+\subsubsection{Operational Data versus Reference Data}
+
+Patient-generated data such as medication entries and snapshots remains separate from versioned reference data. \db{ENTRY_IDENTIFICATIONS} bridges the two. \db{SAFETY_ASSESSMENTS} records the release used so a previous result is not silently changed when a new reference catalog is published.
+
+\subsubsection{Clinical Communication versus Technical Support}
+
+\db{CONVERSATIONS} and \db{MESSAGES} support direct patient--HCP discussion within a review case. \db{SUPPORT_TICKETS} and \db{SUPPORT_MESSAGES} support login, upload, OCR, and application incidents. Technical support is not placed between the patient and the HCP.
+
+\subsection{Cardinality Notation}
+
+The diagrams use Crow's Foot notation. A circle denotes an optional relationship (minimum zero), a bar denotes exactly one at that end, and the crow's foot denotes many. For example, \db{USERS ||--o\{ SUPPORT_TICKETS} means one user may create zero or many tickets, while every ticket has one creator. These symbols describe logical minimum and maximum participation; corresponding nullability, uniqueness, and foreign-key constraints must be implemented in the physical schema.
+

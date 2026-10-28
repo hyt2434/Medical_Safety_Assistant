@@ -1,0 +1,58 @@
+\section{Data and Design Basis}
+
+\subsection{Current CSV Dataset}
+
+The current data package contains 42,903 rows in six transformed CSV files. These files are neither raw source documents nor a fully approved production catalog. They must therefore enter the database through a versioned import and review process.
+
+\begin{longtable}{L{4.2cm}L{2.2cm}L{2.4cm}L{6.0cm}}
+\caption{Current CSV inventory and intended logical targets}\label{tab:csv-inventory}\\
+\toprule
+\textbf{File} & \textbf{Rows} & \textbf{Columns} & \textbf{Primary logical targets}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{File} & \textbf{Rows} & \textbf{Columns} & \textbf{Primary logical targets}\\
+\midrule
+\endhead
+\sourcefile{medications.csv} & 10,670 & 30 & \db{MEDICATIONS}; registration, manufacturer, dosage form, route, packaging, and verification state.\\
+\sourcefile{ingredients.csv} & 1,940 & 16 & \db{INGREDIENTS}; local and accepted ingredient identities and verification scope.\\
+\sourcefile{medication_ingredients.csv} & 12,899 & 25 & \db{MEDICATION_COMPONENTS} and \db{STRENGTH_ASSERTIONS}; source text, accepted ingredient link, chemical form, and strength parsing state.\\
+\sourcefile{medication_indications.csv} & 5,614 & 16 & \db{MEDICATION_INDICATIONS}; candidate indication statements pending medical normalization and approval.\\
+\sourcefile{medication_priorities.csv} & 6,105 & 15 & \db{MEDICATION_PRIORITIES}; collection and review priority, not clinical prescribing priority.\\
+\sourcefile{ddinter_mappings.csv} & 5,675 & 17 & \db{SAFETY_DRUG_ENTITIES} and \db{COMPONENT_SAFETY_MAPPINGS}; candidate component-to-DDInter mappings.\\
+\midrule
+\textbf{Total} & \textbf{42,903} & --- & Versioned reference-data import and review workflow.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Important Data-Quality Findings}
+
+The logical design preserves incomplete and disputed source information rather than deleting it:
+\begin{itemize}
+  \item 8,741 of 10,670 medication candidates are Level-2 qualified, while 1,929 are not.
+  \item 9,313 medications have no explicitly supported route; the system must not infer oral administration.
+  \item 1,540 ingredient identities are auto-verified source-local labels, while 400 remain source-asserted only.
+  \item 2,657 medication components have no accepted ingredient identifier, including 662 intentionally unresolved components.
+  \item all 5,614 indication rows are candidates; no row is currently an approved product indication.
+  \item all 5,675 DDInter mappings are candidates with \status{accepted=false} and \status{operative=false}.
+\end{itemize}
+
+Consequently, null foreign keys and review states are meaningful business states, not merely data defects. The physical design must distinguish ``unknown or awaiting review'' from ``not applicable'' and from ``rejected.''
+
+\subsection{Data Not Present in the Current CSV Package}
+
+The current six files do not contain interaction pairs, interaction severity, or evidence for each pair. Therefore, they cannot directly populate \db{DRUG_INTERACTIONS}, \db{DRUG_INTERACTION_PARTICIPANTS}, or \db{INTERACTION_EVIDENCE}. Module 3 currently expects a separate DDInter interaction file containing \db{DDInterID_A}, \db{Drug_A}, \db{DDInterID_B}, \db{Drug_B}, and \db{Level}.
+
+The absence of a pair from a loaded interaction dataset must never be interpreted as proof that no interaction exists. Runtime results must retain the dataset release and evidence context used for the assessment.
+
+\subsection{Design Principles}
+
+\begin{enumerate}
+  \item \textbf{Trace every decision to evidence.} Source records, hashes, validation results, reviewer decisions, and evidence links are retained.
+  \item \textbf{Separate candidate from operative data.} Imported or machine-generated mappings cannot affect patient-facing safety results until approved and released.
+  \item \textbf{Make assessments reproducible.} A safety assessment references an immutable medication-list snapshot and an explicit dataset release.
+  \item \textbf{Separate clinical care from data governance.} HCP care privileges and medical-data-review privileges are independently assigned.
+  \item \textbf{Apply least privilege.} Technical support handles tickets and diagnostic context, not clinical conclusions; patient access is constrained to owned records; HCP access is constrained by care relationships.
+  \item \textbf{Prefer deterministic safety logic.} Drug interaction matching uses reviewed identifiers and relational joins. Statistical similarity is not an authoritative safety decision.
+\end{enumerate}
+

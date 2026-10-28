@@ -1,0 +1,143 @@
+\section{Module-Oriented Database Design}\label{sec:module-design}
+
+The following views show the tables each product module reads or writes. Shared entities may appear in more than one view because module ownership and relational ownership are not identical.
+
+\subsection{Module 1 -- Medication Intake}
+
+Module 1 captures medication information from text, image, or document input. A user creates \db{MEDICATION_INTAKES}; each submission may contain \db{INTAKE_DOCUMENTS}. One or more \db{EXTRACTION_RUNS} consume those documents through \db{EXTRACTION_RUN_INPUTS}. Parsed rows become \db{MEDICATION_ENTRIES}, optionally grouped by \db{PRESCRIPTIONS}, and the patient records confirmation or correction in \db{ENTRY_CONFIRMATIONS}.
+
+\portraitdiagram{module-01-medication-intake.png}{Module 1 -- Medication Intake ERD}{fig:module-intake}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Module 1 tables and responsibilities}\label{tab:module1-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{USERS} & Identifies the submitter without duplicating account data in the intake domain.\\
+\db{MEDICATION_INTAKES} & Represents one intake session and records input method, owner, status, and submission context.\\
+\db{INTAKE_DOCUMENTS} & Stores metadata and secure object references for images or documents; binary content should reside in object storage.\\
+\db{EXTRACTION_RUNS} & Records an OCR/parser execution, model or rule version, timestamps, and outcome.\\
+\db{EXTRACTION_RUN_INPUTS} & Many-to-many bridge between extraction runs and the documents they process.\\
+\db{PRESCRIPTIONS} & Groups medication entries that belong to the same patient prescription or source document.\\
+\db{MEDICATION_ENTRIES} & Holds raw text, extracted fields, status, and the patient-facing medication row.\\
+\db{ENTRY_CONFIRMATIONS} & Keeps the actor, decision, correction, and time of confirmation instead of overwriting extraction history.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Module 2 -- Medication Identification and Reference}
+
+Module 2 resolves a confirmed medication entry against one released medication catalog. \db{ENTRY_IDENTIFICATIONS} records an identification attempt and selected result; \db{IDENTIFICATION_CANDIDATES} retains alternatives and scores. The selected \db{MEDICATIONS} row expands through components, ingredients, strengths, indications, and conditions.
+
+\landscapediagram{module-02-medication-identification-reference.png}{Module 2 -- Medication Identification and Reference ERD}{fig:module-identification}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Module 2 principal tables and responsibilities}\label{tab:module2-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{DATASET_RELEASES} & Selects the approved reference-data release used by the identification attempt.\\
+\db{ENTRY_IDENTIFICATIONS} & Records input entry, release, method, status, confidence, selected medication, and reviewer state.\\
+\db{IDENTIFICATION_CANDIDATES} & Preserves ranked candidates so ambiguity can be reviewed and evaluated.\\
+\db{MEDICATIONS} & Versioned product identity, including name, registration, manufacturer, dosage form, route, and verification status.\\
+\db{INGREDIENTS} & Versioned ingredient identity with source-local and accepted normalized names.\\
+\db{MEDICATION_COMPONENTS} & Connects a medication to a component and, when accepted, to an ingredient identity.\\
+\db{STRENGTH_ASSERTIONS} & Stores raw and normalized strength assertions separately from component identity.\\
+\db{MEDICATION_INDICATIONS} & Stores source indication statements and approval state.\\
+\db{CONDITIONS} & Stores reviewed condition concepts.\\
+\db{INDICATION_CONDITIONS} & Many-to-many link between approved indication statements and normalized conditions.\\
+\db{MEDICATION_PRIORITIES} & Stores collection/review priority; it must not be interpreted as clinical recommendation.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Module 3 -- Medication Safety Assessment}
+
+Module 3 freezes the patient's current medication list in \db{MEDICATION_LIST_SNAPSHOTS}. \db{SNAPSHOT_ITEMS} reference the exact entries and identifications included. A \db{SAFETY_ASSESSMENTS} row binds that snapshot to a dataset release. Pairwise results are retained in \db{ASSESSMENT_PAIR_RESULTS}; user-facing findings are stored in \db{SAFETY_FINDINGS} and linked to affected items through \db{FINDING_ITEMS}.
+
+\landscapediagram{module-03-medication-safety-assessment.png}{Module 3 -- Medication Safety Assessment ERD}{fig:module-safety}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Module 3 principal tables and responsibilities}\label{tab:module3-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{MEDICATION_LIST_SNAPSHOTS} & Immutable assessment-time list owned by a patient.\\
+\db{SNAPSHOT_ITEMS} & Connects snapshot rows to medication entries and accepted identification results.\\
+\db{SAFETY_ASSESSMENTS} & Assessment execution, dataset release, lifecycle status, and timestamps.\\
+\db{ASSESSMENT_PAIR_RESULTS} & Canonical unordered pair evaluation with matched interaction and outcome.\\
+\db{SAFETY_FINDINGS} & Patient/HCP-facing finding with severity, explanation, and referenced interaction.\\
+\db{FINDING_ITEMS} & Links one finding to the medication items involved.\\
+\db{SAFETY_DRUG_ENTITIES} & Reviewed endpoint identifiers from the interaction namespace.\\
+\db{COMPONENT_SAFETY_MAPPINGS} & Reviewed component-to-safety-entity mapping; candidate mappings are non-operative.\\
+\db{DRUG_INTERACTIONS} & Canonical interaction record independent of source-specific participant order.\\
+\db{DRUG_INTERACTION_PARTICIPANTS} & Interaction endpoints; the physical model must enforce exactly two distinct participants per pair.\\
+\db{INTERACTION_EVIDENCE} & Connects interactions to one or more evidence sources and preserves disagreement.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Module 4 -- HCP Review}
+
+Module 4 creates an explicit request for professional interpretation of a safety assessment. The request records patient, assessment, care relationship, assignee, priority, and status. \db{HCP_REVIEWS} retains the professional decision. A linked conversation permits the patient and assigned HCP to communicate directly.
+
+\portraitdiagram{module-04-hcp-review.png}{Module 4 -- HCP Review ERD}{fig:module-hcp-review}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Module 4 tables and responsibilities}\label{tab:module4-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{CARE_RELATIONSHIPS} & Establishes the professional's authorized patient scope.\\
+\db{HCP_REVIEW_REQUESTS} & Case assignment and workflow state for review of one assessment.\\
+\db{HCP_REVIEWS} & Professional interpretation, decision, recommendations, and completion metadata.\\
+\db{CONVERSATIONS} & Case-bound communication channel, not a general public chat.\\
+\db{CONVERSATION_PARTICIPANTS} & Explicit participant membership and access boundary.\\
+\db{MESSAGES} & Immutable message content and sender metadata within the authorized conversation.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Module 5 -- Medication Reminders}
+
+Module 5 schedules reminders only from a regimen associated with patient entries and, where required, HCP review. Eligibility checks prevent an unconfirmed or clinically blocked item from producing reminder events. Adherence is recorded separately from delivery events.
+
+\portraitdiagram{module-05-medication-reminders.png}{Module 5 -- Medication Reminders ERD}{fig:module-reminders}
+
+\begin{longtable}{L{4.5cm}L{10.8cm}}
+\caption{Module 5 tables and responsibilities}\label{tab:module5-tables}\\
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Table} & \textbf{Responsibility}\\
+\midrule
+\endhead
+\db{MEDICATION_REGIMENS} & Patient regimen header and lifecycle state.\\
+\db{REGIMEN_ITEMS} & Instructions and date range for one medication entry within a regimen.\\
+\db{REGIMEN_REVIEW_LINKS} & Records which HCP review supports a regimen.\\
+\db{REMINDER_SCHEDULES} & Frequency, timing, timezone, start/end, and schedule status.\\
+\db{SCHEDULE_ELIGIBILITY_CHECKS} & Audit of why a schedule is eligible, blocked, or requires review.\\
+\db{REMINDER_EVENTS} & Concrete planned/sent/failed reminder occurrence; supports idempotent delivery.\\
+\db{ADHERENCE_RECORDS} & Patient or authorized-user response such as taken, skipped, or missed.\\
+\db{NOTIFICATIONS} & Delivery envelope for reminders and other workflow notifications.\\
+\bottomrule
+\end{longtable}
+

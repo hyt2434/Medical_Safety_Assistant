@@ -1,0 +1,67 @@
+\section{Introduction}
+
+\subsection{Purpose}
+
+This report defines the database design for the Medication Safety Assistant. It translates the current conceptual and SQL-style ERD views into a coherent logical data model, explains how data moves through the system, and records the constraints that must be preserved when the model is converted into a physical database schema.
+
+The report is intended to support four activities:
+\begin{itemize}
+  \item implementation of the relational database and migration scripts;
+  \item review of entity ownership and relationships across the five product modules;
+  \item controlled ingestion and medical review of the six current CSV datasets; and
+  \item verification that clinical, operational, and support workflows do not receive broader access than required.
+\end{itemize}
+
+\subsection{Scope}
+
+The design covers 64 logical entities grouped into the following areas:
+\begin{itemize}
+  \item user identity, role-based access control, professional profiles, and audit logging;
+  \item medication intake, document extraction, confirmation, and prescription records;
+  \item versioned medication, ingredient, indication, safety, and evidence catalogs;
+  \item medication identification and deterministic drug--drug interaction assessment;
+  \item HCP review and direct patient--HCP communication;
+  \item medication regimens, reminders, adherence, notifications, and technical support; and
+  \item import, validation, medical-data review, release, and traceability of reference data.
+\end{itemize}
+
+This is a logical database design report. It identifies keys and principal relationships but does not yet prescribe every column, SQL data type, check constraint, partition, or database-engine-specific object. Those items belong to the physical design phase.
+
+\subsection{Source Artifacts}
+
+The report is based on the following repository artifacts:
+\begin{itemize}
+  \item \sourcefile{docs/analysis and design/Unified-SQL-ERD.md};
+  \item \sourcefile{docs/analysis and design/Module-ERD-Views.md};
+  \item \sourcefile{docs/analysis and design/Shared-Domain-ERD-Views.md};
+  \item the eleven PNG diagrams generated from those Mermaid definitions; and
+  \item \sourcefile{data/Data-Overview.md} and the six profiled CSV datasets.
+\end{itemize}
+
+\subsection{Audience}
+
+The primary audience includes backend developers, database designers, testers, the product owner, HCP representatives, and medical data reviewers. Developers use the report to implement the schema; reviewers use it to verify that evidence and approval states are not bypassed; testers use it to derive integrity, authorization, and data-lifecycle test cases.
+
+\subsection{Terminology}
+
+\begin{longtable}{L{3.4cm}L{11.4cm}}
+\caption{Key database-design terminology}\label{tab:terminology}\\
+\toprule
+\textbf{Term} & \textbf{Meaning in this report}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Term} & \textbf{Meaning in this report}\\
+\midrule
+\endhead
+Candidate & Imported or inferred data that has not yet been accepted for operational clinical use.\\
+Operative & Data that may participate in identification or safety assessment after required review and release.\\
+Dataset version & An immutable workspace or snapshot that groups related reference-data rows produced by one import/review cycle.\\
+Dataset release & A controlled publication of one approved dataset version for use by runtime modules.\\
+HCP & A healthcare professional who may care for patients; this role does not automatically grant medical-data-review authority.\\
+Medical reviewer & A qualified user explicitly assigned to review medication, mapping, interaction, or evidence data within an approved scope.\\
+Safety drug entity & A normalized drug identifier in a safety source namespace, such as DDInter, used as an interaction endpoint.\\
+Snapshot & The patient's medication list frozen at an assessment point so that results remain reproducible.\\
+\bottomrule
+\end{longtable}
+

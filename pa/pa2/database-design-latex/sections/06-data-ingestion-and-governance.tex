@@ -1,0 +1,61 @@
+\section{Data Ingestion, Review, and Runtime Flow}
+
+\subsection{Reference-Data Ingestion Flow}
+
+The recommended lifecycle is:
+\begin{enumerate}
+  \item Create a draft \db{DATASET_VERSIONS} row and one \db{IMPORT_BATCHES} row for the source package.
+  \item Persist source-row identity, relation name, checksum, and raw payload/locator in \db{SOURCE_RECORDS}.
+  \item Transform rows into version-scoped candidate entities while preserving source IDs such as \db{PC_*}, \db{LI_*}, and \db{CC_*} in dedicated source-identifier columns rather than forcing them into UUID primary keys.
+  \item Execute structural, referential, semantic, and duplicate checks; write all outcomes to \db{VALIDATION_RESULTS}.
+  \item Create \db{DATA_REVIEW_REQUESTS} and \db{DATA_REVIEW_ITEMS} for unresolved identities, indication normalization, conflicting evidence, and safety mappings.
+  \item A qualified medical reviewer records accept, reject, request-change, or defer decisions in \db{DATA_REVIEW_DECISIONS}. Each decision includes rationale and evidence links.
+  \item Mark accepted mappings operative only after all policy conditions are satisfied. Rejected and unresolved candidates remain traceable but cannot be used by runtime assessment.
+  \item Publish an approved version through \db{DATASET_RELEASES}. Runtime services select a release, not an arbitrary draft version.
+\end{enumerate}
+
+\subsection{CSV-to-Table Mapping Rules}
+
+\begin{longtable}{L{4.0cm}L{4.2cm}L{7.0cm}}
+\caption{CSV ingestion rules}\label{tab:csv-mapping-rules}\\
+\toprule
+\textbf{Source} & \textbf{Target} & \textbf{Critical rule}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Source} & \textbf{Target} & \textbf{Critical rule}\\
+\midrule
+\endhead
+\sourcefile{medications.csv} & \db{MEDICATIONS} & Preserve registration source value, normalized token, route support, issues, review flags, and verification state. Do not infer unsupported route or release characteristics.\\
+\sourcefile{ingredients.csv} & \db{INGREDIENTS} & Preserve source-local identity separately from accepted normalized identity; ``international mapping not required'' is not proof of international mapping.\\
+\sourcefile{medication_ingredients.csv} & \db{MEDICATION_COMPONENTS} & Link the accepted ingredient only when verified; keep unresolved components with raw text and review state.\\
+\sourcefile{medication_ingredients.csv} & \db{STRENGTH_ASSERTIONS} & Preserve the raw expression and parser status. Do not manufacture amount/unit fields from ambiguous text.\\
+\sourcefile{medication_indications.csv} & \db{MEDICATION_INDICATIONS} & Import as candidate/pending review. Create \db{CONDITIONS} and \db{INDICATION_CONDITIONS} only after medical normalization.\\
+\sourcefile{medication_priorities.csv} & \db{MEDICATION_PRIORITIES} & Name columns so collection priority cannot be confused with clinical recommendation.\\
+\sourcefile{ddinter_mappings.csv} & \db{SAFETY_DRUG_ENTITIES} & Create or reuse candidate DDInter identifiers with namespace and catalog hash.\\
+\sourcefile{ddinter_mappings.csv} & \db{COMPONENT_SAFETY_MAPPINGS} & Import all as non-operative candidates; acceptance requires medical review and evidence.\\
+Separate DDInter pair file & \db{DRUG_INTERACTIONS}, \db{DRUG_INTERACTION_PARTICIPANTS}, \db{INTERACTION_EVIDENCE} & Canonicalize unordered pairs, create two distinct participants, retain every source claim, and review conflicting severity.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Patient Assessment Flow}
+
+\begin{enumerate}
+  \item Intake and extraction produce medication entries; patient confirmation preserves corrections.
+  \item Identification uses a released catalog and records all candidates, the selected result, and confidence.
+  \item A medication-list snapshot freezes the entries and accepted identifications used for assessment.
+  \item Components resolve to accepted, operative safety entities. Pair generation creates canonical item pairs.
+  \item Deterministic joins locate reviewed interaction pairs and evidence in the same dataset release.
+  \item Pair results and findings are persisted. A finding references both the interaction evidence and the affected snapshot items.
+  \item If interpretation is required, an HCP review request is opened within the patient's care relationship. The patient communicates directly with the assigned HCP.
+  \item A reviewed regimen may generate schedules and reminder events after eligibility checks.
+\end{enumerate}
+
+\subsection{Dataset Version and Release Semantics}
+
+\db{DATASET_VERSIONS} is not the same as the per-row transformation \db{rule_version}. The former identifies a coherent database snapshot; the latter identifies the rule that produced or transformed one row. A version may be draft, validating, under review, approved, rejected, or superseded. A release points to an approved version and records publication/retirement metadata. Existing assessments retain their release reference so results are auditable after catalog updates.
+
+\subsection{Review Responsibility}
+
+The administrator manages accounts, role grants, and operational configuration but does not substitute for medical review. Medical reviewers should normally be qualified pharmacists, clinical pharmacists, physicians for relevant clinical interpretation, or terminology/informatics specialists within a defined scope. Qualification is stored in the professional profile; authorization is granted and audited separately. The assigned reviewer cannot approve outside the assigned data scope, and high-risk changes may require a second-review rule in the physical workflow.
+
