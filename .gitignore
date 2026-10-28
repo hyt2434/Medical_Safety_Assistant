@@ -35,3 +35,5 @@
 /src/frontend/playwright-report/
 /src/frontend/artifacts/
 /src/frontend/*.tsbuildinfo
+/tmp 
+
