@@ -36,3 +36,6 @@
 /src/frontend/artifacts/
 /src/frontend/*.tsbuildinfo
 /tmp
+
+# Local Module 1 OCR inputs and outputs may contain personal/medical data.
+/data/local/

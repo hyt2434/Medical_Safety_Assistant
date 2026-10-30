@@ -18,7 +18,7 @@ def local_ocr(image,output,cid,log):
     raw=read(destination)
     # The shared local printed-row adapter uses OCR geometry only. Keep the
     # historical Vietnamese layout adapter below for existing artifacts/callers.
-    from .local_ocr_rows import extract_printed_rows
+    from .local_ocr_rows import extract_printed_rows, find_numbered_row_starters
     printed = extract_printed_rows(raw)
     if printed is not None:
         log.log(f'[{cid}] Local OCR actual rows={len(printed["medications"])}; confidence={raw["confidence"]}; evidence={destination}')
@@ -28,7 +28,7 @@ def local_ocr(image,output,cid,log):
     # Conversion reads OCR rows/coordinates alone, never a truth/reference product list.
     medications=[]
     words=raw['words']
-    starters=[w for w in words if re.fullmatch(r'\d+[.)]',w['text'])]
+    starters=find_numbered_row_starters(words)
     for index,starter in enumerate(sorted(starters,key=lambda w:w['bbox']['y0'])):
         y=starter['bbox']['y0']; line=[w for w in words if abs(w['bbox']['y0']-y)<25 and w['bbox']['x0']>starter['bbox']['x1']]
         name_words=sorted([w for w in line if w['bbox']['x0']<1100],key=lambda w:w['bbox']['x0'])
