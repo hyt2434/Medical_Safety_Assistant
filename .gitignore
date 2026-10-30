@@ -36,4 +36,4 @@
 /src/frontend/artifacts/
 /src/frontend/*.tsbuildinfo
 /tmp 
-
+data/local/
