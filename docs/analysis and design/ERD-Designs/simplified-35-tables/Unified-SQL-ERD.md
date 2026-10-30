@@ -1,6 +1,6 @@
-# Medication Safety Assistant - Simplified Unified SQL ERD 32 Tables
+# Medication Safety Assistant - Simplified Unified SQL ERD 35 Tables
 
-Phiên bản này rút gọn thiết kế từ 64 còn 32 bảng. Hai hồ sơ `PROFESSIONAL_PROFILES` và `STAFF_PROFILES` được tách khỏi `USERS` vì thông tin chuyên môn y tế và thông tin nhân sự có phạm vi, vòng đời và quy tắc xác minh khác nhau. Audit, evidence, care scope và các entity an toàn quan trọng vẫn được giữ riêng.
+Phiên bản này rút gọn thiết kế từ 64 còn 35 bảng. Ngoài hồ sơ chuyên môn và nhân sự, thiết kế bổ sung hồ sơ sức khỏe bệnh nhân, clinical facts và lịch sử sử dụng thuốc thực tế để phục vụ chatbot có kiểm soát. Audit, evidence, care scope và các entity an toàn quan trọng vẫn được giữ riêng.
 
 ```mermaid
 erDiagram
@@ -14,6 +14,41 @@ erDiagram
         varchar gender
         varchar account_status
         timestamptz last_login_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    PATIENT_PROFILES {
+        uuid patient_profile_id PK
+        uuid user_id FK, UK
+        varchar blood_type
+        numeric height_cm
+        numeric weight_kg
+        varchar pregnancy_status
+        varchar renal_status
+        varchar hepatic_status
+        text health_summary
+        jsonb emergency_contact
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    PATIENT_CLINICAL_FACTS {
+        uuid clinical_fact_id PK
+        uuid patient_profile_id FK
+        varchar fact_type
+        varchar code_system
+        varchar fact_code
+        varchar fact_name
+        uuid ingredient_id FK
+        uuid medication_id FK
+        varchar clinical_status
+        varchar severity
+        text reaction
+        varchar verification_status
+        uuid recorded_by_user_id FK
+        uuid verified_by_user_id FK
+        date onset_date
+        date resolved_date
+        text notes
         timestamptz created_at
         timestamptz updated_at
     }
@@ -44,7 +79,7 @@ erDiagram
     }
     ROLES {
         smallint role_id PK
-        varchar role_code UK
+        varchar role_code UK "patient, hcp, admin, technical_support, medical_reviewer"
         varchar role_name
         text description
         jsonb permissions
@@ -454,11 +489,16 @@ erDiagram
         uuid message_id PK
         uuid thread_id FK
         uuid sender_user_id FK
+        varchar sender_type
         varchar message_type
         text content
         jsonb attachment_manifest
         jsonb read_receipts
         varchar moderation_status
+        varchar model_name
+        varchar model_version
+        varchar prompt_version
+        timestamptz generated_at
         timestamptz sent_at
         timestamptz edited_at
         timestamptz deleted_at
@@ -501,6 +541,22 @@ erDiagram
         text note
         timestamptz created_at
     }
+    MEDICATION_USAGE_EVENTS {
+        uuid usage_event_id PK
+        uuid plan_id FK
+        uuid patient_user_id FK
+        uuid reminder_event_id FK
+        timestamptz scheduled_at
+        timestamptz actual_taken_at
+        numeric dose_amount
+        varchar dose_unit
+        varchar usage_status
+        varchar source_type
+        uuid recorded_by_user_id FK
+        text skip_reason
+        text notes
+        timestamptz created_at
+    }
     SUPPORT_TICKETS {
         uuid ticket_id PK
         uuid created_by_user_id FK
@@ -520,6 +576,9 @@ erDiagram
         timestamptz closed_at
     }
 
+    USERS ||--o| PATIENT_PROFILES : "co ho so suc khoe"
+    PATIENT_PROFILES ||--o{ PATIENT_CLINICAL_FACTS : "co clinical facts"
+    USERS o|--o{ PATIENT_CLINICAL_FACTS : "ghi nhan xac minh"
     USERS ||--o| PROFESSIONAL_PROFILES : "co ho so chuyen mon"
     USERS ||--o| STAFF_PROFILES : "co ho so nhan su"
     USERS o|--o{ PROFESSIONAL_PROFILES : "xac minh chuyen mon"
@@ -543,7 +602,7 @@ erDiagram
     DATASET_VERSIONS ||--o{ SOURCE_RECORDS : "chua source"
     DATASET_VERSIONS ||--o{ DATA_REVIEW_ITEMS : "co review"
     SOURCE_RECORDS o|--o{ DATA_REVIEW_ITEMS : "phat sinh"
-    USERS o|--o{ DATA_REVIEW_ITEMS : "duoc giao"
+    USERS o|--o{ DATA_REVIEW_ITEMS : "medical reviewer duoc giao"
     DATASET_VERSIONS ||--o{ EVIDENCE_SOURCES : "quan ly"
     SOURCE_RECORDS o|--o{ EVIDENCE_SOURCES : "tao evidence"
     EVIDENCE_SOURCES ||--o{ EVIDENCE_LINKS : "duoc lien ket"
@@ -554,6 +613,8 @@ erDiagram
     MEDICATIONS ||--|{ MEDICATION_COMPONENTS : "co thanh phan"
     INGREDIENTS o|--o{ MEDICATION_COMPONENTS : "duoc nhan dien"
     MEDICATIONS ||--o{ MEDICATION_INDICATIONS : "co chi dinh"
+    MEDICATIONS o|--o{ PATIENT_CLINICAL_FACTS : "la tac nhan"
+    INGREDIENTS o|--o{ PATIENT_CLINICAL_FACTS : "la tac nhan"
     EVIDENCE_SOURCES o|--o{ MEDICATION_INDICATIONS : "chung minh"
     DATASET_VERSIONS ||--o{ SAFETY_DRUG_ENTITIES : "chua"
     MEDICATION_COMPONENTS ||--o{ COMPONENT_SAFETY_MAPPINGS : "duoc anh xa"
@@ -579,7 +640,7 @@ erDiagram
 
     SAFETY_ASSESSMENTS ||--o{ CLINICAL_REVIEWS : "yeu cau review"
     USERS ||--o{ CLINICAL_REVIEWS : "la patient"
-    USERS o|--o{ CLINICAL_REVIEWS : "la professional"
+    USERS o|--o{ CLINICAL_REVIEWS : "HCP duoc phan cong"
     CARE_RELATIONSHIPS o|--o{ CLINICAL_REVIEWS : "cap pham vi"
     USERS ||--o{ THREADS : "tao thread"
     THREADS ||--o{ MESSAGES : "chua"
@@ -591,15 +652,21 @@ erDiagram
     CLINICAL_REVIEWS o|--o{ MEDICATION_PLANS : "lam can cu"
     MEDICATION_PLANS ||--o{ REMINDER_EVENTS : "tao reminder"
     USERS o|--o{ REMINDER_EVENTS : "ghi nhan"
+    MEDICATION_PLANS ||--o{ MEDICATION_USAGE_EVENTS : "co lich su su dung"
+    REMINDER_EVENTS o|--o| MEDICATION_USAGE_EVENTS : "co the ghi nhan"
+    USERS ||--o{ MEDICATION_USAGE_EVENTS : "la patient"
+    USERS o|--o{ MEDICATION_USAGE_EVENTS : "ghi nhan"
 
     USERS ||--o{ SUPPORT_TICKETS : "tao ticket"
-    USERS o|--o{ SUPPORT_TICKETS : "duoc giao"
+    USERS o|--o{ SUPPORT_TICKETS : "technical support duoc giao"
     THREADS o|--o| SUPPORT_TICKETS : "trao doi"
 ```
 
 ## Các ràng buộc cần triển khai khi chuyển thành SQL
 
 - `USER_ROLES`: unique `(user_id, role_id)` đối với role chưa bị thu hồi.
+- `PATIENT_PROFILES`: mỗi user có tối đa một hồ sơ bệnh nhân; dữ liệu sức khỏe không được dùng thay cho role `patient`.
+- `PATIENT_CLINICAL_FACTS`: dị ứng và bệnh nền phải có `fact_type`; chỉ bản ghi đã xác minh mới được dùng làm dữ kiện an toàn chính thức.
 - `PROFESSIONAL_PROFILES`: mỗi user có tối đa một hồ sơ chuyên môn; `verification_status=VERIFIED` phải có người và thời điểm xác minh.
 - `STAFF_PROFILES`: mỗi user có tối đa một hồ sơ nhân sự; `employee_code` là duy nhất khi được cấp.
 - `CARE_RELATIONSHIPS`: patient và professional phải khác nhau; khoảng hiệu lực không được đảo ngược.
@@ -610,5 +677,7 @@ erDiagram
 - `ASSESSMENT_ITEMS`: immutable sau khi assessment bắt đầu chạy.
 - `SAFETY_FINDINGS`: `right_item_id` có thể null cho cảnh báo một thuốc; interaction pair phải có đủ hai item.
 - `REMINDER_EVENTS`: unique `(plan_id, scheduled_at)` để tránh gửi trùng.
+- `MEDICATION_USAGE_EVENTS`: phân biệt thời điểm dự kiến và thực tế; bản ghi `SYSTEM_INFERRED` không được xem là xác nhận đã dùng thuốc.
+- `MESSAGES`: `sender_user_id` được phép null khi `sender_type` là `ASSISTANT` hoặc `SYSTEM`; model và prompt version phải được lưu cho nội dung do AI sinh.
 - `AUDIT_LOGS`, `DATA_REVIEW_ITEMS` đã quyết định và evidence đã phát hành phải được coi là append-only.
 
