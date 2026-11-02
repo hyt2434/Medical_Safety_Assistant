@@ -1,0 +1,643 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-bright":"#e7fef9","surface-container-highest":"#d0e7e2","tertiary-container":"#3c7963","surface-dim":"#c8dfda","primary-container":"#287a74","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","background":"#e7fef9","on-error":"#ffffff","on-surface-variant":"#3f4947","tertiary-fixed":"#b0f0d5","on-tertiary-fixed":"#002116","tertiary":"#20604b","secondary-container":"#9ef2e7","on-secondary-fixed-variant":"#00504a","on-secondary-container":"#097169","outline":"#6f7977","surface-container-high":"#d6ede8","surface-variant":"#d0e7e2","on-secondary":"#ffffff","tertiary-fixed-dim":"#94d3b9","on-secondary-fixed":"#00201d","on-primary-container":"#bbfff8","inverse-on-surface":"#dff6f1","outline-variant":"#bec9c7","error":"#ba1a1a","inverse-surface":"#203431","on-primary":"#ffffff","secondary":"#006a63","surface-container":"#dcf3ee","on-error-container":"#93000a","primary-fixed":"#a3f1e9","on-primary-fixed":"#00201e","surface-tint":"#0e6a64","on-primary-fixed-variant":"#00504b","on-tertiary-fixed-variant":"#0b513d","on-tertiary-container":"#c0ffe4","surface":"#e7fef9","secondary-fixed-dim":"#82d5cb","inverse-primary":"#87d4cd","error-container":"#ffdad6","surface-container-low":"#e1f8f3","primary":"#00615b","primary-fixed-dim":"#87d4cd","on-surface":"#0a1f1c","secondary-fixed":"#9ef2e7","on-background":"#0a1f1c"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-xl":"2.5rem","space-md":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","space-lg":"1.5rem","gutter-mobile":"1rem",gutter:"1.5rem",margin:"2rem","margin-mobile":"1rem"},fontFamily:{"body-md":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"]},fontSize:{"body-md":["14px",{lineHeight:"22px",fontWeight:"400"}],"headline-sm":["16px",{lineHeight:"24px",fontWeight:"600"}],"label-sm":["10px",{lineHeight:"14px",letterSpacing:"0.04em",fontWeight:"700"}],"body-lg":["16px",{lineHeight:"26px",fontWeight:"400"}],"headline-lg":["28px",{lineHeight:"36px",letterSpacing:"-0.015em",fontWeight:"600"}],"headline-xl":["36px",{lineHeight:"44px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-lg-mobile":["22px",{lineHeight:"30px",letterSpacing:"-0.01em",fontWeight:"600"}],"headline-xl-mobile":["28px",{lineHeight:"36px",letterSpacing:"-0.01em",fontWeight:"700"}],"label-lg":["14px",{lineHeight:"20px",letterSpacing:"0.01em",fontWeight:"600"}],"headline-md":["20px",{lineHeight:"28px",letterSpacing:"-0.01em",fontWeight:"600"}],"label-md":["12px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"18px",fontWeight:"400"}]}}}};</script></head><body class="bg-surface-container-lowest font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-surface-container-highest"><div class="h-20 w-full px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-on-primary shadow-sm"><span class="material-symbols-outlined text-[24px]">verified_user</span></div><div><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">Tiểu Bạch</span><span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm uppercase">HCP Portal</span></div><p class="font-body-sm text-body-sm text-on-surface-variant">Cổng Dược sĩ &amp; Bác sĩ lâm sàng</p></div></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-label-lg rounded-lg shadow-sm"><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="tong-quan-hcp" href="#">Tổng quan HCP</a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors inline-flex items-center gap-2" data-path="hang-cho-duyet-ca" href="#">Hàng chờ duyệt ca<span class="px-1.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">12 ca</span></a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="danh-gia-tuong-tac" href="#">Đánh giá tương tác</a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="danh-sach-benh-nhan" href="#">Danh sách bệnh nhân</a><a class="px-3 py-2 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors" data-path="co-so-du-lieu-duoc" href="#">Cơ sở dữ liệu Dược (DAV / DDInter)</a></nav></div><div class="flex items-center gap-space-md"><div class="hidden 2xl:flex items-center gap-space-xs px-3 py-1.5 rounded-full bg-surface-container-low border border-surface-container-highest"><span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span><span class="font-body-sm text-body-sm text-on-surface-variant">Trực tuyến • Bệnh viện Chợ Rẫy / ĐH Y Dược</span></div><button class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low border border-surface-container-highest text-on-surface-variant hover:border-outline-variant hover:text-on-surface transition-all" type="button"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-body-sm text-body-sm">Tra cứu thuốc</span><kbd class="px-1.5 py-0.5 rounded bg-surface-container-lowest border border-outline-variant font-label-sm text-label-sm text-on-surface-variant">⌘K</kbd></button><button aria-label="Thông báo lâm sàng" class="relative w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><div class="h-6 w-px bg-surface-container-highest hidden sm:block"></div><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:block text-left"><div class="font-label-md text-label-md text-on-surface leading-tight">DS. Lê Minh An</div><div class="flex items-center gap-space-xs"><span class="font-body-sm text-body-sm text-on-surface-variant">Dược sĩ lâm sàng</span><span class="text-outline-variant">•</span><a class="font-label-sm text-label-sm text-secondary hover:underline" data-path="chuyen-giao-dien-benh-nhan" href="#">Chuyển Portal Bệnh nhân</a></div></div></div></div></div></header><main class="w-full pt-20 bg-surface-container-lowest min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Stepper Workflow Strip -->
+<section class="w-full bg-surface-container-low/70 py-4 px-gutter">
+<div class="max-w-[1440px] mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
+<!-- Step 1 -->
+<div class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-lowest shadow-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Bước 1</span>
+<span class="font-label-sm text-label-sm text-tertiary">Hoàn tất</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface truncate">Đối soát OCR &amp; Tên thuốc</p>
+</div>
+</div>
+<!-- Step 2 (Active) -->
+<div class="flex items-center gap-3 p-3 rounded-lg bg-primary text-on-primary shadow-md" style="box-shadow: rgb(250, 204, 21) 0px 0px 0px 2px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px;">
+<div class="w-8 h-8 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center font-label-md text-label-md shrink-0">
+            2
+          </div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary-fixed">Bước 2</span>
+<span class="px-1.5 py-0.2 rounded-full bg-primary-container text-on-primary-container font-label-sm text-[10px]" style="background-color: rgb(254, 249, 195); color: rgb(113, 63, 18); font-weight: 700; border: 1px solid rgb(250, 204, 21);">Đang thực hiện</span>
+</div>
+<p class="font-headline-sm text-headline-sm text-on-primary truncate">Đánh giá tương tác lâm sàng</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-lowest/80 opacity-80">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md text-label-md shrink-0">
+            3
+          </div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Bước 3</span>
+<span class="font-label-sm text-label-sm text-outline">Tiếp theo</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant truncate">Soạn phản hồi &amp; Khuyến cáo</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Case Header & Action Toolbar -->
+<section class="w-full bg-surface-container-lowest py-5 px-gutter">
+<div class="max-w-[1440px] mx-auto flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex flex-wrap items-center gap-2.5">
+<a class="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" data-path="hang-cho-duyet-ca" href="#">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="">Hàng chờ</span>
+</a>
+<span class="text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-semibold">Phòng Thẩm Định Dược Lâm Sàng</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm font-mono">DAV-DDINTER v2.4</span>
+</div>
+<div class="flex flex-wrap items-baseline gap-3">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+            Thẩm định Ca <span class="font-mono text-primary font-bold">#TC01</span>
+</h1>
+<span class="font-body-lg text-body-lg text-on-surface-variant">
+            Bệnh nhân: <strong class="text-on-surface font-semibold">BN00123</strong> (Nguyễn Văn An, 68 tuổi · Nam · 64kg · eGFR: 62 mL/phút)
+          </span>
+</div>
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-error-container text-on-error-container font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px] text-error">dangerous</span>
+            Mức cảnh báo: Tương tác Major (Chống chỉ định tương đối)
+          </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">history</span> Tiếp nhận: 14 phút trước
+          </span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-wrap items-center gap-2.5 self-stretch xl:self-auto justify-end">
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container-low text-primary hover:bg-surface-container transition-all font-label-lg text-label-lg shadow-sm" id="btnOpenScanModal" type="button">
+<span class="material-symbols-outlined text-[18px]">document_scanner</span>
+          Xem ảnh toa gốc
+        </button>
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all font-label-lg text-label-lg shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">clinical_notes</span>
+          Lịch sử dùng thuốc (12T)
+        </button>
+<a class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low transition-all font-label-lg text-label-lg" data-path="hang-cho-duyet-ca" href="#">
+<span class="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+          Hàng chờ (12)
+        </a>
+</div>
+</div>
+</section>
+<!-- Main Content: Split 40% Left / 60% Right -->
+<main class="w-full px-gutter py-6">
+<div class="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ================= LEFT COLUMN: 40% (lg:col-span-5) ================= -->
+<section class="lg:col-span-5 flex flex-col gap-5">
+<!-- Prescription Scan Thumbnail & Preview Card -->
+<div class="rounded-xl bg-surface-container-lowest p-5 shadow-sm">
+<div class="flex items-center justify-between pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Toa thuốc điện tử / Scan gốc</h2>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label-sm text-label-sm font-mono">BV Thống Nhất · Ngoại trú</span>
+</div>
+<!-- Thumbnail Box with Zoom Prompt -->
+<div class="relative group rounded-lg overflow-hidden bg-surface-container-low h-48 cursor-pointer" id="prescriptionThumbTrigger">
+<img class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="High contrast medical prescription scan sheet from hospital showing Vietnamese medical terms, Rx dosage instructions, physician stamp, and clinical registration numbers in sterile blue and black ink on paper." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYiHaoAwV_K56YL7GlhJ08JtvhHdlP8dYitGu_GPGPdGubYfj2Yk5ze13_k_cAUcRWC0miyhpOwb7FSLekE_sCnuq3adIxkUCW8qCphNJqJYSF5nDiBXGFDxxGZPf9ca21mVzrHO-mssIIH5AT3cmPeV4gXFbvXX0hmsiUVHd6KJWUZB8GlOUGsl-elOOO0DQBtwIg4HkuEopmAZncNgGKiFPA_9zR5djnhECeKlXn-ylABUyzX5q8">
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/80 via-on-surface/30 to-transparent flex items-end justify-between p-3.5 text-on-primary">
+<div>
+<p class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-wider">Mã toa: RX-2025-04891</p>
+<p class="font-label-md text-label-md font-medium text-surface-container-lowest">BS.CKII Trần Quốc Tuấn · Tim mạch</p>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-container-lowest/90 text-on-surface font-label-sm text-label-sm backdrop-blur-sm group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[16px]">zoom_in</span> Phóng to
+              </span>
+</div>
+</div>
+<div class="mt-3 grid grid-cols-2 gap-2 text-on-surface-variant font-body-sm text-body-sm">
+<div class="p-2 rounded bg-surface-container-low">
+<span class="text-outline text-label-sm block uppercase font-label-sm">Chẩn đoán toa:</span>
+<span class="font-medium text-on-surface">I25.1 - Xơ vữa ĐM vành + K29.5</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low">
+<span class="text-outline text-label-sm block uppercase font-label-sm">Ngày kê đơn:</span>
+<span class="font-medium text-on-surface">15/03/2025 (Hôm nay)</span>
+</div>
+</div>
+</div>
+<!-- AI OCR Normalization & DAV / DDInter Mapping -->
+<div class="rounded-xl bg-surface-container-lowest p-5 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[22px]">hub</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Chuẩn hóa dữ liệu OCR &amp; DAV</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Ánh xạ dược thư quốc gia &amp; cơ sở dữ liệu DDInter</p>
+</div>
+</div>
+<span class="px-2 py-1 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">AI Match 99.4%</span>
+</div>
+<!-- Drug Item 1 -->
+<div class="p-3.5 rounded-lg bg-surface-container-low flex flex-col gap-2 relative">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-label-sm text-label-sm font-bold">1</span>
+<div>
+<h3 class="font-label-lg text-label-lg text-on-surface font-semibold">Clopidogrel 75mg</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Uống 1 viên vào lúc 08h00 sáng sau ăn</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-mono">Thuốc #01</span>
+</div>
+<div class="mt-1 pt-2 grid grid-cols-2 gap-x-2 gap-y-1 font-body-sm text-body-sm bg-surface-container-lowest p-2.5 rounded-md">
+<div>
+<span class="text-outline font-label-sm text-label-sm block">Hoạt chất chuẩn:</span>
+<span class="font-medium text-primary">Clopidogrel bisulfate</span>
+</div>
+<div>
+<span class="text-outline font-label-sm text-label-sm block">DDInter Identifier:</span>
+<span class="font-mono text-on-surface font-semibold text-label-md">DDInter413</span>
+</div>
+<div class="col-span-2 mt-1">
+<span class="text-outline font-label-sm text-label-sm block">Nhóm dược lý:</span>
+<span class="text-on-surface">Thuốc kháng kết tập tiểu cầu (P2Y12 Inhibitor)</span>
+</div>
+</div>
+</div>
+<!-- Drug Item 2 -->
+<div class="p-3.5 rounded-lg bg-error-container/20 flex flex-col gap-2 relative">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-error text-on-error flex items-center justify-center font-label-sm text-label-sm font-bold">2</span>
+<div>
+<h3 class="font-label-lg text-label-lg text-error font-semibold">Getzome 20mg</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Uống 1 viên x 2 lần/ngày (trước ăn 30 phút)</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-mono">Tác nhân #02</span>
+</div>
+<div class="mt-1 pt-2 grid grid-cols-2 gap-x-2 gap-y-1 font-body-sm text-body-sm bg-surface-container-lowest p-2.5 rounded-md">
+<div>
+<span class="text-outline font-label-sm text-label-sm block">Hoạt chất chuẩn:</span>
+<span class="font-medium text-error">Omeprazole</span>
+</div>
+<div>
+<span class="text-outline font-label-sm text-label-sm block">DDInter Identifier:</span>
+<span class="font-mono text-on-surface font-semibold text-label-md">DDInter1340</span>
+</div>
+<div class="col-span-2 mt-1">
+<span class="text-outline font-label-sm text-label-sm block">Nhóm dược lý:</span>
+<span class="text-on-surface">Thuốc ức chế bơm Proton (Proton Pump Inhibitor - PPI)</span>
+</div>
+</div>
+</div>
+<!-- Pharmacist Verification Toggle -->
+<div class="p-3.5 rounded-lg bg-surface-container-low flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5">
+<div class="w-5 h-5 rounded bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface font-semibold cursor-pointer" for="pharmacistVerifiedCheck">
+                  Dược sĩ lâm sàng xác nhận đối soát
+                </label>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Khớp 100% hình ảnh toa với danh mục DAV</p>
+</div>
+</div>
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-primary cursor-pointer" id="pharmacistVerifiedCheck" type="checkbox">
+</div>
+</div>
+<!-- Clinical Patient Background Micro-card -->
+<div class="rounded-xl bg-surface-container-lowest p-4 shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between text-label-sm font-label-sm uppercase tracking-wider text-outline">
+<span class="">Dữ liệu tiền sử liên quan</span>
+<span class="text-secondary">EHR Liên thông</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center pt-1">
+<div class="p-2 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm text-outline-variant block">Đặt Stent ĐMV</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">Tháng 11/2024</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm text-outline-variant block">Xuất huyết TH</span>
+<span class="font-label-md text-label-md font-bold text-error">Độ I (2022)</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low">
+<span class="font-label-sm text-label-sm text-outline-variant block">CYP2C19 Genotype</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">Chưa giải trình</span>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= RIGHT COLUMN: 60% (lg:col-span-7) ================= -->
+<section class="lg:col-span-7 flex flex-col gap-5">
+<!-- Major Interaction Alert Card -->
+<div class="rounded-xl bg-surface-container-lowest p-6 shadow-md relative overflow-hidden">
+<!-- Subtle safety banner accent block on top/left -->
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-error"></div>
+<div class="flex flex-col gap-4">
+<div class="flex flex-wrap items-start justify-between gap-3 pt-1">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-error-container text-on-error-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">warning</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold uppercase">Major Interaction</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Level 1 - Cực kỳ nghiêm trọng</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight mt-0.5">
+                    Clopidogrel <span class="text-error">⟷</span> Omeprazole
+                  </h2>
+</div>
+</div>
+<span class="px-3 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
+                Độ tin cậy: <strong class="text-tertiary">Mức A (Rất cao)</strong>
+</span>
+</div>
+<!-- Interaction Mechanism Box -->
+<div class="p-4 rounded-xl bg-error-container/20 flex flex-col gap-2" style="background-color: rgb(255, 248, 176); border: 1.5px solid rgb(250, 204, 21); box-shadow: rgba(234, 179, 8, 0.15) 0px 2px 4px;">
+<div class="flex items-center gap-2 text-error font-label-md text-label-md font-semibold" style="color: rgb(133, 77, 14);">
+<span class="material-symbols-outlined text-[18px]">biotech</span>
+<span class="">Cơ chế dược lực học &amp; chuyển hóa enzym:</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+<strong>Omeprazole</strong> là chất ức chế cạnh tranh mạnh enzym gan <strong>CYP2C19</strong>. Clopidogrel là tiền dược (prodrug) bắt buộc cần CYP2C19 chuyển hóa thành chất chuyển hóa có hoạt tính thiol. Khi dùng đồng thời, nồng độ chất chuyển hóa có hoạt tính của Clopidogrel bị suy giảm tới <strong>45%</strong>, làm mất tác dụng ức chế kết tập tiểu cầu, đẩy bệnh nhân vào nguy cơ cao huyết khối trong stent và tái nhồi máu cơ tim.
+              </p>
+</div>
+<!-- Evidence / Reference Badge Group -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Bằng chứng lâm sàng:</span>
+<span class="px-2.5 py-1 rounded bg-surface-container-low text-on-surface font-label-sm text-label-sm font-medium">Nghiên cứu COGENT (NEJM)</span>
+<span class="px-2.5 py-1 rounded bg-surface-container-low text-on-surface font-label-sm text-label-sm font-medium">Cảnh báo An toàn Dược FDA 2009 &amp; 2011</span>
+<span class="px-2.5 py-1 rounded bg-surface-container-low text-on-surface font-label-sm text-label-sm font-medium">Khuyến cáo Hội Tim Mạch Việt Nam (VNHA)</span>
+</div>
+</div>
+</div>
+<!-- Safe Alternative Treatment Regimens (Bento/Card selection) -->
+<div class="rounded-xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">swap_horizontal_circle</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Phác đồ thay thế an toàn đề xuất (Clinical Alternatives)</h3>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Chọn 1 phương án để nạp vào khuyến nghị</span>
+</div>
+<div class="grid grid-cols-1 gap-3.5" id="alternativeOptionsGroup">
+<!-- Option A (Recommended) -->
+<div class="alternative-card p-4 rounded-xl bg-surface-container-low/80 cursor-pointer transition-all duration-200 ring-2 ring-primary" data-alt-key="pantoprazole">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold">A</div>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Đổi sang Pantoprazole 40mg</h4>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold" style="background-color: rgb(254, 249, 195); color: rgb(133, 77, 14); border: 1px solid rgb(250, 204, 21);">Khuyến nghị cao nhất (First-line)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                      Ít ức chế enzyme CYP2C19 nhất trong toàn bộ nhóm PPI. Không làm giảm nồng độ có hoạt tính của Clopidogrel một cách có ý nghĩa thống kê lâm sàng.
+                    </p>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+</div>
+<div class="mt-3 pt-2 text-label-sm font-label-sm text-secondary flex items-center gap-4">
+<span class="">Liều đề xuất: 40mg x 1 lần/ngày (sáng trước ăn)</span>
+<span class="">• Sẵn có tại kho BHYT Bệnh viện</span>
+</div>
+</div>
+<!-- Option B -->
+<div class="alternative-card p-4 rounded-xl bg-surface-container-low/50 hover:bg-surface-container-low cursor-pointer transition-all duration-200" data-alt-key="spacing">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-label-sm text-label-sm font-bold">B</div>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Tách thời gian uống cách xa tối thiểu 12 giờ</h4>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Hiệu quả hạn chế</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                      Clopidogrel buổi sáng (08:00), Omeprazole trước khi ngủ (21:00). Tuy nhiên ức chế CYP2C19 của Omeprazole kéo dài &gt;24h nên vẫn tồn tại rủi ro.
+                    </p>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-outline shrink-0">
+<span class="material-symbols-outlined text-[14px]">circle</span>
+</div>
+</div>
+</div>
+<!-- Option C -->
+<div class="alternative-card p-4 rounded-xl bg-surface-container-low/50 hover:bg-surface-container-low cursor-pointer transition-all duration-200" data-alt-key="famotidine">
+<div class="flex items-start justify-between gap-3">
+<div class="flex items-center gap-3">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-label-sm text-label-sm font-bold">C</div>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-label-lg text-label-lg text-on-surface font-bold">Thay bằng kháng thụ thể H2 (Famotidine 40mg)</h4>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Cân nhắc nếu nguy cơ loét thấp</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                      Không tương tác với CYP2C19. Phù hợp bệnh nhân triệu chứng trào ngược nhẹ, không có vết loét hoạt động dạ dày tá tràng.
+                    </p>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-outline shrink-0">
+<span class="material-symbols-outlined text-[14px]">circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Clinical Response & Note Drafting Section -->
+<div class="rounded-xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[22px]">rate_review</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Soạn phản hồi duyệt toa &amp; Khuyến cáo chuyên môn</h3>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-low text-primary font-label-sm text-label-sm font-semibold">Tự động điền theo Phương án A</span>
+</div>
+<!-- Section 1: Note to Prescribing Physician -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5" for="doctorNoteArea">
+<span class="material-symbols-outlined text-[16px] text-primary">stethoscope</span>
+                Ghi chú chuyên môn gửi Bác sĩ kê đơn (BS.CKII Trần Quốc Tuấn)
+              </label>
+<button class="text-secondary hover:underline font-label-sm text-label-sm" id="btnCopyDrSnippet" type="button">Mẫu chuẩn dược lâm sàng</button>
+</div>
+<textarea class="w-full rounded-lg bg-surface-container-low p-3 font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-inner resize-none" id="doctorNoteArea" rows="3">Kính gửi Bác sĩ Tuấn: Đơn thuốc có phối hợp Clopidogrel 75mg và Getzome (Omeprazole 20mg). Theo CSDL DDInter và khuyến cáo FDA/Bộ Y Tế, Omeprazole ức chế mạnh CYP2C19 làm suy giảm hoạt hóa Clopidogrel, tăng nguy cơ huyết khối stent trên BN có tiền sử đặt stent vành (11/2024). Dược lâm sàng khuyến nghị đổi Omeprazole 20mg sang Pantoprazole 40mg (1 viên sáng trước ăn). Trân trọng.</textarea>
+</div>
+<!-- Section 2: Instructions for Patient -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5" for="patientNoteArea">
+<span class="material-symbols-outlined text-[16px] text-tertiary">person</span>
+                Lời khuyên gửi Bệnh nhân &amp; Người nhà (Ngôn ngữ mộc mạc, dễ hiểu, tránh lo sợ)
+              </label>
+<span class="font-label-sm text-label-sm text-outline" style="background-color: rgb(254, 249, 195); color: rgb(113, 63, 18); border: 1px solid rgb(250, 204, 21); border-radius: 9999px; padding: 2px 8px; font-weight: 600;">Hiển thị trên App Bệnh nhân Tiểu Bạch</span>
+</div>
+<textarea class="w-full rounded-lg bg-surface-container-low p-3 font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary shadow-inner resize-none" id="patientNoteArea" rows="3" style="background-color: rgb(255, 253, 230); border: 1.5px solid rgb(250, 204, 21);">Bác An và gia đình yên tâm nhé! Dược sĩ bệnh viện đã xem kỹ đơn thuốc. Thuốc dạ dày Getzome (Omeprazole) khi uống cùng thuốc tim mạch Clopidogrel có thể làm thuốc tim mạch hoạt động kém hiệu quả hơn. Dược sĩ đã liên hệ chuyển sang thuốc dạ dày loại Pantoprazole 40mg phù hợp hơn với tim mạch của Bác. Bác uống thuốc dạ dày vào trước bữa ăn sáng 30 phút theo hướng dẫn mới nhé.</textarea>
+</div>
+<!-- Submission & Save Action Strip -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all font-label-lg text-label-lg" id="btnDraftSave" type="button">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                Lưu bản thảo
+              </button>
+<span class="font-label-sm text-label-sm text-tertiary hidden" id="saveStatusIndicator">Đã lưu nháp lúc 14:32</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-error-container/50 text-error hover:bg-error-container transition-all font-label-lg text-label-lg" id="btnRejectPrescription" type="button">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+                Yêu cầu đổi đơn
+              </button>
+<button class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary-container text-on-primary-container hover:bg-primary transition-all font-label-lg text-label-lg shadow-md font-semibold" id="btnConfirmAndSend" type="button">
+<span class="">Chuyển bước Xác nhận &amp; Gửi phản hồi</span>
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Interactive Scan Modal (Initially Hidden) -->
+<div class="fixed inset-0 z-50 bg-inverse-surface/60 backdrop-blur-sm hidden items-center justify-center p-4" id="scanModalOverlay">
+<div class="relative w-full max-w-4xl bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+<!-- Modal Header -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">document_scanner</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Đơn thuốc gốc chi tiết #RX-2025-04891</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Bệnh nhân: Nguyễn Văn An · Chụp lúc tiếp nhận</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center hover:bg-error-container hover:text-on-error-container transition-colors" id="btnCloseScanModal" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body: High Resolution Scan Container -->
+<div class="p-6 overflow-auto bg-surface-container flex flex-col items-center justify-center">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-md max-w-2xl w-full">
+<div class="text-center pb-4 mb-4">
+<p class="font-label-sm text-label-sm uppercase tracking-widest text-outline">BỘ Y TẾ - BỆNH VIỆN THỐNG NHẤT</p>
+<h4 class="font-headline-md text-headline-md text-on-surface font-bold">ĐƠN THUỐC BẢO HIỂM Y TẾ</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant font-mono">Mã BN: BN00123 - Mã Toa: RX-2025-04891</p>
+</div>
+<div class="space-y-4 font-body-md text-body-md text-on-surface">
+<div class="grid grid-cols-2 gap-2 text-sm bg-surface-container-low p-3 rounded">
+<p class=""><strong>Họ tên:</strong> NGUYỄN VĂN AN</p>
+<p class=""><strong>Tuổi:</strong> 68 · <strong>Giới tính:</strong> Nam</p>
+<p class="col-span-2"><strong>Chẩn đoán:</strong> Bệnh tim thiếu máu cục bộ mãn tính (I25) / Viêm dạ dày (K29)</p>
+</div>
+<div class="space-y-3 pt-2">
+<div class="p-3 rounded-lg bg-surface-bright flex justify-between items-start">
+<div>
+<p class="font-bold text-primary">1. Clopidogrel (Plavix) 75mg</p>
+<p class="text-sm text-on-surface-variant">Uống 01 viên/ngày vào buổi sáng sau ăn.</p>
+</div>
+<span class="font-mono font-bold text-primary">SL: 30 viên</span>
+</div>
+<div class="p-3 rounded-lg bg-error-container/30 flex justify-between items-start">
+<div>
+<p class="font-bold text-error">2. Getzome (Omeprazole) 20mg</p>
+<p class="text-sm text-on-surface-variant">Uống 01 viên x 2 lần/ngày trước bữa ăn 30 phút.</p>
+</div>
+<span class="font-mono font-bold text-error">SL: 60 viên</span>
+</div>
+</div>
+<div class="pt-6 flex justify-between items-end text-sm text-on-surface-variant">
+<div>
+<p class="">Ngày 15 tháng 03 năm 2025</p>
+<p class="font-semibold text-on-surface">Dược sĩ thẩm định: DS. Lê Minh An</p>
+</div>
+<div class="text-center">
+<p class="">Bác sĩ điều trị</p>
+<p class="font-semibold text-on-surface mt-6">BS.CKII Trần Quốc Tuấn</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-3 bg-surface-container-low flex justify-between items-center px-6">
+<span class="font-label-sm text-label-sm text-outline font-mono">MD5: a9b4c81f...verified</span>
+<button class="px-4 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors" id="btnCloseScanModalFooter" type="button">
+          Đóng cửa sổ
+        </button>
+</div>
+</div>
+</div>
+<!-- Notification Toast Toast Element -->
+<div class="fixed bottom-6 right-6 z-50 bg-surface-container-lowest rounded-xl shadow-xl p-4 flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300" id="toastNotification">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shrink-0" id="toastIconContainer">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+<div>
+<h5 class="font-label-lg text-label-lg font-bold text-on-surface" id="toastTitle">Thông báo</h5>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="toastMessage">Dữ liệu đã được lưu thành công.</p>
+</div>
+</div>
+</div>
+<script>
+  (function initHcpAssessment() {
+    // Modal Open / Close Logic
+    const openModalBtn = document.getElementById('btnOpenScanModal');
+    const thumbTrigger = document.getElementById('prescriptionThumbTrigger');
+    const modal = document.getElementById('scanModalOverlay');
+    const closeModalBtn = document.getElementById('btnCloseScanModal');
+    const closeModalFooterBtn = document.getElementById('btnCloseScanModalFooter');
+
+    function openModal() {
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeModal() {
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    if (openModalBtn) openModalBtn.addEventListener('click', openModal);
+    if (thumbTrigger) thumbTrigger.addEventListener('click', openModal);
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+    if (closeModalFooterBtn) closeModalFooterBtn.addEventListener('click', closeModal);
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+    }
+
+    // Toast helper
+    function showToast(title, message, isError = false) {
+      const toast = document.getElementById('toastNotification');
+      const toastTitle = document.getElementById('toastTitle');
+      const toastMessage = document.getElementById('toastMessage');
+      const iconContainer = document.getElementById('toastIconContainer');
+
+      if (!toast || !toastTitle || !toastMessage) return;
+
+      toastTitle.textContent = title;
+      toastMessage.textContent = message;
+
+      if (isError) {
+        iconContainer.className = "w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center shrink-0";
+        iconContainer.innerHTML = '<span class="material-symbols-outlined text-[18px]">error</span>';
+      } else {
+        iconContainer.className = "w-8 h-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shrink-0";
+        iconContainer.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span>';
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    // Alternative cards selection
+    const altCards = document.querySelectorAll('.alternative-card');
+    const doctorNoteArea = document.getElementById('doctorNoteArea');
+    const patientNoteArea = document.getElementById('patientNoteArea');
+
+    const alternativePresets = {
+      pantoprazole: {
+        doc: "Kính gửi Bác sĩ Tuấn: Đơn thuốc có phối hợp Clopidogrel 75mg và Getzome (Omeprazole 20mg). Theo CSDL DDInter và khuyến cáo FDA/Bộ Y Tế, Omeprazole ức chế mạnh CYP2C19 làm suy giảm hoạt hóa Clopidogrel, tăng nguy cơ huyết khối stent trên BN có tiền sử đặt stent vành (11/2024). Dược lâm sàng khuyến nghị đổi Omeprazole 20mg sang Pantoprazole 40mg (1 viên sáng trước ăn). Trân trọng.",
+        pat: "Bác An và gia đình yên tâm nhé! Dược sĩ bệnh viện đã xem kỹ đơn thuốc. Thuốc dạ dày Getzome (Omeprazole) khi uống cùng thuốc tim mạch Clopidogrel có thể làm thuốc tim mạch hoạt động kém hiệu quả hơn. Dược sĩ đã liên hệ chuyển sang thuốc dạ dày loại Pantoprazole 40mg phù hợp hơn với tim mạch của Bác. Bác uống thuốc dạ dày vào trước bữa ăn sáng 30 phút theo hướng dẫn mới nhé."
+      },
+      spacing: {
+        doc: "Kính gửi Bác sĩ: Trường hợp không thể thay thế Pantoprazole, phương án tách thời gian uống (Clopidogrel sáng 08h00, Omeprazole tối 21h00) có thể hạn chế một phần tương tác đỉnh. Tuy nhiên do tác dụng ức chế CYP2C19 của Omeprazole kéo dài &gt;24h, nguy cơ tim mạch vẫn còn hiện diện, đề nghị theo dõi sát.",
+        pat: "Bác An lưu ý: Hai loại thuốc tim mạch và thuốc dạ dày trong đơn cần uống cách nhau ít nhất 12 tiếng để tránh giảm tác dụng. Bác uống thuốc tim Clopidogrel vào 8 giờ sáng, và uống thuốc dạ dày lúc 9 giờ tối trước khi ngủ nhé."
+      },
+      famotidine: {
+        doc: "Kính gửi Bác sĩ: Khuyến nghị cân nhắc hạ bậc PPI sang kháng thụ thể H2 Famotidine 40mg x 1 lần/ngày vào buổi tối nếu bệnh nhân chỉ có trào ngược nhẹ và không có ổ loét cấp tính, nhằm loại bỏ hoàn toàn tương tác ức chế CYP2C19.",
+        pat: "Bác An thân mến: Dược sĩ đã đề xuất Bác sĩ thay thuốc dạ dày sang nhóm thuốc Famotidine dịu nhẹ hơn, hoàn toàn không tương tác với thuốc tim của Bác. Bác theo dõi triệu chứng ợ nóng và báo lại dược sĩ nhé."
+      }
+    };
+
+    altCards.forEach(card => {
+      card.addEventListener('click', () => {
+        altCards.forEach(c => {
+          c.classList.remove('ring-2', 'ring-primary', 'bg-surface-container-low/80');
+          c.classList.add('bg-surface-container-low/50');
+          const circle = c.querySelector('.shrink-0 .material-symbols-outlined');
+          const circleWrapper = c.querySelector('.shrink-0');
+          if (circle && circleWrapper) {
+            circle.textContent = 'circle';
+            circleWrapper.className = 'w-5 h-5 rounded-full bg-surface-container-highest flex items-center justify-center text-outline shrink-0';
+          }
+        });
+
+        card.classList.add('ring-2', 'ring-primary', 'bg-surface-container-low/80');
+        card.classList.remove('bg-surface-container-low/50');
+        const activeIcon = card.querySelector('.shrink-0 .material-symbols-outlined');
+        const activeCircleWrapper = card.querySelector('.shrink-0');
+        if (activeIcon && activeCircleWrapper) {
+          activeIcon.textContent = 'check';
+          activeCircleWrapper.className = 'w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0';
+        }
+
+        const altKey = card.getAttribute('data-alt-key');
+        if (altKey && alternativePresets[altKey] && doctorNoteArea && patientNoteArea) {
+          doctorNoteArea.value = alternativePresets[altKey].doc;
+          patientNoteArea.value = alternativePresets[altKey].pat;
+          showToast('Đã áp dụng phương án', `Đã cập nhật biểu mẫu phản hồi theo Lựa chọn (${altKey.toUpperCase()})`);
+        }
+      });
+    });
+
+    // Save draft action
+    const btnDraftSave = document.getElementById('btnDraftSave');
+    const saveStatusIndicator = document.getElementById('saveStatusIndicator');
+    if (btnDraftSave) {
+      btnDraftSave.addEventListener('click', () => {
+        if (saveStatusIndicator) {
+          saveStatusIndicator.classList.remove('hidden');
+          const now = new Date();
+          saveStatusIndicator.textContent = `Đã lưu nháp lúc ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+        showToast('Bản thảo đã lưu', 'Nội dung phản hồi thẩm định đã được lưu an toàn vào cơ sở dữ liệu.');
+      });
+    }
+
+    // Confirmation & Forward Action
+    const btnConfirmAndSend = document.getElementById('btnConfirmAndSend');
+    if (btnConfirmAndSend) {
+      btnConfirmAndSend.addEventListener('click', () => {
+        showToast('Thẩm định hoàn tất', 'Đã phê duyệt ca #TC01 và chuyển tiếp khuyến nghị tới Bác sĩ & Bệnh nhân.');
+        setTimeout(() => {
+          window.location.hash = "#hang-cho-duyet-ca";
+        }, 1500);
+      });
+    }
+
+    // Reject / Request Change Action
+    const btnReject = document.getElementById('btnRejectPrescription');
+    if (btnReject) {
+      btnReject.addEventListener('click', () => {
+        showToast('Đã chuyển cảnh báo', 'Yêu cầu điều chỉnh đơn thuốc đã được đẩy trực tiếp lên màn hình kê đơn của BS Tuấn.', true);
+      });
+    }
+  })();
+</script></main><footer class="w-full bg-surface-container-low border-t border-surface-container-highest py-6"><div class="w-full px-gutter flex flex-col sm:flex-row items-center justify-between gap-space-sm text-center sm:text-left"><div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm"><span class="material-symbols-outlined text-primary text-[18px]">health_and_safety</span><span class="">Tiểu Bạch HCP Portal • Dữ liệu đối soát chuẩn hóa từ Cục Quản lý Dược (DAV) &amp; DDInter.</span></div><p class="font-label-sm text-label-sm text-outline">Không thay thế hội chẩn lâm sàng trực tiếp.</p></div></footer>
+
+</body></html>
