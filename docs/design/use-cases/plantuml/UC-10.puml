@@ -1,0 +1,42 @@
+@startuml UC_10
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-10: View Medication and Safety History
+
+' Figure 10 / UC-10; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "View Medication\nand Safety History" as Main
+  usecase "View Record or Assessment Details" as Details
+  note bottom of Main
+    Show permitted history without modifying
+    medication records, assessments or treatment.
+  end note
+  note bottom of Details
+    Show dates, findings, limitations and linked
+    HCP review status; clearly label results that
+    no longer match the current medication record.
+  end note
+}
+Actor1 -- Main
+Actor1 -- Details
+@enduml

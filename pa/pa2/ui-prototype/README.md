@@ -1,6 +1,6 @@
 # UI prototype PA2 — Medication Safety Assistant
 
-Bản mới theo `../Use-Case-Specification/sections/02-use-case-specifications.tex` (UC-01–UC-18). Bản PA1 tại `pa/pa1/ui-prototype/` được giữ nguyên.
+Bản mới theo `../use-case-report/sections/02-use-case-specifications.tex` (UC-01–UC-18). Bản PA1 tại `pa/pa1/ui-prototype/` được giữ nguyên.
 
 ## Mở bản mẫu
 

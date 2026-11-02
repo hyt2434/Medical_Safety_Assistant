@@ -1,6 +1,6 @@
 # Frontend hiện tại — PA2 / UC-01–UC-18
 
-Phiên bản TypeScript hiện tại nằm trong `src/pa2/`, dựa trên đặc tả tại `pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex` và các luồng trong prototype PA2. Nguồn PA1 trước đây vẫn mở được ở `/pa1.html` để đối chiếu.
+Phiên bản TypeScript hiện tại nằm trong `src/pa2/`, dựa trên đặc tả tại `pa/pa2/use-case-report/sections/02-use-case-specifications.tex` và các luồng trong prototype PA2. Nguồn PA1 trước đây vẫn mở được ở `/pa1.html` để đối chiếu.
 
 ## Chạy và kiểm tra
 
@@ -40,9 +40,9 @@ npm run capture:report
 - `src/pa2/styles.css`, `tokens.css`: giao diện responsive và màu Tiểu Bạch.
 - `tests/pa2-smoke.mjs`: tự mở Vite cổng 5179 để không gián đoạn dev server cổng 5173, chạy thao tác thật bằng Edge. Có thể đặt `BROWSER_PATH` để dùng Chrome/Chromium.
 - `artifacts/pa2/screenshots/`: ảnh kiểm tra, bỏ qua Git.
-- `npm run capture:report`: chỉ sau khi kiểm thử thành công mới sao chép 18 ảnh vào `pa/pa2/ui-prototype-report/sections/ui-images/`, ghi thêm `capture-manifest.json`.
+- `npm run capture:report`: chỉ sau khi kiểm thử thành công mới sao chép 18 ảnh vào `pa/pa2/ui-report/sections/ui-images/`, ghi thêm `capture-manifest.json`.
 - Desktop chụp ở 1440×1000, mobile 390×844. Kiểm tra layout thêm tại 320, 375, 414 và 768 px.
-- Báo cáo độc lập: `pa/pa2/ui-prototype-report/main.tex` và `main.pdf`. Ảnh PA1 gốc trong `sections/pa1-original/` được giữ nguyên; nội dung thay đổi PA2 màu xanh dương.
+- Báo cáo độc lập: `pa/pa2/ui-report/main.tex` và `main.pdf`. Ảnh PA1 gốc trong `pa/pa1/ui-prototype/screenshots/` được giữ nguyên; nội dung thay đổi PA2 màu xanh dương.
 
 ## Giới hạn
 

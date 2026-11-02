@@ -294,7 +294,7 @@ try {
   assert.equal(await page.$eval('.menu-toggle', e => e.getAttribute('aria-expanded')), 'false');
   if (process.argv.includes("--report")) {
     const destination = path.resolve(
-      "../../pa/pa2/ui-prototype-report/sections/ui-images",
+      "../../pa/pa2/ui-report/sections/ui-images",
     );
     fs.mkdirSync(destination, { recursive: true });
     const files = [

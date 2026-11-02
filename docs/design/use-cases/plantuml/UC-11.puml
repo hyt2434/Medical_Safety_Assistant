@@ -1,0 +1,37 @@
+@startuml UC_11
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-11: Ask a Medication Question
+
+' Figure 11 / UC-11; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Ask a Medication Question" as Main
+  note right of Main
+    Use supported references and permitted context;
+    explain limits when reliable information is missing.
+    No diagnosis or treatment change; record changes
+    require a separate confirmation use case.
+  end note
+}
+Actor1 -- Main
+@enduml

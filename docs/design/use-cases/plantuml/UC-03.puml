@@ -1,0 +1,48 @@
+@startuml UC_03
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-03: Check Medication Safety
+
+' Figure 3 / UC-03; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Check Medication Safety" as Main
+  usecase "Identify Medicines\nand Active Ingredients" as Identify
+  Main ..> Identify : <<include>>
+  note bottom of Identify
+    Unidentified medicines remain unresolved;
+    do not guess their active ingredients.
+  end note
+  note top of Main
+    Run supported interaction and duplicate checks
+    where assessable; show coverage and limits.
+    Missing or failed checks are not safe clearance.
+  end note
+  note bottom of Main
+    Severe findings trigger immediate warnings
+    and hold affected NEW reminders.
+    Existing reminders and prescriptions stay
+    unchanged; recorded warnings survive failure.
+  end note
+}
+Actor1 -- Main
+@enduml

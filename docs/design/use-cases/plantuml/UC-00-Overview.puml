@@ -1,0 +1,82 @@
+@startuml UC_00_Overview
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+
+title Medication Safety Assistant - Use-Case Overview
+' Overview only: 18 existing goals; no execution-order dependencies.
+actor "Patient / General User" as Patient
+actor "Healthcare Professional (HCP)" as HCP
+actor "Dataset Reviewer" as Reviewer
+actor "Administrator" as Admin
+actor "Technical Support" as Support
+rectangle "Medication Safety Assistant" {
+  package "Patient Workflows" {
+    usecase "UC-02: Enter and Confirm\nMedication Information" as UC02
+    usecase "UC-03: Check Medication Safety" as UC03
+    usecase "UC-04: Request HCP Review" as UC04
+    usecase "UC-06: Set Up Medication Reminders" as UC06
+    usecase "UC-07: Manage Medication Reminders" as UC07
+    usecase "UC-08: Record Dose Status" as UC08
+    usecase "UC-09: View Adherence History" as UC09
+    usecase "UC-10: View Medication\nand Safety History" as UC10
+    usecase "UC-11: Ask a Medication Question" as UC11
+    usecase "UC-12: Generate Patient Health Summary" as UC12
+    usecase "UC-13: Share Patient Health\nSummary with HCP" as UC13
+  }
+  package "Shared Functions" {
+    usecase "UC-01: Sign In" as UC01
+    usecase "UC-17: Report Technical Issue" as UC17
+  }
+  package "Professional and Administrative Functions" {
+    usecase "UC-05: Review Medication\nSafety Case" as UC05
+    usecase "UC-14: Review Medication\nDataset Record" as UC14
+    usecase "UC-15: Manage User Accounts\nand Roles" as UC15
+    usecase "UC-16: View Administrative\nActivity History" as UC16
+    usecase "UC-18: Handle Technical\nSupport Request" as UC18
+  }
+}
+Patient -- UC02
+Patient -- UC03
+Patient -- UC04
+Patient -- UC05
+Patient -- UC06
+Patient -- UC07
+Patient -- UC08
+Patient -- UC09
+Patient -- UC10
+Patient -- UC11
+Patient -- UC12
+Patient -- UC13
+HCP -- UC05
+Reviewer -- UC14
+Admin -- UC15
+Admin -- UC16
+Support -- UC18
+Patient -- UC01
+Patient -- UC17
+HCP -- UC01
+HCP -- UC17
+Reviewer -- UC01
+Reviewer -- UC17
+Admin -- UC01
+Admin -- UC17
+Support -- UC01
+Support -- UC17
+@enduml

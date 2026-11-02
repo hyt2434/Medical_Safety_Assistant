@@ -18,7 +18,7 @@ Phần dưới ghi lại bản PA1 trước khi nâng cấp. Bản này được
 
 ## Tham chiếu triển khai PA1
 
-Giao diện dựng lại bằng **TypeScript + Vite + CSS**, dùng bộ ảnh người dùng cung cấp tại `pa/pa1/ui-prototype/ui-prototype/` làm tham chiếu. Đây là ứng dụng có phần tử HTML và thao tác thật; không dùng ảnh chụp làm nền giao diện. Không thay đổi prototype PA1/PA2 hoặc báo cáo hiện có.
+Giao diện dựng lại bằng **TypeScript + Vite + CSS**, dùng bộ ảnh người dùng cung cấp tại `pa/pa1/ui-prototype/screenshots/` làm tham chiếu. Đây là ứng dụng có phần tử HTML và thao tác thật; không dùng ảnh chụp làm nền giao diện. Không thay đổi prototype PA1/PA2 hoặc báo cáo hiện có.
 
 ## Chạy ứng dụng
 

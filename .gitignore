@@ -61,14 +61,14 @@ node_modules/
 /tests/artifacts/
 
 # Document-specific output (other report PDFs/images remain trackable)
-/docs/latex/main.pdf
-/docs/latex/**/*.acn
-/docs/latex/**/*.acr
-/docs/latex/**/*.alg
-/docs/latex/**/*.dvi
-/docs/latex/**/*.ps
-/pa/pa1/vision-document-latex/**/preview-*.png
-/pa/pa1/project-plan-latex/**/preview-*.png
+/pa/pa0/project-proposal/main.pdf
+/pa/pa0/project-proposal/**/*.acn
+/pa/pa0/project-proposal/**/*.acr
+/pa/pa0/project-proposal/**/*.alg
+/pa/pa0/project-proposal/**/*.dvi
+/pa/pa0/project-proposal/**/*.ps
+/pa/pa1/vision-document/**/preview-*.png
+/pa/pa1/project-plan/**/preview-*.png
 # Temporary files and local datasets
 /tmp/
 /data/local/

@@ -1,0 +1,40 @@
+@startuml UC_09
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-09: View Adherence History
+
+' Figure 9 / UC-09; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "View Adherence History" as Main
+  usecase "Filter by Medicine\nor Time Period" as Filter
+  Filter ..> Main : <<extend>>\n[patient requests a filtered view]
+  note bottom of Main
+    Show own scheduled doses and recorded
+    Taken, Missed and Skipped outcomes.
+    Identify unavailable periods; a missing
+    report is not automatically a Missed outcome.
+  end note
+}
+Actor1 -- Main
+Actor1 -- Filter
+@enduml

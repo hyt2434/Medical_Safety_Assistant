@@ -1,0 +1,40 @@
+@startuml UC_16
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-16: View Administrative Activity History
+
+' Figure 16 / UC-16; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Administrator" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "View Administrative Activity History" as Main
+  usecase "Filter by Date, Account\nor Action Type" as Filter
+  Filter ..> Main : <<extend>>\n[administrator requests a filtered view]
+  note bottom of Main
+    Show permitted account/access-management
+    audit metadata, not restricted patient content.
+    Viewing changes no audit or patient data;
+    unavailable records are not invented.
+  end note
+}
+Actor1 -- Main
+Actor1 -- Filter
+@enduml
