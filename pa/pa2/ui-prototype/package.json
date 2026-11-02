@@ -1,0 +1,7 @@
+{
+  "name": "msa-pa2-ui-prototype",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {"test": "node tests/browser-smoke.mjs"},
+  "devDependencies": {"puppeteer": "25.16.0"}
+}

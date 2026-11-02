@@ -1,0 +1,165 @@
+\section{Product Overview}
+
+\subsection{Product Perspective}
+
+The Medication Safety Assistant is a standalone,
+responsive Web prototype that helps patients identify
+potential medication risks and manage confirmed
+medication schedules. It is not a diagnostic or
+prescribing system and does not connect to real
+healthcare systems.
+
+The application has two main user roles: Patient
+and Healthcare Professional (HCP). Patients manage
+their medications, while HCPs use separate accounts
+to review safety cases. HCP review is simulated
+and does not represent real clinical approval.
+Family caregivers may assist patients with permission.
+
+The system consists of five main modules:
+
+\begin{enumerate}
+  
+    \item \textbf{Medication Intake and Intent Recognition:}
+    Identifies user intent through UI selection or
+    NLP, and collects medication information
+    through OCR, NLP Chatbot, Voice/STT, and
+    Manual Input. Users review and confirm
+    medication details before further processing.
+
+    \item \textbf{Medication Identification:}
+    Identifies Vietnamese medications and active
+    ingredients using permitted data sources.
+    Uncertain matches remain unresolved.
+
+    \item \textbf{Medication Safety Assessment:}
+    Checks supported drug-drug interactions using
+    DDInter 2.0 and detects duplicate active
+    ingredients. It reports potential risks,
+    warnings, and data limitations without
+    claiming that a prescription is fully safe.
+
+    \item \textbf{HCP Review:}
+    Allows HCPs to review high-risk or uncertain
+    cases, request corrections, and record decisions
+    through a simulated review workflow.
+
+    \item \textbf{Medication Reminders and Adherence:}
+    Supports confirmed medication schedules,
+    applies a safety gate before activating new
+    reminders, and tracks medication adherence.
+
+\end{enumerate}
+
+The workflow starts in Module 1. For OCR and
+Manual Input, users select their intended action
+through the interface. For typed and voice requests,
+NLP identifies intent from text or speech transcripts.
+Unclear requests require clarification.
+
+After user confirmation, Module 2 identifies
+medications, and Module 3 assesses supported
+safety risks. The system then displays results,
+warnings, and data limitations.
+
+Cases requiring HCP review, including severe
+interactions, are handled by Module 4.
+Missing or unclear medication information
+must not be treated as safe.
+
+After safety assessment and any required
+HCP review, the system may suggest setting
+medication reminders. Users can accept,
+decline, or request reminders directly.
+
+Users may confirm and adjust reminder times
+as long as they follow a verified prescription
+or recorded HCP instructions. Changes that
+conflict with these instructions, or cannot
+be verified, require HCP review.
+
+Before activating new reminders, Module 5
+applies a safety gate. New reminders for
+medicines with severe interactions remain
+blocked until HCP review permits activation.
+
+Other eligible reminders may be activated.
+The system does not automatically stop
+existing reminders or prescribed medicines.
+
+\subsection{Assumptions and Dependencies}
+
+\begin{longtable}{|L{0.16\textwidth}|L{0.43\textwidth}|L{0.31\textwidth}|}
+\hline
+\textbf{Type} &
+\textbf{Assumption / Dependency} &
+\textbf{Effect if Invalid or Unavailable}\\ \hline
+
+Assumption
+& Users can review, correct, and confirm
+medication information before processing.
+& Unconfirmed information cannot be used
+for safety assessment or reminders.
+\\ \hline
+
+Dependency
+& Vietnamese medication data and reliable
+active-ingredient mappings are available
+for medication identification.
+& Unknown medicines or unclear mappings
+remain unresolved and cannot be
+assessed automatically.
+\\ \hline
+
+Dependency
+& DDInter 2.0 provides interaction data
+for the identified active ingredients.
+& Unsupported interactions cannot be
+assessed. Missing results are not
+treated as proof of safety.
+\\ \hline
+
+Dependency
+& OCR can extract medication information
+from clear printed or digital prescriptions.
+& Users must correct extraction errors
+or switch to Manual Input.
+\\ \hline
+
+Dependency
+& Speech-to-text can convert voice input
+into editable text.
+& Users can correct the transcript
+or switch to typed or manual input.
+\\ \hline
+
+Dependency
+& NLP can identify user intents and
+medication information from text.
+& Users must clarify unclear requests
+or select a function manually.
+\\ \hline
+
+Assumption
+& HCP accounts are available for simulated
+review of high-risk or uncertain cases.
+& Cases awaiting required review remain
+pending. Affected new reminders cannot
+be activated without the required decision.
+\\ \hline
+
+Assumption
+& Prescription or HCP instructions provide
+enough information to check reminder times.
+& Unclear or conflicting schedule changes
+require HCP review before activation.
+\\ \hline
+
+Dependency
+& Web browsers support camera, microphone,
+and reminder notifications when needed.
+& Users can use Manual Input if needed.
+Notifications may be limited or unavailable.
+\\ \hline
+
+\end{longtable}

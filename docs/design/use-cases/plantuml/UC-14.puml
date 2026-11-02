@@ -1,0 +1,46 @@
+@startuml UC_14
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-14: Review Medication Dataset Record
+
+' Figure 14 / UC-14; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Dataset Reviewer" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Review Medication Dataset Record" as Main
+  usecase "Compare Record with Evidence" as Evidence
+  usecase "Record Data-Quality Review Decision" as Decision
+  Main ..> Evidence : <<include>>
+  Main ..> Decision : <<include>>
+  note bottom of Evidence
+    Missing evidence or inconsistent mappings
+    lead to Reject or Needs Correction with reasons.
+    A changed record must be reloaded before deciding.
+  end note
+  note bottom of Decision
+    Accept, Reject and Needs Correction are
+    source-linked data-quality decisions,
+    not independent clinical validation.
+    Cancellation or failure retains the prior status.
+  end note
+}
+Actor1 -- Main
+@enduml

@@ -1,0 +1,50 @@
+@startuml UC_04
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-04: Request HCP Review
+
+' Figure 4 / UC-04; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Request HCP Review" as Main
+  usecase "Review Case and Grant\nSharing Permission" as Consent
+  usecase "View Review Request Status" as Status
+  Main ..> Consent : <<include>>
+  note bottom of Consent
+    Permission covers the selected case and
+    displayed sharing scope; only authorized
+    HCP accounts may access shared information.
+  end note
+  note bottom of Main
+    Declined permission or a failed request
+    creates no new request or sharing access.
+    Reuse an existing active request without
+    duplicates or additional unapproved sharing.
+  end note
+  note bottom of Status
+    No reviewer available: the request remains
+    Pending and unassigned, not reviewed.
+  end note
+}
+Actor1 -- Main
+Actor1 -- Status
+@enduml

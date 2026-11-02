@@ -1,0 +1,139 @@
+
+\section{Product Features}
+
+The following features describe the main
+capabilities of the Medication Safety Assistant.
+They focus on user needs while allowing
+future improvements and extensions.
+
+\subsection{PF-01: Multimodal Medication Intake}
+
+Users can provide medication information
+through four input methods: prescription-image
+OCR, NLP Chatbot, Voice/STT, and Manual Input.
+
+The system supports information extraction,
+medication search suggestions, and user
+corrections. Users can switch to another
+input method when needed.
+
+\subsection{PF-02: Intent Recognition and User Confirmation}
+
+The system identifies user intent through
+UI selection or NLP analysis of text and
+voice requests. Supported actions include
+checking medication interactions and
+managing medication reminders.
+
+Unclear requests require clarification.
+Users can review, correct, and confirm
+medication information before processing.
+Confirmation ensures input accuracy,
+not medical correctness.
+
+\subsection{PF-03: Vietnamese Medication Identification}
+
+The system identifies Vietnamese medicines
+and their active ingredients using available
+medication data sources.
+
+It supports matching different medicine
+names to their active ingredients and
+related medication information.
+Unknown or unclear matches are reported
+instead of being treated as confirmed.
+
+\subsection{PF-04: Medication Risk Assessment}
+
+The system assesses supported medication
+risks, including drug-drug interactions
+using DDInter 2.0 and duplicate active
+ingredients.
+
+It identifies potential risks, their
+severity when available, and cases
+that need further review. Missing data
+or no detected interaction does not
+guarantee that a medication plan is safe.
+
+The assessment can be extended to other
+medication risks when reliable data
+and suitable methods become available.
+
+\subsection{PF-05: Safety Results and Recommendations}
+
+The system presents medication safety
+results in a clear and understandable way,
+including detected risks, involved medicines,
+available explanations, and data limitations.
+
+It provides appropriate next steps and
+recommends professional review when needed.
+The system supports informed decisions
+without independently changing prescribed
+treatment.
+
+\subsection{PF-06: Healthcare Professional Review}
+
+HCPs can use dedicated accounts to review
+medication information, safety findings,
+and cases requiring professional attention.
+
+They can request additional information,
+provide feedback, and record review decisions.
+Cases awaiting required review remain pending.
+
+The initial prototype uses simulated
+HCP review, with the possibility of
+supporting real professional workflows
+in future development.
+
+\subsection{PF-07: Medication Reminder Management}
+
+Users can create medication reminders
+directly or accept suggestions after
+safety assessment and any required
+HCP review.
+
+Users can manage reminder schedules
+based on confirmed prescription or
+HCP instructions. Changes that cannot
+be checked against these instructions
+require professional review.
+
+The system checks medication risks
+before activating new reminders.
+Reminders for medicines with severe
+interactions require HCP review before
+activation. Existing reminders are not
+automatically stopped.
+
+\subsection{PF-08: Medication Reminders and Adherence Tracking}
+
+The system provides medication reminders
+and allows users to record doses as
+taken, missed, or skipped.
+
+Users can review reminder schedules
+and medication adherence records.
+This information helps users manage
+medication use and may support future
+adherence analysis and personalized support.
+
+\subsection{PF-09: Medication and Health History}
+
+The system maintains medication records,
+previous safety assessments, detected risks,
+HCP review decisions, reminder schedules,
+and adherence history.
+
+Users can review their history, while HCPs
+can access relevant records to support
+medication review.
+
+Historical data may support future
+capabilities such as personalized risk
+assessment, medication recommendations,
+and treatment decision support when
+reliable data and professional oversight
+are available.

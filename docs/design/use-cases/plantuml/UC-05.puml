@@ -1,0 +1,52 @@
+@startuml UC_05
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-05: Review Medication Safety Case
+
+' Figure 5 / UC-05; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Healthcare Professional (HCP)" as Actor1
+actor "Patient / General User" as Actor2
+rectangle "Medication Safety Assistant" {
+  usecase "Review Medication Safety Case" as Main
+  usecase "Request Additional\nCase Information" as RequestInfo
+  usecase "Respond in Case Conversation" as Respond
+  usecase "View Review Outcome\nand Replies" as View
+  note top of Main
+    Simulated review uses authorized requests
+    and patient-approved details only.
+    Only eligible recorded confirmations affect
+    pending reminders; required holds remain
+    for unresolved cases.
+  end note
+  note bottom of Respond
+    Requested details and follow-up questions
+    use the same case conversation;
+    patient replies return it to the HCP queue.
+  end note
+}
+Actor1 -- Main
+Actor1 -- RequestInfo
+Actor1 -- View
+Actor2 -- Respond
+Actor2 -- View
+Actor1 -[hidden]down-> Actor2
+@enduml

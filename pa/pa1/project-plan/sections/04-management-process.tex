@@ -1,0 +1,490 @@
+\section{Management Process}
+
+\subsection{Project Estimates}
+
+% Intentionally left blank for PA1 as instructed by the assignment brief.
+
+\subsection{Project Plan}
+
+\subsubsection{Phase and Iteration Plan}
+
+\begin{longtable}{|L{0.14\textwidth}|L{0.10\textwidth}|L{0.17\textwidth}|L{0.23\textwidth}|L{0.24\textwidth}|}
+\hline
+\textbf{Phase} & \textbf{Sprint} & \textbf{Period} &
+\textbf{Objective} &
+\textbf{Milestone / Achievement Criteria}\\ \hline
+
+Inception
+& Sprint 1
+& 5-18 Oct 2026
+& Define the project scope, requirements, team roles,
+main workflows, and initial system design.
+& PA1 package completed; Vision Document, initial
+architecture, UI prototype, and project tracker
+prepared for review.
+\\ \hline
+
+Elaboration
+& Sprint 2
+& 19 Oct-1 Nov 2026
+& Review and improve the existing requirements and
+architecture; finalize module interfaces and
+begin core feature development.
+& Requirements and architecture reviewed;
+module interfaces, data formats, and test
+plans agreed by the team.
+\\ \hline
+
+Elaboration
+& Sprint 3
+& 2-15 Nov 2026
+& Develop, integrate, and test medication input,
+identification, and safety assessment.
+& Four input methods demonstrated;
+medication identification, interaction checks,
+duplicate checks, and incomplete-data handling
+tested with agreed test cases.
+\\ \hline
+
+Construction
+& Sprint 4
+& 16-29 Nov 2026
+& Integrate the core Web application, safety results,
+and simulated HCP review workflow.
+& Integrated Web workflow, safety warnings,
+and simulated HCP review pass agreed
+integration tests.
+\\ \hline
+
+Construction
+& Sprint 5
+& 30 Nov-13 Dec 2026
+& Complete medication reminders, safety gates,
+adherence tracking, and system testing.
+& Core features pass acceptance tests;
+critical defects are resolved; final prototype,
+documentation, and demo are ready.
+\\ \hline
+
+\end{longtable}
+
+\subsubsection{Iteration Objectives}
+
+\begin{longtable}{|L{0.12\textwidth}|L{0.58\textwidth}|L{0.20\textwidth}|}
+\hline
+\textbf{Sprint} & \textbf{Iteration Objectives}
+& \textbf{Owner(s)}\\ \hline
+
+Sprint 1
+& Define the project scope and main requirements;
+prepare the initial architecture, workflows,
+UI prototype, Project Plan, and Vision Document.
+Set up project tracking and team responsibilities.
+& Whole team\\ \hline
+
+Sprint 2
+& Review and improve the existing requirements
+and architecture. Finalize module interfaces,
+data formats, safety rules, and test plans.
+Begin developing the main system features.
+& Whole team\\ \hline
+
+Sprint 3
+& Long develops the NLP chatbot and improves
+medication data processing, identification,
+and safety checks (Modules 2 and 3).
+Trang develops OCR and user confirmation.
+Thành develops Voice and Manual Input with
+medication suggestions and auto-fill.
+Integrate and test the core modules.
+& Long, Trang, Thành\\ \hline
+
+Sprint 4
+& Build and integrate the main Web application.
+Connect medication input, identification,
+safety checks, and warnings.
+Trang develops the simulated HCP review
+workflow (Module 4). Test the main
+end-to-end workflows.
+& Whole team\\ \hline
+
+Sprint 5
+& Thành completes medication reminders,
+safety gates, and adherence tracking
+(Module 5). The whole team performs
+regression testing, fixes critical issues,
+and prepares the final documentation
+and demonstration.
+& Whole team\\ \hline
+
+\end{longtable}
+
+
+\subsubsection{Builds and Releases}
+
+\begin{longtable}{|L{0.16\textwidth}|L{0.17\textwidth}|L{0.17\textwidth}|L{0.38\textwidth}|}
+\hline
+\textbf{Build} & \textbf{Target Date} &
+\textbf{Type} & \textbf{Description}\\ \hline
+
+UI Prototype
+& 18 Oct 2026
+& Design prototype
+& Demonstrate the main screens for medication input,
+confirmation, safety results, HCP review, and reminders.
+\\ \hline
+
+Build 0.1
+& 15 Nov 2026
+& Technical PoC
+& Integrate OCR, NLP, Voice, and Manual Input with
+medication identification, DDInter 2.0 interaction
+checks, duplicate-ingredient detection, and
+clear assessment results.
+\\ \hline
+
+Build 0.2
+& 29 Nov 2026
+& Integrated test build
+& Provide the main Web workflow with medication
+confirmation, safety warnings, data limitations,
+and simulated HCP review for system testing.
+\\ \hline
+
+Build 1.0
+& 13 Dec 2026
+& Final prototype
+& Complete confirmed-schedule reminders, safety
+gates, adherence tracking, regression testing,
+and final documentation.
+\\ \hline
+
+\end{longtable}
+
+\subsubsection{Project Schedule}
+
+\begin{longtable}{|L{0.14\textwidth}|L{0.16\textwidth}|L{0.34\textwidth}|L{0.14\textwidth}|L{0.10\textwidth}|}
+\hline
+\textbf{Period} & \textbf{Workstream} &
+\textbf{Key Tasks} & \textbf{Owner(s)} &
+\textbf{Output}\\ \hline
+
+5-11 Oct
+& Project definition
+& Define the problem, scope, main features,
+team roles, data sources, and initial requirements.
+Prepare the PA0 proposal.
+& Whole team
+& PA0 and scope
+\\ \hline
+
+12-18 Oct
+& PA1 planning
+& Complete the Project Plan, Vision Document,
+initial architecture, main workflows, UI prototype,
+risk list, and weekly reports. Set up project tracking.
+& Whole team
+& PA1 package
+\\ \hline
+
+19-25 Oct
+& Design review
+& Review existing requirements, workflows,
+and architecture. Finalize user confirmation,
+data formats, module interfaces, and safety rules.
+& Whole team
+& Reviewed design
+\\ \hline
+
+26 Oct-1 Nov
+& Core preparation
+& Long reviews medication data and DDInter mappings.
+Trang improves OCR, UI/UX, and HCP design.
+Thành designs Voice, Manual Input, and reminder flows.
+Prepare module tests and integration interfaces.
+& Long / Trang / Thành
+& Design baseline
+\\ \hline
+
+2-8 Nov
+& Module development
+& Long develops the NLP chatbot and improves Modules
+2 and 3. Trang develops OCR and confirmation screens.
+Thành develops Voice and Manual Input with medication
+suggestions and auto-fill.
+& Long / Trang / Thành
+& Working modules
+\\ \hline
+
+9-15 Nov
+& PoC integration
+& Connect the four input methods to medication
+identification and safety assessment. Test
+DDInter 2.0 mapping, duplicate ingredients,
+uncertain results, and user confirmation.
+& Whole team
+& Build 0.1
+\\ \hline
+
+16-22 Nov
+& Core Web integration
+& Build the main Web pages and APIs.
+Integrate medication search, safety checks,
+warnings, and result display. Trang develops
+the simulated HCP review workflow.
+& Whole team
+& Integrated alpha
+\\ \hline
+
+23-29 Nov
+& Integration testing
+& Complete HCP review integration, test
+end-to-end workflows, handle missing data
+and errors, and fix major integration issues.
+& Whole team
+& Build 0.2
+\\ \hline
+
+30 Nov-6 Dec
+& Reminders
+& Thành completes medication reminders,
+the safety gate, and adherence tracking.
+Long and Trang support data integration,
+interface testing, and safety review.
+& Thành / Team
+& Reminder beta
+\\ \hline
+
+7-13 Dec
+& Final testing
+& Run regression, usability, and acceptance tests.
+Fix critical issues, prepare documentation,
+release notes, and the final demonstration.
+& Whole team
+& Build 1.0
+\\ \hline
+
+\end{longtable}
+
+% Insert the actual Jira schedule export before submission.
+% It should show phases, five sprints, key tasks,
+% assignees, dates, and progress.
+%
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=\textwidth]
+%     {images/jira-schedule.png}
+%     \caption{Project schedule from Jira}
+%     \label{fig:jira-schedule}
+% \end{figure}
+
+
+\subsubsection{Project Resourcing}
+
+\begin{longtable}{|L{0.20\textwidth}|L{0.30\textwidth}|L{0.38\textwidth}|}
+\hline
+\textbf{Phase / Sprint} &
+\textbf{People and Responsibilities} &
+\textbf{Skills and Resources}\\ \hline
+
+Inception / Sprint 1
+& Whole team: planning, requirements,
+initial architecture, and UI prototype.
+& Git, LaTeX, UI design,
+and requirements analysis.
+\\ \hline
+
+Elaboration / Sprint 2
+& Long: NLP, medication data, and safety design.
+Trang: OCR, UI/UX, and HCP design.
+Thành: Voice, Manual Input, and reminder design.
+& Data preprocessing, DDInter 2.0,
+OCR, NLP, speech-to-text, API design,
+and safety requirements.
+\\ \hline
+
+Elaboration / Sprint 3
+& Long: NLP, Module 2, and Module 3.
+Trang: OCR and UI confirmation.
+Thành: Voice and Manual Input.
+Whole team: integration and testing.
+& Python, medication datasets,
+DDInter 2.0, OCR tools, speech tools,
+API integration, and automated tests.
+\\ \hline
+
+Construction / Sprint 4
+& Trang: UI/UX and Module 4.
+Long: safety service integration.
+Thành: input integration.
+Whole team: system testing.
+& Web development, API integration,
+HCP workflow, testing tools,
+and issue tracking.
+\\ \hline
+
+Construction / Sprint 5
+& Thành: Module 5.
+Long and Trang: integration and safety review.
+Whole team: testing and final release.
+& Reminder logic, safety gate testing,
+regression testing, documentation,
+and presentation tools.
+\\ \hline
+
+\end{longtable}
+
+The project has a fixed team of three students, so no
+additional recruitment is planned. Team members will
+learn the required tools and technologies based on
+their assigned tasks.
+
+Training on OCR, NLP, speech-to-text, medication data,
+and DDInter 2.0 will be completed as needed before
+Sprint 3. Knowledge sharing and technical support
+will continue throughout the project.
+
+\subsection{Project Monitoring and Control}
+
+\subsubsection{Requirements Management}
+
+The Vision Document defines the main project requirements.
+Detailed requirements are managed through use cases
+and GitHub Issues. Each requirement has a priority,
+assigned owner, and acceptance criteria.
+Safety-related requirements must also cover possible
+errors and missing data.
+
+Requirement changes are recorded in GitHub Issues
+and reviewed based on their impact on project scope,
+safety, and schedule. The Project Manager and the
+responsible team member review each change.
+Major changes require agreement from the whole team.
+Approved changes are updated in the related documents
+and GitHub Projects.
+
+Requirements and task progress are tracked using
+GitHub Projects and reviewed during each sprint.
+A requirement is considered complete when its
+acceptance criteria are met and verified through
+appropriate reviews or tests.
+
+
+\subsubsection{Reporting and Measurement}
+
+% Intentionally left blank for PA1.
+
+\subsubsection{Risk Management}
+
+Project risks are identified during planning,
+development, and testing. Each risk is ranked
+by likelihood and impact, with an assigned owner
+and a mitigation plan.
+
+The team reviews risks weekly and tracks related
+issues using GitHub Issues. Risks are updated
+based on project progress and test results.
+
+\begin{longtable}{|L{0.07\textwidth}|L{0.10\textwidth}|L{0.27\textwidth}|L{0.25\textwidth}|L{0.12\textwidth}|L{0.09\textwidth}|}
+\hline
+\textbf{ID} & \textbf{Ranking} &
+\textbf{Description and Impact} &
+\textbf{Mitigation / Contingency} &
+\textbf{Owner} & \textbf{Status}\\ \hline
+
+R-01 & High
+& Incorrect medication identification or ingredient
+mapping may lead to wrong safety results.
+& Verify medication details, review mappings,
+and keep unclear matches unresolved.
+& Long & Open\\ \hline
+
+R-02 & High
+& OCR errors may cause incorrect medication names,
+strengths, or schedules.
+& Require user confirmation and provide
+manual correction or entry.
+& Trang & Open\\ \hline
+
+R-03 & High
+& The NLP chatbot may produce incorrect or
+unsupported medical explanations.
+& Base explanations on verified safety results,
+limit AI decisions, and test unsafe responses.
+& Long & Open\\ \hline
+
+R-04 & High
+& Voice recognition may misunderstand medication
+names or instructions.
+& Show editable transcripts, require confirmation,
+and provide Manual Input as a fallback.
+& Thành & Open\\ \hline
+
+R-05 & High
+& Limited medication data, DDInter coverage,
+or data licensing may affect safety checks.
+& Use permitted data, record source limits,
+and support replaceable data sources.
+& Long & Open\\ \hline
+
+R-06 & High
+& Users may believe that no detected interaction
+means the medications are completely safe.
+& Show clear risk levels, data limitations,
+and warnings when information is incomplete.
+& Trang / Long & Open\\ \hline
+
+R-07 & Medium
+& Sensitive medication and personal information
+may be exposed.
+& Use test data, limit access,
+protect user information, and avoid
+storing sensitive data unnecessarily.
+& Whole team & Open\\ \hline
+
+R-08 & High
+& The reminder safety gate may fail to block
+new reminders for drugs with major interactions
+or may block unrelated medications.
+& Test the gate for each affected medication.
+Keep existing reminders unchanged and require
+HCP review before activating affected new reminders.
+& Thành & Open\\ \hline
+
+R-09 & Medium
+& Limited time and uneven workload may delay
+project completion.
+& Prioritize core features, track tasks weekly,
+and adjust workloads when needed.
+& Trang & Open\\ \hline
+
+R-10 & Medium
+& Different module data formats may cause
+integration errors.
+& Define a common medication data format,
+agree on module interfaces, and test integration early.
+& Whole team & Open\\ \hline
+
+R-11 & Medium
+& Simulated HCP review may not reflect
+real medical practice, and corrections may
+leave outdated safety results.
+& Clearly mark HCP review as simulated.
+Record review decisions and reassess
+affected data after corrections.
+& Trang & Open\\ \hline
+
+R-12 & Medium
+& Reminder notifications may be delayed,
+missed, or sent more than once.
+& Track delivery status, test notification failures,
+and prevent duplicate reminders.
+& Thành & Open\\ \hline
+
+\end{longtable}
+
+
+\subsubsection{Configuration Management}
+
+% Intentionally left blank for PA1; it will be completed in a later revision.
+
