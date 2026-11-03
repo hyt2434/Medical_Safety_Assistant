@@ -1,67 +1,135 @@
 
+% ==================================================
+% 1. INTRODUCTION
+% ==================================================
+
 \section{Introduction}
 
-This Vision Document describes the high-level needs,
-scope, and main features of the Medication Safety Assistant.
-It explains the problems faced by patients taking multiple
-medications, the benefits of the proposed solution,
-and the needs of its target users.
+\PAChange{The purpose of this Vision Document is to
+identify and describe the high-level needs, scope,
+and main features of the Medication Safety Assistant.
+It explains the problems faced by target users,
+their needs, and the benefits of the proposed system.}
 
-The Medication Safety Assistant is a responsive Web
-application that helps patients identify potential
-medication risks and follow confirmed medication
-schedules. It supports prescription images, natural-language
-requests, voice input, and manual forms. The system provides
-medication safety checks, warnings, simulated healthcare
-professional (HCP) review, and medication reminders.
-It does not replace professional medical advice or
-independently prescribe or change medications.
+\PAChange{The Medication Safety Assistant is a
+responsive Web research prototype focused on
+Vietnamese medication information. It supports
+medication intake, identification, safety checks,
+simulated Healthcare Professional (HCP) review,
+medication reminders, adherence tracking, and
+patient health summaries. It does not independently
+diagnose, prescribe, change treatment, or replace
+healthcare professionals.}
 
-This initial Vision Document will be updated as
-requirements are reviewed and refined during development.
+\PAChange{This revised document presents the product
+positioning, stakeholders and users, user environments,
+alternatives and competitors, product features, and
+non-functional requirements. Detailed user--system
+interactions are described separately in the
+Use-case Specifications. Planned features are
+identified outside the current prototype scope.}
+
+
+% ==================================================
+% 1.1 REFERENCES
+% ==================================================
 
 \subsection{References}
 
-\begin{longtable}{|L{0.06\textwidth}|L{0.34\textwidth}|L{0.20\textwidth}|L{0.30\textwidth}|}
+\begin{longtable}{|
+    L{0.06\textwidth}|
+    L{0.34\textwidth}|
+    L{0.20\textwidth}|
+    L{0.30\textwidth}|
+}
 \hline
-\textbf{No.} & \textbf{Document / Source} &
-\textbf{Date / Organization} & \textbf{Location}\\ \hline
 
-1 & Medication Safety Assistant Project Proposal
+\textbf{No.} &
+\textbf{Document / Source} &
+\textbf{Date / Organization} &
+\textbf{Location}
+\\ \hline
+
+\endfirsthead
+
+\hline
+\textbf{No.} &
+\textbf{Document / Source} &
+\textbf{Date / Organization} &
+\textbf{Location}
+\\ \hline
+
+\endhead
+
+1
+& Medication Safety Assistant Project Proposal
 & October 2026, Group 02
 & Project repository, PA0 proposal
 \\ \hline
 
-2 & Medication Safety Assistant Software Development Plan,
-Version 1.0
+2
+& Medication Safety Assistant Software
+Development Plan, Version 1.0
 & October 2026, Group 02
 & Project repository, PA1 Project Plan
 \\ \hline
 
-3 & Medication Without Harm: Policy Brief
-& 7 March 2024, World Health Organization
+3
+& Medication Without Harm: Policy Brief
+& 7 March 2024,
+World Health Organization
 & \href{https://www.who.int/publications/i/item/9789240062764}
 {WHO publication page}
 \\ \hline
 
-4 & Publication of Drug Registration Data in Vietnam
+4
+& Publication of Drug Registration Data in Vietnam
 & Accessed 16 October 2026,
 Drug Administration of Vietnam
 & \href{https://dichvucong.dav.gov.vn/congbothuoc/index}
 {DAV registration portal}
 \\ \hline
 
-5 & DDInter 2.0: An Enhanced Drug Interaction Resource
+5
+& DDInter 2.0: An Enhanced Drug
+Interaction Resource
 & 2025, Tian et al.,
 Nucleic Acids Research
 & \href{https://doi.org/10.1093/nar/gkae726}
 {DOI: 10.1093/nar/gkae726}
 \\ \hline
 
-6 & Web Content Accessibility Guidelines (WCAG) 2.2
-& 12 December 2024, W3C
+6
+& Web Content Accessibility Guidelines
+(WCAG) 2.2
+& W3C
 & \href{https://www.w3.org/TR/WCAG22/}
 {W3C WCAG 2.2}
+\\ \hline
+
+\PAChange{7}
+& \PAChange{Drugs.com Drug Interaction Checker}
+& \PAChange{Accessed 01 November 2026,
+Drugs.com}
+& \PAChange{\href{https://www.drugs.com/drug_interactions.html}
+{Official website}}
+\\ \hline
+
+\PAChange{8}
+& \PAChange{Medscape Drug Interaction Checker}
+& \PAChange{Accessed 01 November 2026,
+Medscape}
+& \PAChange{\href{https://reference.medscape.com/drug-interactionchecker}
+{Official website}}
+\\ \hline
+
+\PAChange{9}
+& \PAChange{How Can I See Possible
+Med Interactions?}
+& \PAChange{Accessed 01 November 2026,
+Medisafe Help Center}
+& \PAChange{\href{https://help-center.medisafe.com/en/articles/8097955-how-can-i-see-possible-med-interactions}
+{Medisafe documentation}}
 \\ \hline
 
 \end{longtable}

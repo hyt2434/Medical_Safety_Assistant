@@ -1,15 +1,40 @@
 
+% ==================================================
+% 6. NON-FUNCTIONAL REQUIREMENTS
+% ==================================================
+
 \section{Non-Functional Requirements}
 
 The following requirements define the main
 quality goals and constraints of the
-Medication Safety Assistant.
+Medication Safety Assistant research prototype.
 
-\begin{longtable}{|L{0.13\textwidth}|L{0.68\textwidth}|L{0.10\textwidth}|}
+\begin{longtable}{|
+    L{0.13\textwidth}|
+    L{0.68\textwidth}|
+    L{0.10\textwidth}|
+}
+\hline
+
+\textbf{ID} &
+\textbf{Requirement} &
+\textbf{Priority}
+\\ \hline
+
+\endfirsthead
+
 \hline
 \textbf{ID} &
 \textbf{Requirement} &
-\textbf{Priority}\\ \hline
+\textbf{Priority}
+\\ \hline
+
+\endhead
+
+
+% --------------------------------------------------
+% NFR-01: PERFORMANCE
+% --------------------------------------------------
 
 NFR-01
 & \textbf{Performance:}
@@ -17,38 +42,130 @@ The system should respond quickly to common
 requests. Medication safety checks should
 finish within 10 seconds for at least 90\%
 of standard test cases under normal conditions.
-Longer tasks should show processing status.
+
+
+\PAChange{Performance is measured from
+the submission of confirmed medication
+information for assessment until the
+automated result is displayed.
+Tests must define input data, system
+conditions, and measurement methods.
+HCP response time is excluded.
+Longer operations should display
+processing status.}
+
 & High
 \\ \hline
+
+
+% --------------------------------------------------
+% NFR-02: RELIABILITY AND FAULT TOLERANCE
+% --------------------------------------------------
 
 NFR-02
 & \textbf{Reliability and Fault Tolerance:}
 The system should handle errors and missing
-data without crashing. If OCR, Voice/STT,
-or NLP fails, users can correct information
-or use another input method. Failed safety
-checks must not be reported as safe.
+data without crashing.
+
+\PAChange{If OCR, Voice/STT, or NLP fails,
+users can retry, correct the input,
+or use another available method.}
+
+\PAChange{If some safety checks cannot
+be completed, the system must report
+their limitations and preserve
+available findings. Failed or
+unassessed checks must not be
+reported as safe.}
+
+\PAChange{Previously detected severe
+warnings and related reminder
+restrictions must remain recorded
+if later checks fail.}
 & High
 \\ \hline
+
+
+% --------------------------------------------------
+% NFR-03: MEDICATION SAFETY
+% --------------------------------------------------
 
 NFR-03
 & \textbf{Medication Safety:}
-The system must clearly show uncertain or
-incomplete results. It must not independently
-change prescribed treatment. New reminders
-affected by severe interactions require
-HCP review before activation.
+
+\PAChange{Medication information must be
+confirmed by the user before safety assessment.
+Confirmation verifies the recorded input,
+not medication identity or medical safety.}
+
+\PAChange{Assessment results must distinguish
+assessed, partially assessed, unassessed,
+and failed states. Missing data or
+unsupported checks must not be
+presented as proof of safety.}
+
+\PAChange{Detected severe interactions
+must trigger immediate warnings.
+New reminders for affected medicines
+must remain pending the required
+HCP review. Unrelated eligible
+reminders may proceed.}
+
+\PAChange{Reminder activation requires
+a verified schedule from an existing
+prescription or recorded HCP instruction.
+Proposed changes to prescribed timing
+require simulated HCP confirmation
+before activation.}
+
+\PAChange{The system must not independently
+prescribe, stop, or change medication
+treatment. It must never automatically
+stop existing reminders because of
+a detected interaction.}
 & High
 \\ \hline
 
+
+% --------------------------------------------------
+% NFR-04: SECURITY AND PRIVACY
+% --------------------------------------------------
+
 NFR-04
 & \textbf{Security and Privacy:}
-The system must protect user accounts and
-medication records. Patients can access
-their own information, while HCPs can only
-access cases they are allowed to review.
+
+\PAChange{The system must protect user
+accounts and medication records through
+authentication and Role-Based Access
+Control (RBAC).}
+
+\PAChange{Patients can access their own
+records. HCPs can access only
+authorized patient cases and
+related conversations.}
+
+\PAChange{Administrators, Dataset Reviewers,
+and Technical Support must have access
+limited to their assigned tasks.
+Technical Support must not receive
+unnecessary patient information.}
+
+\PAChange{Sharing patient information
+with an HCP requires patient permission.
+Access must be limited to the authorized
+case, recipient, and shared information.}
+
+\PAChange{The research prototype uses
+synthetic or de-identified test data
+and does not connect to real
+clinical systems.}
 & High
 \\ \hline
+
+
+% --------------------------------------------------
+% NFR-05: USABILITY AND ACCESSIBILITY
+% --------------------------------------------------
 
 NFR-05
 & \textbf{Usability and Accessibility:}
@@ -57,18 +174,60 @@ and easy to use. Medication warnings must
 be clear, readable, and understandable,
 including for users with limited
 technical experience.
+
+
+\PAChange{Warnings must show severity
+and limitations using text, not color
+alone. Unassessed results, pending reviews,
+and failed operations must be clearly
+identified.}
+
+\PAChange{Forms and important controls
+should have clear labels and readable
+text. Confirmation requests and error
+messages must explain the required
+user action.}
+
+\PAChange{The interface should follow
+relevant WCAG 2.2 accessibility
+guidelines where feasible for
+the research prototype.}
+
 & High
 \\ \hline
 
+
+% --------------------------------------------------
+% NFR-06: PLATFORM COMPATIBILITY
+% --------------------------------------------------
+
+
 NFR-06
 & \textbf{Platform Compatibility:}
-The application should work on modern
-desktop and mobile Web browsers.
+
+\PAChange{The Web application should
+support current versions of major
+desktop and mobile browsers, including
+Chrome, Edge, Firefox, and Safari,
+subject to available test devices.}
+
 Camera, microphone, and notification
 features depend on browser support
 and user permissions.
+
+\PAChange{Manual input must remain
+available when OCR or voice input
+cannot be used. Reminder schedules
+must remain viewable in the application
+when browser notifications are unavailable.}
 & High
 \\ \hline
+
+
+
+% --------------------------------------------------
+% NFR-07: DATA INTEGRITY AND HISTORY
+% --------------------------------------------------
 
 NFR-07
 & \textbf{Data Integrity and History:}
@@ -77,8 +236,31 @@ assessment results, and review history
 accurate and consistent. Past results
 must be clearly distinguished from
 current assessments.
+
+\PAChange{Saved assessments must include
+their completion status and time.
+Important record changes and review
+decisions must retain the responsible
+account and relevant timestamps.}
+
+\PAChange{Patient--HCP review conversations,
+information requests, replies, and review
+outcomes must remain linked to their
+authorized review cases.}
+
+\PAChange{New medication information
+must not overwrite previous records
+without retaining their history.
+Earlier safety assessments must not
+appear current when their source
+medication information has changed.}
 & High
 \\ \hline
+
+
+% --------------------------------------------------
+% NFR-08: MAINTAINABILITY AND EXTENSIBILITY
+% --------------------------------------------------
 
 NFR-08
 & \textbf{Maintainability and Extensibility:}
@@ -86,15 +268,65 @@ The system should use a modular design
 to support updates, new data sources,
 and future medication safety features
 without major changes to existing modules.
+
+\PAChange{Input processing, medication
+identification, safety assessment,
+HCP review, and reminder management
+should have clearly separated
+responsibilities.}
 & Medium
 \\ \hline
 
+
+% --------------------------------------------------
+% NFR-09: DOCUMENTATION
+% --------------------------------------------------
+
+
 NFR-09
 & \textbf{Documentation:}
-The project should provide basic setup
-instructions, user guidance, and
-documentation of system limitations.
+
+\PAChange{The project should provide
+installation and setup instructions,
+a user guide for main features,
+and technical documentation
+for developers.}
+
+\PAChange{Documentation should explain
+supported safety checks, data coverage,
+missing-data handling, and the simulated
+HCP review workflow.}
+
+\PAChange{It must clearly state that
+the prototype is for research and
+educational use, not independent
+clinical decision-making.}
 & Medium
+\\ \hline
+
+
+
+% --------------------------------------------------
+% NFR-10: DATA SOURCE TRACEABILITY
+% --------------------------------------------------
+
+\PAChange{NFR-10}
+& \PAChange{\textbf{Data Source Traceability:}
+Medication data and ingredient mappings
+used for safety assessments should retain
+available source references and
+dataset review status.}
+
+\PAChange{Safety assessments must distinguish
+supported findings from missing or
+unverified source information.
+Dataset review decisions must not
+be presented as independent
+clinical validation.}
+
+\PAChange{Data use must follow applicable
+source terms and permissions.}
+& \PAChange{High}
 \\ \hline
 
 \end{longtable}

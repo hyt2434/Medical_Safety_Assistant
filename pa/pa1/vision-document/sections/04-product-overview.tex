@@ -1,31 +1,44 @@
+% ==================================================
+% 4. PRODUCT OVERVIEW
+% ==================================================
+
 \section{Product Overview}
+
+
+% ==================================================
+% 4.1 PRODUCT PERSPECTIVE
+% ==================================================
 
 \subsection{Product Perspective}
 
-The Medication Safety Assistant is a standalone,
-responsive Web prototype that helps patients identify
-potential medication risks and manage confirmed
-medication schedules. It is not a diagnostic or
-prescribing system and does not connect to real
-healthcare systems.
+\PAChange{The Medication Safety Assistant is developed
+with a long-term vision of making medication use
+safer and healthcare information more accessible
+to people worldwide. The project aims to help
+users understand potential medication risks and
+follow confirmed medication schedules.}
 
-The application has two main user roles: Patient
-and Healthcare Professional (HCP). Patients manage
-their medications, while HCPs use separate accounts
-to review safety cases. HCP review is simulated
-and does not represent real clinical approval.
-Family caregivers may assist patients with permission.
+\PAChange{The current product is a standalone,
+responsive Web research prototype focused on
+Vietnamese medication information. It supports
+medication intake, safety checks, simulated HCP
+review, reminders, and adherence tracking.
+It does not diagnose, prescribe, independently
+change treatment, or connect to real healthcare
+systems.}
 
 The system consists of five main modules:
 
 \begin{enumerate}
-  
+
     \item \textbf{Medication Intake and Intent Recognition:}
     Identifies user intent through UI selection or
     NLP, and collects medication information
     through OCR, NLP Chatbot, Voice/STT, and
-    Manual Input. Users review and confirm
-    medication details before further processing.
+    Manual Input.
+    \PAChange{Users review, correct, and confirm
+    recorded details before safety assessment
+    or reminder activation.}
 
     \item \textbf{Medication Identification:}
     Identifies Vietnamese medications and active
@@ -33,92 +46,132 @@ The system consists of five main modules:
     Uncertain matches remain unresolved.
 
     \item \textbf{Medication Safety Assessment:}
-    Checks supported drug-drug interactions using
-    DDInter 2.0 and detects duplicate active
-    ingredients. It reports potential risks,
-    warnings, and data limitations without
-    claiming that a prescription is fully safe.
+    \PAChange{Checks supported drug--drug interactions
+    using available DDInter 2.0 data and verified
+    ingredient mappings. It also checks duplicate
+    active ingredients when enough information is
+    available. Results show detected risks, severity
+    when supported, and unassessed or failed checks;
+    missing findings are not proof of safety.}
 
     \item \textbf{HCP Review:}
-    Allows HCPs to review high-risk or uncertain
-    cases, request corrections, and record decisions
-    through a simulated review workflow.
+    \PAChange{Allows patients to request simulated
+    review of saved safety cases with permission
+    to share selected information. Authorized HCPs
+    can examine findings, request more information,
+    exchange messages with patients, and record
+    traceable review outcomes.}
 
     \item \textbf{Medication Reminders and Adherence:}
-    Supports confirmed medication schedules,
-    applies a safety gate before activating new
-    reminders, and tracks medication adherence.
+    \PAChange{Supports reminders from verified
+    prescription schedules or recorded HCP
+    instructions, applies the new-reminder safety
+    gate, and tracks dose status and adherence.}
 
 \end{enumerate}
 
-The workflow starts in Module 1. For OCR and
-Manual Input, users select their intended action
-through the interface. For typed and voice requests,
-NLP identifies intent from text or speech transcripts.
-Unclear requests require clarification.
+\PAChange{The usual safety workflow is medication
+intake, identification, and assessment. Patients
+may request HCP review or set up eligible reminders
+when needed; these are not mandatory steps in
+all user journeys. Unidentified medicines and
+unsupported checks remain clearly marked,
+not treated as safe.}
 
-After user confirmation, Module 2 identifies
-medications, and Module 3 assesses supported
-safety risks. The system then displays results,
-warnings, and data limitations.
+\PAChange{A reminder schedule must match an existing
+prescription or recorded HCP instruction and be
+confirmed by the patient. Any proposed change to
+prescribed timing requires recorded, simulated
+HCP confirmation before activation.}
 
-Cases requiring HCP review, including severe
-interactions, are handled by Module 4.
-Missing or unclear medication information
-must not be treated as safe.
+\PAChange{Detected severe drug interactions trigger
+immediate warnings. New reminders for affected
+medicines remain Pending HCP Review; unrelated
+eligible reminders may proceed. The system does
+not automatically stop prescribed medications
+or existing reminders. HCP review in this
+prototype is simulated, not clinical approval.}
 
-After safety assessment and any required
-HCP review, the system may suggest setting
-medication reminders. Users can accept,
-decline, or request reminders directly.
+\PAChange{Other current features include medication
+and safety history, a multi-turn AI chatbot for
+supported medication questions, and patient health
+summaries. Patients review summaries before saving
+or sharing them with authorized HCPs. The chatbot
+is separate from patient--HCP case conversations.
+Dataset review, user and role management, and
+technical support provide restricted supporting
+workflows.}
 
-Users may confirm and adjust reminder times
-as long as they follow a verified prescription
-or recorded HCP instructions. Changes that
-conflict with these instructions, or cannot
-be verified, require HCP review.
+\PAChange{\textbf{Future Enhancements (outside the
+current prototype scope):} Consultation preparation,
+medication record comparison, explanations of
+confirmed instructions, and a Personal Medication
+Inventory for stock and expiration tracking may
+be considered later. Other possible extensions
+include user-reported suspected side effects,
+general disease information, and more advanced
+urgent-care guidance. These features require
+additional reliable data, validation, and safety
+controls and are not included in the current
+use cases or UI scope.}
 
-Before activating new reminders, Module 5
-applies a safety gate. New reminders for
-medicines with severe interactions remain
-blocked until HCP review permits activation.
 
-Other eligible reminders may be activated.
-The system does not automatically stop
-existing reminders or prescribed medicines.
+% ==================================================
+% 4.2 ASSUMPTIONS AND DEPENDENCIES
+% ==================================================
 
 \subsection{Assumptions and Dependencies}
 
-\begin{longtable}{|L{0.16\textwidth}|L{0.43\textwidth}|L{0.31\textwidth}|}
+\begin{longtable}{|
+    L{0.16\textwidth}|
+    L{0.43\textwidth}|
+    L{0.31\textwidth}|
+}
 \hline
 \textbf{Type} &
 \textbf{Assumption / Dependency} &
-\textbf{Effect if Invalid or Unavailable}\\ \hline
+\textbf{Effect if Invalid or Unavailable}\\
+\hline
+\endfirsthead
 
+\hline
+\textbf{Type} &
+\textbf{Assumption / Dependency} &
+\textbf{Effect if Invalid or Unavailable}\\
+\hline
+\endhead
+
+% User confirmation
 Assumption
-& Users can review, correct, and confirm
-medication information before processing.
-& Unconfirmed information cannot be used
-for safety assessment or reminders.
+& \PAChange{Patients can review, correct, and confirm
+recorded medication details against their provided
+source before safety checks or reminder activation.}
+& \PAChange{Unconfirmed information cannot be used
+for those actions. Confirmation does not prove
+medical accuracy or medicine identity.}
 \\ \hline
 
+% Vietnamese medication data
 Dependency
-& Vietnamese medication data and reliable
-active-ingredient mappings are available
-for medication identification.
-& Unknown medicines or unclear mappings
-remain unresolved and cannot be
-assessed automatically.
+& \PAChange{Permitted Vietnamese medication data and
+supported active-ingredient mappings are available
+for medication identification.}
+& \PAChange{Unidentified medicines remain unresolved.
+Checks requiring their identity are unassessed;
+other supported checks may proceed.}
 \\ \hline
 
+% Interaction data
 Dependency
-& DDInter 2.0 provides interaction data
-for the identified active ingredients.
-& Unsupported interactions cannot be
-assessed. Missing results are not
-treated as proof of safety.
+& \PAChange{Usable DDInter 2.0 interaction data and
+verified ingredient mappings are available under
+applicable source terms and permissions.}
+& \PAChange{Unsupported drug pairs remain unassessed.
+Independent checks, such as duplicate-ingredient
+checks, may still run when supported.}
 \\ \hline
 
+% OCR
 Dependency
 & OCR can extract medication information
 from clear printed or digital prescriptions.
@@ -126,6 +179,7 @@ from clear printed or digital prescriptions.
 or switch to Manual Input.
 \\ \hline
 
+% Speech-to-text
 Dependency
 & Speech-to-text can convert voice input
 into editable text.
@@ -133,6 +187,7 @@ into editable text.
 or switch to typed or manual input.
 \\ \hline
 
+% NLP
 Dependency
 & NLP can identify user intents and
 medication information from text.
@@ -140,26 +195,63 @@ medication information from text.
 or select a function manually.
 \\ \hline
 
+% Simulated HCP workflow
 Assumption
-& HCP accounts are available for simulated
-review of high-risk or uncertain cases.
-& Cases awaiting required review remain
-pending. Affected new reminders cannot
-be activated without the required decision.
+& \PAChange{Authorized HCP accounts can access
+patient-approved cases for simulated review
+and case-based conversations.}
+& \PAChange{When no reviewer is available,
+requests remain Pending. No case is claimed
+reviewed, and required reminder holds remain.}
 \\ \hline
 
+% Verified schedules
 Assumption
-& Prescription or HCP instructions provide
-enough information to check reminder times.
-& Unclear or conflicting schedule changes
-require HCP review before activation.
+& \PAChange{Existing prescriptions or recorded
+HCP instructions provide verifiable medication
+schedules.}
+& \PAChange{Unverified schedules cannot activate
+new reminders. Proposed changes to prescribed
+timing require simulated HCP confirmation.}
 \\ \hline
 
+% Browser capabilities
 Dependency
 & Web browsers support camera, microphone,
 and reminder notifications when needed.
-& Users can use Manual Input if needed.
-Notifications may be limited or unavailable.
+& \PAChange{Manual input remains available when
+OCR or voice cannot be used. Eligible schedules
+remain viewable if notifications are unavailable.}
+\\ \hline
+
+% Role-based access
+Dependency
+& \PAChange{User accounts, role permissions, and
+case-level sharing controls are available for
+authorized access.}
+& \PAChange{Restricted features and private
+patient information remain inaccessible
+when permissions cannot be verified.}
+\\ \hline
+
+% Persistent records and review history
+\PAChange{Dependency}
+& \PAChange{Reliable storage is available for
+medication records, assessments, HCP conversations,
+review outcomes, and relevant activity history.}
+& \PAChange{Failed saves are reported; unsaved
+information is not treated as confirmed,
+reviewed, or successfully shared.}
+\\ \hline
+
+% Dataset evidence and traceability
+\PAChange{Dependency}
+& \PAChange{Medication records and mappings retain
+available source references and dataset review
+status for quality checks and traceability.}
+& \PAChange{Missing evidence is reported, and
+unsupported claims are not presented as
+clinically validated.}
 \\ \hline
 
 \end{longtable}

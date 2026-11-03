@@ -1,5 +1,14 @@
 
+% ==================================================
+% 3. PROJECT ORGANIZATION
+% ==================================================
+
 \section{Project Organization}
+
+
+% ==================================================
+% 3.1 ORGANIZATIONAL STRUCTURE
+% ==================================================
 
 \subsection{Organizational Structure}
 
@@ -13,13 +22,38 @@ and tracked using a shared project management tool.
 Major decisions about project scope and safety requirements
 are discussed by the whole team.
 
+\PAChange{Instructors and teaching assistants review
+project deliverables and provide feedback.
+The team remains responsible for technical decisions
+and implementing approved changes.}
+
+
+% ==================================================
+% 3.2 ROLES AND RESPONSIBILITIES
+% ==================================================
+
 \subsection{Roles and Responsibilities}
 
-\begin{longtable}{|L{0.22\textwidth}|L{0.20\textwidth}|L{0.48\textwidth}|}
+\begin{longtable}{|
+    L{0.22\textwidth}|
+    L{0.20\textwidth}|
+    L{0.48\textwidth}|
+}
 \hline
 \textbf{Role} &
 \textbf{Assigned Member} &
-\textbf{Responsibilities}\\ \hline
+\textbf{Responsibilities}
+\\ \hline
+\endfirsthead
+
+\hline
+\textbf{Role} &
+\textbf{Assigned Member} &
+\textbf{Responsibilities}
+\\ \hline
+\endhead
+
+% PROJECT MANAGER
 
 Project Manager / Team Leader
 & Hoàng Yến Trang
@@ -27,41 +61,56 @@ Project Manager / Team Leader
 and deliverables; communicate with teaching staff.
 \\ \hline
 
-NLP and Medication Safety Developer
+% PRODUCT OWNER, SYSTEM ANALYST, NLP AND SAFETY
+
+\PAChange{Product Owner / System Analyst /
+NLP and Safety Developer}
 & Cao Hoàng Long
-& Develop the NLP chatbot for intent detection and
-medication information extraction; collect, clean,
-and prepare medication data; implement medication
-identification (Module 2) and drug interaction
-checks using DDInter 2.0 (Module 3).
+& \PAChange{Define requirements and system design;
+develop the NLP chatbot, medication identification,
+safety checks, health summaries, and dataset
+review features. Prepare medication data and
+evaluate DDInter 2.0 mappings.}
 \\ \hline
 
-OCR, UI/UX and HCP Review Developer
+% OCR, UI, HCP REVIEW AND DEVOPS
+
+\PAChange{OCR, UI/UX, HCP Review and DevOps}
 & Hoàng Yến Trang
-& Design the Web interface, develop prescription
-OCR and user confirmation screens, and implement
-the simulated HCP review workflow (Module 4).
+& \PAChange{Develop the Web interface, OCR,
+user confirmation, simulated HCP review
+and case conversations, account management,
+RBAC, and administrative history.
+Manage repository integration and builds.}
 \\ \hline
 
-Voice, Manual Input and Reminder Developer
+% BUSINESS ANALYSIS, QA, VOICE AND REMINDERS
+
+\PAChange{Business Analyst / QA /
+Voice and Reminder Developer}
 & Lỗ Chí Thành
-& Develop voice input and speech-to-text,
-manual medication forms with search suggestions
-and auto-fill, and medication reminders,
-safety gates, and adherence tracking (Module 5).
+& \PAChange{Support requirement analysis;
+develop Voice/STT, Manual Input, reminders,
+adherence tracking, and technical support
+workflows. Coordinate testing and defect tracking.}
 \\ \hline
+
+% INTEGRATION AND TESTING
 
 Integration and Quality Reviewers
 & All members
-& Integrate system modules, test core workflows,
-review safety-related features, and fix defects.
+& \PAChange{Integrate assigned features, test
+their workflows, review safety-related changes,
+and fix identified defects.}
 \\ \hline
 
-Documentation and Configuration
+% DOCUMENTATION
+
+\PAChange{Documentation and Reporting}
 & All members
-& Maintain source code, project documents,
-test results, and weekly reports.
-Trang coordinates final submissions.
+& \PAChange{Maintain project documents, test evidence,
+and weekly reports. Trang coordinates
+final submissions.}
 \\ \hline
 
 \end{longtable}

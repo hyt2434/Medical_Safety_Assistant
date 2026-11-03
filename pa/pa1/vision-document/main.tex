@@ -1,6 +1,7 @@
 % !TeX program = xelatex
 \documentclass[10pt,a4paper]{article}
 
+% Project metadata (update version/date/identifier in metadata.tex)
 \input{metadata}
 
 \usepackage{fontspec}
@@ -17,9 +18,13 @@
 \usepackage{titlesec}
 \usepackage[unicode,hidelinks]{hyperref}
 
+% Highlight revised text in sections and in the PA2 Revision History row.
 \definecolor{instructionblue}{RGB}{0,92,170}
+\providecommand{\PAChange}[1]{\textcolor{instructionblue}{#1}}
 \newcommand{\instruction}[1]{\par\textcolor{instructionblue}{\itshape[#1]}\par}
 \newcommand{\field}[1]{\textcolor{instructionblue}{\itshape<#1>}}
+
+% Tables and document layout.
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \renewcommand{\arraystretch}{1.25}
@@ -32,6 +37,7 @@
 \titleformat{\section}{\bfseries\large}{\thesection.}{0.5em}{}
 \titleformat{\subsection}{\bfseries}{\thesubsection}{0.5em}{}
 
+% Header and footer.
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\ProjectName}
@@ -41,14 +47,18 @@
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
+% PDF properties for the second submission.
 \hypersetup{
   pdftitle={\DocumentTitle\ (\ProjectName)},
   pdfauthor={\GroupName},
-  pdfsubject={PA1 Vision Document}
+  pdfsubject={PA2 Revised Vision Document -- Second Submission}
 }
 
 \begin{document}
 
+% --------------------------------------------------
+% Cover page -- metadata displayed in black (no PAChange)
+% --------------------------------------------------
 \begin{titlepage}
   \centering
   \vspace*{2.2cm}
@@ -69,6 +79,9 @@
   \vfill
 \end{titlepage}
 
+% --------------------------------------------------
+% Revision history -- PA2 row highlighted in blue
+% --------------------------------------------------
 \section*{Revision History}
 \begin{tabularx}{\textwidth}{|L{2.4cm}|L{1.7cm}|Y|L{3cm}|}
 \hline
@@ -76,12 +89,27 @@
 16 Oct 2026 & 0.1 & Initial PA1 Vision Document based on the project proposal and plan & Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\\ \hline
 16 Oct 2026 & 0.2 & Refined confirmation, risk-triage, professional-review, reminder, and follow-up workflows & Group 02\\ \hline
 18 Oct 2026 & 1.0 & PA1 submission version & Group 02\\ \hline
+
+\PAChange{01 Nov 2026}
+& \PAChange{1.1}
+& \PAChange{PA2 revision: expanded user profiles
+and environments; updated alternatives and
+competitor analysis; clarified scope, safety
+rules, HCP review, reminders, and privacy;
+updated 13 product features and 10 NFRs;
+aligned feature traceability with 18 use cases.}
+& \PAChange{Group 02}
+\\ \hline
+
 \end{tabularx}
 
 \clearpage
 \tableofcontents
 \clearpage
 
+% --------------------------------------------------
+% Vision (Small Project) sections
+% --------------------------------------------------
 \input{sections/01-introduction}
 \input{sections/02-positioning}
 \input{sections/03-stakeholders-and-users}
@@ -90,4 +118,3 @@
 \input{sections/06-non-functional-requirements}
 
 \end{document}
-

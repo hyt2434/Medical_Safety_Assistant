@@ -1,16 +1,48 @@
+% ==================================================
+% PA2 REVISION HIGHLIGHTING
+% ==================================================
+% Requires xcolor and instructionblue in main.tex.
+\providecommand{\PAChange}[1]{%
+    \textcolor{instructionblue}{#1}%
+}
+
 \section{Stakeholder and User Descriptions}
 
-This section identifies the people and organizations whose needs, constraints,
-or data affect the product. Direct users are separated from stakeholders who
-guide, review, or supply information to the prototype.
+This section identifies the people and organizations whose needs,
+constraints, or data affect the product. Direct users are separated
+from stakeholders who guide, review, or supply information to the
+prototype.
+
+\PAChange{The updated system defines five user roles:
+Administrator, Patient / General User, Healthcare Professional (HCP),
+Dataset Reviewer, and Technical Support. Each role has distinct
+responsibilities and access permissions.}
+
+
+% ==================================================
+% 3.1 STAKEHOLDER SUMMARY
+% ==================================================
 
 \subsection{Stakeholder Summary}
 
-\begin{longtable}{|L{0.20\textwidth}|L{0.27\textwidth}|L{0.43\textwidth}|}
+\begin{longtable}{|
+    L{0.20\textwidth}|
+    L{0.27\textwidth}|
+    L{0.43\textwidth}|
+}
 \hline
 \textbf{Name / Type} &
 \textbf{Description} &
-\textbf{Responsibilities and Interests}\\ \hline
+\textbf{Responsibilities and Interests}\\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Name / Type} &
+\textbf{Description} &
+\textbf{Responsibilities and Interests}\\
+\hline
+\endhead
 
 Project Team
 & Three student developers responsible for the
@@ -39,14 +71,55 @@ clinical approval for the prototype.
 \end{longtable}
 
 
+% ==================================================
+% 3.2 USER SUMMARY
+% ==================================================
+
 \subsection{User Summary}
 
-\begin{longtable}{|L{0.18\textwidth}|L{0.23\textwidth}|L{0.31\textwidth}|L{0.18\textwidth}|}
+\PAChange{The application defines five user roles with
+separate responsibilities. Role-Based Access Control (RBAC)
+restricts each role to its permitted tasks and information.}
+
+\begin{longtable}{|
+    L{0.18\textwidth}|
+    L{0.23\textwidth}|
+    L{0.31\textwidth}|
+    L{0.18\textwidth}|
+}
 \hline
 \textbf{User Type} &
 \textbf{Description} &
 \textbf{Responsibilities / Activities} &
-\textbf{Represented By}\\ \hline
+\textbf{Represented By}\\
+\hline
+\endfirsthead
+
+\hline
+\textbf{User Type} &
+\textbf{Description} &
+\textbf{Responsibilities / Activities} &
+\textbf{Represented By}\\
+\hline
+\endhead
+
+% --------------------------------------------------
+% ADMINISTRATOR
+% --------------------------------------------------
+
+\PAChange{Administrator}
+& \PAChange{Authorized personnel responsible
+for system administration and access management.}
+& \PAChange{Manage user accounts, roles, and
+permissions; monitor authorized administrative
+activities and system records.}
+& \PAChange{Project team acting as administrators
+during prototype testing.}
+\\ \hline
+
+% --------------------------------------------------
+% PATIENT / GENERAL USER
+% --------------------------------------------------
 
 Patient / General User
 & People who take one or more medications,
@@ -56,70 +129,278 @@ NLP, Voice, or Manual Input; review and confirm
 medication details; check safety warnings;
 request professional review when needed;
 manage confirmed schedules and track adherence.
+\PAChange{Use the AI chatbot, review medication history,
+prepare health summaries, and communicate with
+HCPs within authorized review cases.}
 & Potential patient representatives and
 planned user feedback.
 \\ \hline
 
-Family Caregiver
-& People who help patients, especially older
-adults, manage their medications.
-& Assist patients with medication entry,
-verification, understanding warnings,
-and following confirmed schedules,
-with the patient's permission.
-& Potential caregiver representatives
-and planned user feedback.
-\\ \hline
+% --------------------------------------------------
+% HEALTHCARE PROFESSIONAL
+% --------------------------------------------------
 
-Healthcare Professional Reviewer
-& A simulated HCP role representing qualified
-healthcare professionals in the prototype.
+\PAChange{Healthcare Professional (HCP)}
+& \PAChange{A simulated professional role
+representing qualified healthcare professionals
+within the research prototype.}
 & Review medication summaries, detected risks,
 and uncertain cases; request corrections
 or missing information; record review decisions
 and confirm proposed schedule changes.
+\PAChange{Exchange messages with patients in authorized
+review cases and access permitted health summaries
+and medication history.}
 & Project team and potential
 healthcare professional feedback.
+\\ \hline
+
+% --------------------------------------------------
+% DATASET REVIEWER
+% --------------------------------------------------
+
+\PAChange{Dataset Reviewer}
+& \PAChange{Authorized personnel responsible
+for reviewing medication dataset quality
+and supporting evidence.}
+& \PAChange{Inspect medication records,
+ingredient information, source references,
+and mappings; identify inconsistencies
+and record review decisions.}
+& \PAChange{Project team acting as dataset
+reviewers during prototype testing.}
+\\ \hline
+
+% --------------------------------------------------
+% TECHNICAL SUPPORT
+% --------------------------------------------------
+
+\PAChange{Technical Support}
+& \PAChange{Authorized personnel responsible
+for assisting users with technical issues.}
+& \PAChange{Investigate reported errors,
+review permitted diagnostic information,
+document solutions, and track issue resolution
+without unnecessary access to patient data.}
+& \PAChange{Project team acting as technical
+support during prototype testing.}
 \\ \hline
 
 \end{longtable}
 
 
+% --------------------------------------------------
+% USER CHARACTERISTICS (design assumptions)
+% --------------------------------------------------
+
+\PAChange{\textbf{User Characteristics.}
+The following profiles describe expected users for
+interface design, including Vietnamese-speaking adults
+and older patients with varied digital experience.
+These are design assumptions, not results from
+completed user interviews or clinical testing.}
+
+\begin{longtable}{|
+    L{0.18\textwidth}|
+    L{0.22\textwidth}|
+    L{0.28\textwidth}|
+    L{0.22\textwidth}|
+}
+\hline
+\textbf{User Type} &
+\textbf{Expected Skills} &
+\textbf{Needs and Expectations} &
+\textbf{Main Constraints}
+\\ \hline
+\endfirsthead
+\hline
+\textbf{User Type} &
+\textbf{Expected Skills} &
+\textbf{Needs and Expectations} &
+\textbf{Main Constraints}
+\\ \hline
+\endhead
+
+\PAChange{Patient / General User}
+& \PAChange{Basic or varied experience with smartphones and Web forms; no medical training assumed.}
+& \PAChange{Clear medicine names, understandable warnings, simple confirmation, and easy reminder use.}
+& \PAChange{Small screens, poor prescription images, limited digital or health literacy, and accessibility needs.}
+\\ \hline
+
+\PAChange{Healthcare Professional (HCP)}
+& \PAChange{Medical knowledge is represented in a simulated account; basic Web skills.}
+& \PAChange{Well-organized cases, data limits, replies, and traceable decisions.}
+& \PAChange{Limited review time and access only to authorized patient information.}
+\\ \hline
+
+\PAChange{Dataset Reviewer}
+& \PAChange{Able to inspect structured medication data and supporting references.}
+& \PAChange{Clear source records, mapping status, and recorded review decisions.}
+& \PAChange{Incomplete references, ambiguous names, and uncertain mappings.}
+\\ \hline
+
+\PAChange{Administrator}
+& \PAChange{Basic account-management and access-control knowledge.}
+& \PAChange{Manage accounts, roles, and view permitted activity records.}
+& \PAChange{Must avoid incorrect permissions and unauthorized access.}
+\\ \hline
+
+\PAChange{Technical Support}
+& \PAChange{Basic troubleshooting and Web-system knowledge.}
+& \PAChange{Clear issue reports, status history, and permitted diagnostic details.}
+& \PAChange{Limited access to private patient information.}
+\\ \hline
+\end{longtable}
+
+
+% ==================================================
+% 3.3 USER ENVIRONMENT
+% ==================================================
+
 \subsection{User Environment}
 
-The product is used through modern desktop and mobile Web browsers. Patients
-and caregivers may use it at home, after receiving a prescription, while
-organizing daily medicines, or before consulting a healthcare professional.
-They may have only a paper or digital Vietnamese prescription, may know a
-medicine by brand name, or may prefer to speak rather than type. A camera is
-needed for prescription capture, a microphone and browser permission are needed
-for voice input, and notification permission is needed for browser-supported
-reminders. Manual entry remains available when these capabilities are absent.
+The product is used through modern desktop and mobile Web browsers.
 
-Use may occur under time pressure, with background noise, poor lighting,
-unstable connectivity, small screens, or limited health and digital literacy.
-Therefore, OCR extractions and voice transcripts must be editable, medical
-terms must use plain language, warnings must not rely on color alone, and the
-system must preserve an explicit incomplete/unassessed state. The prototype
-uses synthetic or de-identified data and is not integrated with hospital,
-pharmacy, electronic health-record, or real professional-review systems.
+\PAChange{Patients mainly use the application at home,
+after receiving prescriptions or managing existing
+medication schedules. HCPs, Dataset Reviewers,
+Administrators, and Technical Support use restricted
+role-specific Web interfaces, mainly on desktop or tablet.}
 
-Healthcare professionals use dedicated HCP accounts
-to access a structured Web review interface,
-preferably on a desktop or tablet. They can review
-verified medications, detected risks, data limitations,
-relevant case information, and review requests.
+\PAChange{Camera, microphone, and notifications depend
+on device and browser support and user permissions.
+Manual entry remains available when OCR or voice
+input is unavailable. Limited connectivity, poor
+lighting, background noise, and small screens can
+make input and review difficult.}
 
+\PAChange{The interface should provide readable text,
+editable extracted information, clear safety limits,
+and warnings that do not depend on color alone.
+The AI chatbot supports multi-turn requests, while
+a separate conversation within each authorized HCP
+review case supports patient--HCP replies.}
+
+\PAChange{\textbf{User Task Analysis.} The table maps
+current tasks to the 18 use cases. Frequencies are
+expected design assumptions, not observed usage data.}
+
+\begin{longtable}{|
+    L{0.17\textwidth}|
+    L{0.31\textwidth}|
+    L{0.21\textwidth}|
+    L{0.21\textwidth}|
+}
+\hline
+\textbf{Actor} &
+\textbf{Task and Goal} &
+\textbf{When / Frequency} &
+\textbf{Environment / Constraint}
+\\ \hline
+\endfirsthead
+\hline
+\textbf{Actor} &
+\textbf{Task and Goal} &
+\textbf{When / Frequency} &
+\textbf{Environment / Constraint}
+\\ \hline
+\endhead
+
+\PAChange{Patient}
+& \PAChange{Enter and confirm medication information (UC-02); obtain a reliable record.}
+& \PAChange{When receiving a new prescription or correcting captured input.}
+& \PAChange{Home; camera quality, typing difficulty, or network limits.}
+\\ \hline
+
+\PAChange{Patient}
+& \PAChange{Check medication safety (UC-03); understand findings and limits.}
+& \PAChange{After confirming a medication list or adding a new prescription.}
+& \PAChange{Mobile or desktop; incomplete medicine data.}
+\\ \hline
+
+\PAChange{Patient / HCP}
+& \PAChange{Request and review a safety case, with follow-up replies (UC-04, UC-05).}
+& \PAChange{When review is needed; responses may occur later.}
+& \PAChange{Separate authorized sessions; simulated HCP workflow.}
+\\ \hline
+
+\PAChange{Patient}
+& \PAChange{Set or manage reminders and record dose status (UC-06--UC-09).}
+& \PAChange{When a verified schedule exists; dose tracking may occur daily.}
+& \PAChange{Mostly mobile; notification permissions and verified schedules.}
+\\ \hline
+
+\PAChange{Patient}
+& \PAChange{View records, ask medication questions, and prepare or share a health summary (UC-10--UC-13).}
+& \PAChange{As needed, often before a healthcare discussion.}
+& \PAChange{Home or mobile; available records and sharing permission.}
+\\ \hline
+
+\PAChange{Dataset Reviewer}
+& \PAChange{Review medication dataset records and evidence (UC-14).}
+& \PAChange{During dataset updates or quality review.}
+& \PAChange{Desktop; incomplete or conflicting source evidence.}
+\\ \hline
+
+\PAChange{Administrator}
+& \PAChange{Manage accounts, roles, and view audit history (UC-15, UC-16).}
+& \PAChange{When accounts or permissions change; periodic checks.}
+& \PAChange{Restricted desktop interface; RBAC rules.}
+\\ \hline
+
+\PAChange{All registered roles}
+& \PAChange{Sign in (UC-01) and report technical issues (UC-17).}
+& \PAChange{When accessing the system or encountering a technical problem.}
+& \PAChange{Web browser; account access and issue details.}
+\\ \hline
+
+\PAChange{Technical Support}
+& \PAChange{Handle reported technical issues and update support tickets (UC-18).}
+& \PAChange{When a support ticket needs attention.}
+& \PAChange{Restricted Web interface; access only to permitted diagnostic information.}
+\\ \hline
+\end{longtable}
+
+The prototype uses synthetic or de-identified data
+and is not integrated with hospital, pharmacy,
+electronic health-record, or real professional-review
+systems.
+
+
+% ==================================================
+% 3.4 SUMMARY OF KEY STAKEHOLDER OR USER NEEDS
+% ==================================================
 
 \subsection{Summary of Key Stakeholder or User Needs}
 
-\begin{longtable}{|L{0.21\textwidth}|L{0.09\textwidth}|L{0.20\textwidth}|L{0.20\textwidth}|L{0.20\textwidth}|}
+\begin{longtable}{|
+    L{0.21\textwidth}|
+    L{0.09\textwidth}|
+    L{0.20\textwidth}|
+    L{0.20\textwidth}|
+    L{0.20\textwidth}|
+}
 \hline
 \textbf{Need} &
 \textbf{Priority} &
 \textbf{Concerns / Cause} &
 \textbf{Current Solution} &
-\textbf{Proposed Solution}\\ \hline
+\textbf{Proposed Solution}\\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Need} &
+\textbf{Priority} &
+\textbf{Concerns / Cause} &
+\textbf{Current Solution} &
+\textbf{Proposed Solution}\\
+\hline
+\endhead
+
+% --------------------------------------------------
+% MEDICATION INTAKE
+% --------------------------------------------------
 
 Enter medication information easily
 & High
@@ -139,6 +420,10 @@ incorrect medication details.
 and confirm medication information
 before safety assessment.
 \\ \hline
+
+% --------------------------------------------------
+% MEDICATION IDENTIFICATION AND SAFETY
+% --------------------------------------------------
 
 Identify Vietnamese medications
 & High
@@ -169,6 +454,10 @@ medicines, and assessment limitations.
 Never treat unknown results as safe.
 \\ \hline
 
+% --------------------------------------------------
+% HEALTHCARE PROFESSIONAL REVIEW
+% --------------------------------------------------
+
 Know when professional review is needed
 & High
 & Users may misunderstand safety warnings
@@ -185,10 +474,14 @@ Review medication safety cases
 organized information to review cases.
 & Review prescriptions and medication
 information manually.
-& Provide structured medication summaries,
-safety findings, and a simulated
-HCP review workflow.
+& \PAChange{Provide structured safety cases,
+a simulated HCP review workflow,
+and authorized patient--HCP messages.}
 \\ \hline
+
+% --------------------------------------------------
+% MEDICATION REMINDERS AND ADHERENCE
+% --------------------------------------------------
 
 Follow confirmed medication schedules
 & High
@@ -200,12 +493,106 @@ schedules, apply a safety gate to affected
 new reminders, and track adherence.
 \\ \hline
 
+% --------------------------------------------------
+% CONTEXT-AWARE NLP CHATBOT
+% --------------------------------------------------
+
+\PAChange{Prepare patient health summaries}
+& \PAChange{High}
+& \PAChange{Patients may forget important
+health and medication information.}
+& \PAChange{Collect records manually
+or rely on memory.}
+& \PAChange{Generate structured summaries
+for patient review before sharing.}
+\\ \hline
+
+\PAChange{Prepare for medical consultations (Planned)}
+& \PAChange{Medium}
+& \PAChange{Patients may forget important
+concerns or questions during appointments.}
+& \PAChange{Prepare personal notes
+or rely on memory.}
+& \PAChange{Future: help patients organize symptoms,
+medications, and questions for doctors.}
+\\ \hline
+
+\PAChange{Compare medication records (Planned)}
+& \PAChange{Medium}
+& \PAChange{Prescriptions may contain
+different medications, strengths,
+or usage instructions.}
+& \PAChange{Compare prescriptions manually.}
+& \PAChange{Future: highlight recorded differences
+without assuming treatment changes.}
+\\ \hline
+
+\PAChange{Understand medication instructions (Planned)}
+& \PAChange{Medium}
+& \PAChange{Patients may misunderstand
+instructions or struggle to follow schedules.}
+& \PAChange{Read instructions or
+consult healthcare professionals.}
+& \PAChange{Future: explain confirmed instructions
+and help identify adherence problems
+without changing treatment.}
+\\ \hline
+
+% --------------------------------------------------
+% DATASET REVIEWER
+% --------------------------------------------------
+
+\PAChange{Review medication dataset quality}
+& \PAChange{High}
+& \PAChange{Incorrect medication records
+or ingredient mappings may affect
+safety assessments.}
+& \PAChange{Inspect datasets and
+supporting evidence manually.}
+& \PAChange{Support dataset review,
+record decisions, and track changes
+with source references.}
+\\ \hline
+
+% --------------------------------------------------
+% ADMINISTRATOR
+% --------------------------------------------------
+
+\PAChange{Manage role-based access}
+& \PAChange{High}
+& \PAChange{Different user roles
+require different access permissions.}
+& \PAChange{Configure accounts and
+permissions manually.}
+& \PAChange{Allow administrators
+to manage accounts, roles,
+and permissions.}
+\\ \hline
+
+% --------------------------------------------------
+% TECHNICAL SUPPORT
+% --------------------------------------------------
+
+\PAChange{Resolve technical issues}
+& \PAChange{Medium}
+& \PAChange{Users may encounter
+application errors or access problems.}
+& \PAChange{Contact developers
+or report issues informally.}
+& \PAChange{Support issue reporting,
+troubleshooting, and resolution tracking.}
+\\ \hline
+
+% --------------------------------------------------
+% USABILITY AND SECURITY
+% --------------------------------------------------
+
 Use the system easily
 & High
 & Older adults and users with limited digital
 skills may have difficulty using applications.
-& Ask caregivers for help or use
-simpler manual methods.
+& \PAChange{Use simple tools or ask
+others for help.}
 & Provide clear interfaces, readable text,
 simple guidance, and alternative input methods.
 \\ \hline
@@ -219,19 +606,46 @@ or separate applications.
 & Limit data collection, restrict access,
 and use synthetic or non-identifying
 test data in the prototype.
+\PAChange{Enforce role-based permissions
+and prevent unauthorized information sharing.}
 \\ \hline
 
 \end{longtable}
 
 
+
+
+% ==================================================
+% 3.5 ALTERNATIVES AND COMPETITION
+% ==================================================
+
 \subsection{Alternatives and Competition}
 
-\begin{longtable}{|L{0.23\textwidth}|L{0.23\textwidth}|L{0.24\textwidth}|L{0.20\textwidth}|}
+\PAChange{The alternatives below include traditional
+methods and existing products. Comparisons focus on
+publicly described capabilities and the proposed
+scope of our prototype, not measured superiority.}
+
+\begin{longtable}{|
+    L{0.23\textwidth}|
+    L{0.23\textwidth}|
+    L{0.24\textwidth}|
+    L{0.20\textwidth}|
+}
 \hline
 \textbf{Alternative} &
 \textbf{Strengths} &
-\textbf{Weaknesses} &
-\textbf{Our Differentiation}\\ \hline
+\textbf{Weaknesses / Limits} &
+\textbf{Our Differentiation}\\
+\hline
+\endfirsthead
+\hline
+\textbf{Alternative} &
+\textbf{Strengths} &
+\textbf{Weaknesses / Limits} &
+\textbf{Our Differentiation}\\
+\hline
+\endhead
 
 Direct consultation with a doctor or pharmacist
 & Provides qualified medical judgment and
@@ -248,38 +662,60 @@ General Web search or AI chatbot
 information searches.
 & Information quality and coverage may vary.
 AI-generated answers may contain unsupported claims.
-& Provides medication safety information
-based on supported data, with clear warnings
-and assessment limitations.
+& \PAChange{Combines supported medicine references,
+explicit uncertainty, and authorized patient records
+within a medication-focused workflow.}
 \\ \hline
 
-Standalone drug interaction checker
-& Provides focused drug interaction information
-and may cover many medications.
-& Some tools may not recognize Vietnamese
-brand names or support medication management.
-& Combines Vietnamese medication identification,
-interaction checks, and follow-up features
-in one application.
+\PAChange{Drugs.com Drug Interaction Checker}
+& \PAChange{Checks reported interactions across
+multiple medicines and provides severity information.}
+& \PAChange{Support for each Vietnamese brand name and
+our prescription-confirmation workflow cannot be assumed.}
+& \PAChange{Proposes Vietnamese medicine identification,
+user confirmation, and linked reminder safety rules.}
 \\ \hline
 
-Medication reminder application
-& Helps users follow medication schedules
-and track adherence.
-& Some applications may not check medication
-interactions before creating reminders.
-& Uses confirmed schedules and applies
-safety checks before activating new reminders
-for affected medications.
+\PAChange{Medscape Drug Interaction Checker}
+& \PAChange{Provides multi-drug interaction information
+and clinical severity categories.}
+& \PAChange{Designed mainly for drug-reference use;
+Vietnamese brand coverage must be checked separately.}
+& \PAChange{Proposes a patient-focused intake, risk
+explanation, and simulated review workflow.}
+\\ \hline
+
+\PAChange{Medisafe medication management app}
+& \PAChange{Supports dose reminders, adherence tracking,
+and interaction information for supported entries.}
+& \PAChange{Its interaction view has language and medicine-
+entry restrictions; features vary by configuration.}
+& \PAChange{Proposes confirmed prescription schedules
+and holds new reminders for detected severe interactions.}
 \\ \hline
 
 Paper prescriptions, notes, or phone alarms
 & Familiar, inexpensive, and can work offline.
 & Information may be scattered, difficult to update,
 and lack medication safety checks.
-& Combines medication input, verification,
-safety warnings, and reminders
-in a single workflow.
+& \PAChange{Aims to combine confirmed medication records,
+safety findings, and reminders in one Web application.}
 \\ \hline
 
+
 \end{longtable}
+
+% Sources for competitor comparison
+\par\smallskip
+
+\noindent\PAChange{
+\textit{Sources checked on 01 Nov 2026:}
+\href{https://www.drugs.com/drug_interactions.html}
+{\underline{Drugs.com Interaction Checker}};
+\href{https://reference.medscape.com/drug-interactionchecker}
+{\underline{Medscape Interaction Checker}};
+\href{https://help-center.medisafe.com/en/articles/8097955-how-can-i-see-possible-med-interactions}
+{\underline{Medisafe Help Center}}.
+Feature coverage may change and has not been
+independently tested by the project team.
+}

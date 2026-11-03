@@ -1,11 +1,24 @@
 % !TeX program = xelatex
 \documentclass[10pt,a4paper]{article}
 
+% ==================================================
+% DOCUMENT METADATA
+% ==================================================
 \input{metadata}
 
+% ==================================================
+% PACKAGES
+% ==================================================
 \usepackage{fontspec}
 \setmainfont{Times New Roman}
-\usepackage[a4paper,top=2.2cm,bottom=2.2cm,left=2.5cm,right=2.5cm,headheight=15pt]{geometry}
+\usepackage[
+  a4paper,
+  top=2.2cm,
+  bottom=2.2cm,
+  left=2.5cm,
+  right=2.5cm,
+  headheight=15pt
+]{geometry}
 \usepackage{setspace}
 \setstretch{1.05}
 \usepackage{xcolor}
@@ -17,9 +30,14 @@
 \usepackage{titlesec}
 \usepackage[unicode,hidelinks]{hyperref}
 
+% ==================================================
+% PA2 CHANGES AND DOCUMENT FORMATTING
+% ==================================================
 \definecolor{instructionblue}{RGB}{0,92,170}
+\providecommand{\PAChange}[1]{\textcolor{instructionblue}{#1}}
 \newcommand{\instruction}[1]{\par\textcolor{instructionblue}{\itshape[#1]}\par}
 \newcommand{\field}[1]{\textcolor{instructionblue}{\itshape<#1>}}
+
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \renewcommand{\arraystretch}{1.25}
@@ -33,6 +51,9 @@
 \titleformat{\subsection}{\bfseries}{\thesubsection}{0.5em}{}
 \titleformat{\subsubsection}{\bfseries}{\thesubsubsection}{0.5em}{}
 
+% ==================================================
+% HEADER AND FOOTER
+% ==================================================
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\ProjectName}
@@ -42,14 +63,20 @@
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
+% ==================================================
+% PDF PROPERTIES
+% ==================================================
 \hypersetup{
   pdftitle={\DocumentTitle\ (\ProjectName)},
   pdfauthor={\GroupName},
-  pdfsubject={PA1 Software Development Plan}
+  pdfsubject={PA2 Revised Software Development Plan -- Second Submission}
 }
 
 \begin{document}
 
+% ==================================================
+% COVER PAGE (BLACK TEXT, INCLUDING UPDATED METADATA)
+% ==================================================
 \begin{titlepage}
   \centering
   \vspace*{2.2cm}
@@ -70,22 +97,30 @@
   \vfill
 \end{titlepage}
 
+% ==================================================
+% REVISION HISTORY
+% ==================================================
 \section*{Revision History}
 \begin{tabularx}{\textwidth}{|L{2.4cm}|L{1.7cm}|Y|L{3cm}|}
 \hline
 \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author}\\ \hline
 15 Oct 2026 & 0.1 & Initial PA1 draft based on the approved project proposal & Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\\ \hline
 18 Oct 2026 & 1.0 & PA1 submission version & Project team\\ \hline
+\PAChange{01 Nov 2026} & \PAChange{1.1} &
+\PAChange{PA2 revision: refined project scope, deliverables, team responsibilities, estimates, sprint schedule, milestones, reporting, risk management, and configuration management; aligned the plan with the revised Vision Document and 18 use cases.} &
+\PAChange{Group 02}\\ \hline
 \end{tabularx}
 
 \clearpage
 \tableofcontents
 \clearpage
 
+% ==================================================
+% SOFTWARE DEVELOPMENT PLAN SECTIONS
+% ==================================================
 \input{sections/01-introduction}
 \input{sections/02-project-overview}
 \input{sections/03-project-organization}
 \input{sections/04-management-process}
 
 \end{document}
-
