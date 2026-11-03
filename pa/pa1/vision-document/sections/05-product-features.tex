@@ -1,0 +1,438 @@
+% ==================================================
+% 5. PRODUCT FEATURES
+% ==================================================
+
+
+\section{Product Features}
+
+\PAChange{This section describes the main
+functional user requirements of the
+Medication Safety Assistant as high-level
+product features. Each feature explains
+what the system provides and the value
+it offers to its users.}
+
+\PAChange{Detailed user--system interactions
+are specified in the Use-case Specifications.
+Planned extensions are separated from
+the current prototype scope.}
+
+
+
+% ==================================================
+% PF-01: MULTIMODAL MEDICATION INTAKE
+% ==================================================
+
+\subsection{PF-01: Multimodal Medication Intake}
+
+Users can provide medication information
+through four input methods: prescription-image
+OCR, NLP Chatbot, Voice/STT, and Manual Input.
+
+The system supports information extraction,
+medication search suggestions, and user
+corrections. Users can switch to another
+input method when needed.
+
+\PAChange{The system records available medication
+details and presents them for user review.
+Failed or incomplete input processing
+allows correction, retry, or manual entry.}
+
+
+% ==================================================
+% PF-02: INTENT RECOGNITION AND USER CONFIRMATION
+% ==================================================
+
+\subsection{PF-02: Intent Recognition and User Confirmation}
+
+\PAChange{During medication intake, the system
+identifies the requested task through UI
+selection or NLP analysis of text and voice
+input. Unclear requests require clarification.}
+
+\PAChange{Users must review, correct, and confirm
+recorded medication information before
+safety checks or reminder activation.
+Confirmation verifies the recorded input,
+not medication identity or medical safety.}
+
+% ==================================================
+% PF-03: VIETNAMESE MEDICATION IDENTIFICATION
+% ==================================================
+
+\subsection{PF-03: Vietnamese Medication Identification}
+
+The system identifies Vietnamese medicines
+and their active ingredients using available
+medication data sources.
+
+It supports matching different medicine
+names to their active ingredients and
+related medication information.
+Unknown or unclear matches are reported
+instead of being treated as confirmed.
+
+\PAChange{Ambiguous medicines may require
+user clarification. Unresolved medicines
+are not used in checks that require
+confirmed ingredient information.}
+
+
+% ==================================================
+% PF-04: MEDICATION RISK ASSESSMENT
+% ==================================================
+
+\subsection{PF-04: Medication Risk Assessment}
+
+\PAChange{The system checks supported
+drug--drug interactions using available
+DDInter 2.0 data and verified ingredient
+mappings. It also checks for duplicate
+active ingredients when sufficient
+information is available.}
+
+It identifies potential risks, their
+severity when available, and cases
+that need further review. Missing data
+or no detected interaction does not
+guarantee that a medication plan is safe.
+
+\PAChange{Assessment results are marked
+as assessed, partially assessed,
+unassessed, or failed. Severe interactions
+trigger immediate warnings and the
+new-reminder safety gate.}
+
+The assessment can be extended to other
+medication risks when reliable data
+and suitable methods become available.
+
+
+% ==================================================
+% PF-05: SAFETY RESULTS AND RECOMMENDATIONS
+% ==================================================
+
+\subsection{PF-05: Safety Results and Recommendations}
+
+The system presents medication safety
+results in a clear and understandable way,
+including detected risks, involved medicines,
+available explanations, and data limitations.
+
+It provides appropriate next steps and
+recommends professional review when needed.
+The system supports informed decisions
+without independently changing prescribed
+treatment.
+
+\PAChange{Explanations use supported data.
+Results distinguish detected risks from
+unassessed checks. Finding no issue does
+not prove that all medicines are safe.}
+
+
+% ==================================================
+% PF-06: HEALTHCARE PROFESSIONAL REVIEW
+% ==================================================
+
+\subsection{PF-06: Healthcare Professional Review}
+
+\PAChange{Patients can request HCP review
+of a saved safety case and permit access
+to selected case information. Authorized
+HCPs can review safety findings, patient
+summaries, and data limitations.}
+
+They can request additional information,
+provide feedback, and record review decisions.
+Cases awaiting required review remain pending.
+
+\PAChange{Patients and HCPs can exchange
+messages and follow-up questions within
+the same review case. The system keeps
+the conversation, review outcomes, and
+request status for later reference.}
+
+\PAChange{Cases waiting for patient information
+or HCP responses remain clearly marked.
+Only recorded, eligible HCP confirmations
+can affect pending new reminders.
+All HCP reviews are simulated and do not
+represent real clinical approval.}
+
+
+% ==================================================
+% PF-07: MEDICATION REMINDER MANAGEMENT
+% ==================================================
+
+\subsection{PF-07: Medication Reminder Management}
+
+\PAChange{Users can create reminders from
+existing prescriptions or recorded HCP
+instructions after confirming the schedule.
+Unverified schedules cannot be activated.}
+
+\PAChange{Users can change reminder
+notification settings without changing
+prescribed treatment. Proposed changes
+to medication timing require simulated
+HCP confirmation before activation.}
+
+\PAChange{If a severe drug interaction
+is detected, new reminders for affected
+medicines remain pending HCP review.
+Unrelated eligible reminders may proceed.
+Existing reminders and prescribed medicines
+are never stopped automatically.}
+
+
+% ==================================================
+% PF-08: REMINDERS AND ADHERENCE TRACKING
+% ==================================================
+
+\subsection{PF-08: Medication Reminders and Adherence Tracking}
+
+The system provides medication reminders
+and allows users to record doses as
+taken, missed, or skipped.
+
+Users can review reminder schedules
+and medication adherence records.
+This information helps users track
+their medication adherence and may
+support future adherence analysis.
+
+
+\PAChange{Reminder notifications depend on
+browser support and user permissions.
+Adherence records include relevant dates
+and times and do not automatically
+change prescribed treatment.}
+
+
+% ==================================================
+% PF-09: MEDICATION AND HEALTH HISTORY
+% ==================================================
+
+
+\subsection{PF-09: Medication and Health History}
+
+\PAChange{The system stores confirmed medication
+records, previous safety assessments,
+detected risks, and HCP review outcomes,
+including their dates and statuses.}
+
+\PAChange{Patients can view their saved
+medication information and history.
+New prescriptions are recorded through
+the confirmed medication intake process.
+Corrections must match the provided
+source and require user confirmation.}
+
+\PAChange{Previous records and assessment results
+remain available as history. New information
+does not automatically replace prescribed
+treatment or existing reminders.
+HCP access to patient history requires
+authorization.}
+
+
+
+
+% ==================================================
+% PF-10: CONTEXT-AWARE CHATBOT AND PATIENT SUPPORT
+% ==================================================
+
+\subsection{PF-10: Context-Aware Chatbot and Patient Support}
+
+\PAChange{The AI chatbot supports multi-turn
+medication-related requests using supported
+reference data and permitted patient information.
+It is separate from the patient--HCP review
+conversation described in PF-06.}
+
+\PAChange{It asks follow-up questions
+when needed and reports limitations
+when reliable information is unavailable.
+It does not independently diagnose,
+prescribe, or change treatment.}
+
+\PAChange{The system can generate structured
+patient health summaries from available
+records. Patients review the summaries
+before saving or sharing them with
+authorized HCPs. Sharing requires
+patient permission.}
+
+\PAChange{\textbf{Planned extensions:}
+Consultation preparation, medication
+record comparison, and explanations
+of confirmed medication instructions.}
+
+
+% ==================================================
+% PF-11: MEDICATION DATASET REVIEW
+% ==================================================
+
+\subsection{PF-11: Medication Dataset Review}
+
+\PAChange{Dataset Reviewers can inspect
+medication records, active ingredients,
+mappings, and supporting sources
+through a restricted interface.}
+
+\PAChange{They can record data issues and
+review decisions such as Accept, Reject,
+or Needs Correction. The system keeps
+source references and review history.}
+
+\PAChange{Unverified records must not
+be presented as clinically validated.
+Dataset review does not replace
+professional clinical validation.}
+
+
+% ==================================================
+% PF-12: USER AND ACCESS MANAGEMENT
+% ==================================================
+
+\subsection{PF-12: User and Access Management}
+
+\PAChange{Registered users can sign in
+to access features permitted by their
+assigned roles. Administrators can manage
+user accounts, account status, roles,
+and access permissions.}
+
+\PAChange{Role-Based Access Control (RBAC)
+limits access to authorized features
+and information for the five defined
+user roles. Relevant administrative
+activities are recorded for review.}
+
+
+% ==================================================
+% PF-13: TECHNICAL SUPPORT
+% ==================================================
+
+\subsection{PF-13: Technical Support}
+
+\PAChange{Users can report technical
+issues. Technical Support personnel
+can review reported problems, investigate
+permitted diagnostic information,
+record solutions, and track issue status.}
+
+\PAChange{Support access is limited
+to information needed for troubleshooting.
+Private patient records are protected
+from unnecessary access.}
+
+
+
+% ==================================================
+% PRODUCT FEATURE AND USE-CASE TRACEABILITY
+% ==================================================
+
+\subsection{Product Feature and Use-Case Traceability}
+
+\PAChange{The following table links the
+13 product features to the 18 use cases
+in the current Use-case Specifications.
+A use case may support multiple features.
+Detailed flows are defined in the
+Use-case Specifications.}
+
+\begin{longtable}{|
+    p{0.18\textwidth}|
+    p{0.72\textwidth}|
+}
+\hline
+
+\textbf{Feature} &
+\textbf{Related Use Cases}
+\\ \hline
+
+\endfirsthead
+
+\hline
+\textbf{Feature} &
+\textbf{Related Use Cases}
+\\ \hline
+
+\endhead
+
+\PAChange{PF-01}
+& \PAChange{UC-02: Enter and Confirm
+Medication Information}
+\\ \hline
+
+\PAChange{PF-02}
+& \PAChange{UC-02: Enter and Confirm
+Medication Information}
+\\ \hline
+
+\PAChange{PF-03}
+& \PAChange{UC-03: Check Medication Safety}
+\\ \hline
+
+\PAChange{PF-04}
+& \PAChange{UC-03: Check Medication Safety}
+\\ \hline
+
+\PAChange{PF-05}
+& \PAChange{UC-03: Check Medication Safety;
+UC-04: Request HCP Review}
+\\ \hline
+
+\PAChange{PF-06}
+& \PAChange{UC-04: Request HCP Review;
+UC-05: Review Medication Safety Case;
+UC-13: Share Patient Health Summary with HCP}
+\\ \hline
+
+\PAChange{PF-07}
+& \PAChange{UC-03: Check Medication Safety;
+UC-05: Review Medication Safety Case;
+UC-06: Set Up Medication Reminders;
+UC-07: Manage Medication Reminders}
+\\ \hline
+
+\PAChange{PF-08}
+& \PAChange{UC-06: Set Up Medication Reminders;
+UC-07: Manage Medication Reminders;
+UC-08: Record Dose Status;
+UC-09: View Adherence History}
+\\ \hline
+
+\PAChange{PF-09}
+& \PAChange{UC-02: Enter and Confirm
+Medication Information;
+UC-03: Check Medication Safety;
+UC-05: Review Medication Safety Case;
+UC-10: View Medication and Safety History}
+\\ \hline
+
+\PAChange{PF-10}
+& \PAChange{UC-11: Ask a Medication Question;
+UC-12: Generate Patient Health Summary;
+UC-13: Share Patient Health Summary with HCP}
+\\ \hline
+
+\PAChange{PF-11}
+& \PAChange{UC-14: Review Medication Dataset Record}
+\\ \hline
+
+\PAChange{PF-12}
+& \PAChange{UC-01: Sign In;
+UC-15: Manage User Accounts and Roles;
+UC-16: View Administrative Activity History}
+\\ \hline
+
+\PAChange{PF-13}
+& \PAChange{UC-17: Report Technical Issue;
+UC-18: Handle Technical Support Request}
+\\ \hline
+
+\end{longtable}

@@ -1,0 +1,35 @@
+{
+  "source": "apps/frontend",
+  "entry": "src/pa2/app.ts",
+  "capturedAt": "2026-11-01T11:42:48.785Z",
+  "desktop": {
+    "width": 1440,
+    "height": 1000
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844
+  },
+  "screenshots": [
+    "login.png",
+    "patient-menu.png",
+    "patient-home.png",
+    "patient-intake.png",
+    "patient-safety.png",
+    "patient-review.png",
+    "hcp-queue.png",
+    "hcp-review.png",
+    "patient-reminders.png",
+    "patient-history.png",
+    "patient-chat.png",
+    "patient-summary.png",
+    "hcp-shared.png",
+    "reviewer-dataset.png",
+    "admin-accounts.png",
+    "admin-audit.png",
+    "patient-support.png",
+    "support-tickets.png",
+    "mobile-viewport.png"
+  ],
+  "method": "Browser screenshots after real UI interactions; fictional data"
+}

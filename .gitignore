@@ -1,4 +1,26 @@
-.vscode/
+# Shared ignore rules for the repository (maintain this file only).
+/.vscode/
+
+# Local configuration; keep distributable examples
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# JavaScript dependencies and caches, including archived prototypes
+node_modules/
+.npm-cache/
+.vite/
+*.tsbuildinfo
 
 # LaTeX build artifacts
 *.aux
@@ -27,3 +49,27 @@
 *.xdv
 
 # Keep generated PDFs under version control when needed for submission.
+
+# Frontend dependencies and generated output
+/apps/frontend/dist/
+/apps/frontend/test-results/
+/apps/frontend/playwright-report/
+/apps/frontend/artifacts/
+/apps/frontend/coverage/
+
+# Test output
+/tests/artifacts/
+
+# Document-specific output (other report PDFs/images remain trackable)
+/pa/pa0/project-proposal/main.pdf
+/pa/pa0/project-proposal/**/*.acn
+/pa/pa0/project-proposal/**/*.acr
+/pa/pa0/project-proposal/**/*.alg
+/pa/pa0/project-proposal/**/*.dvi
+/pa/pa0/project-proposal/**/*.ps
+/pa/pa1/vision-document/**/preview-*.png
+/pa/pa1/project-plan/**/preview-*.png
+# Temporary files and local datasets
+/tmp/
+# Local Module 1 OCR inputs and outputs may contain personal/medical data.
+/data/local/

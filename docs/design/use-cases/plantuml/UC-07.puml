@@ -1,0 +1,50 @@
+@startuml UC_07
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-07: Manage Medication Reminders
+
+' Figure 7 / UC-07; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Manage Medication Reminders" as Main
+  usecase "Change Notification Settings" as Notification
+  usecase "Propose Timing Change" as Timing
+  Notification -|> Main
+  Timing -|> Main
+  note right of Notification
+    Disabling a notification changes only
+    the selected notification, not treatment.
+    The patient confirms before changes
+    are applied.
+  end note
+  note right of Timing
+    Timing outside verified instructions is
+    a proposal requiring HCP review;
+    the existing schedule stays unchanged.
+  end note
+  note top of Main
+    Cancellation or update failure keeps the
+    previous settings (Alternative Flow A3).
+  end note
+}
+Actor1 -- Main
+@enduml

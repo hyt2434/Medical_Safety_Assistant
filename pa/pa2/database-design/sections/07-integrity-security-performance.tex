@@ -1,0 +1,87 @@
+\section{Integrity, Security, and Performance Requirements}
+
+\subsection{Relational Integrity}
+
+The physical schema should implement the following invariants in foreign keys, unique constraints, checks, exclusion constraints, or transactions:
+\begin{itemize}
+  \item a source identifier is unique within its source namespace and dataset version;
+  \item only approved dataset versions may be released, and at most one active release exists for an intended runtime channel;
+  \item a component may have a null accepted ingredient while awaiting review, but an operative safety mapping must reference accepted entities and an approved decision;
+  \item an interaction contains exactly two distinct safety participants and is unique as a canonical unordered pair within a dataset version;
+  \item an assessment pair uses two distinct snapshot items and is unique after canonical ordering;
+  \item an HCP review author must match the assigned professional or an explicitly recorded reassignment;
+  \item conversation membership is required before reading or sending a message;
+  \item a reminder event is unique for schedule and planned occurrence time, preventing duplicate delivery during retries; and
+  \item audit and review-decision records are append-only from application workflows.
+\end{itemize}
+
+\subsection{State Transitions}
+
+Status columns must use controlled values and validated transitions. Important state machines include intake, extraction run, medication entry confirmation, identification, dataset version, review request/item, mapping, assessment, HCP review request, regimen, schedule, reminder event, and support ticket. A status alone is insufficient for audit: the actor, timestamp, reason, and prior state should be retained in history or event records for sensitive transitions.
+
+\subsection{Access-Control Matrix}
+
+\begin{longtable}{L{3.2cm}L{4.0cm}L{4.0cm}L{4.0cm}}
+\caption{High-level role access boundaries}\label{tab:role-access}\\
+\toprule
+\textbf{Role} & \textbf{May manage} & \textbf{May view} & \textbf{Must not do}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Role} & \textbf{May manage} & \textbf{May view} & \textbf{Must not do}\\
+\midrule
+\endhead
+Patient & Own intake, confirmations, regimen responses, conversations, and tickets & Own profile, results, HCP responses, reminders & Access another patient's data or approve clinical/reference data.\\
+HCP & Assigned review cases, professional responses, reviewed regimens & Patients covered by active care relationships/assignments & Browse all patients or approve reference data without reviewer authority.\\
+Administrator & Accounts, roles, configuration, release operations subject to policy & Operational metadata and audit needed for administration & Create medical conclusions merely because of administrative status.\\
+Technical support & Assigned tickets, diagnostic notes, retry requests permitted by procedure & Minimum diagnostic context for assigned incidents & Read unrelated health records, alter HCP decisions, or approve drug data.\\
+Medical reviewer & Assigned reference-data review items and decisions & Source evidence and catalog context within review scope & Access patient care records unless separately authorized as HCP.\\
+\bottomrule
+\end{longtable}
+
+Authorization must be enforced in the backend and database-access layer; hiding UI controls is not sufficient. Sensitive reads should create audit events where required by policy.
+
+\subsection{Privacy and Security Controls}
+
+\begin{itemize}
+  \item Store document binaries outside relational tables in encrypted object storage; retain object key, checksum, media type, size, and access policy in \db{INTAKE_DOCUMENTS}.
+  \item Encrypt data in transit and at rest; manage secrets outside the database and source repository.
+  \item Minimize protected health information in logs, support messages, notifications, and analytics exports.
+  \item Use soft deactivation or policy-controlled retention for accounts and clinical records; do not cascade-delete audit, review, or evidence history.
+  \item Apply malware scanning, file-type validation, and size limits before OCR processing.
+  \item Record dataset hashes and source locators to detect silent source replacement.
+\end{itemize}
+
+\subsection{Indexing Recommendations}
+
+\begin{longtable}{L{5.2cm}L{10.0cm}}
+\caption{Initial indexing strategy}\label{tab:indexes}\\
+\toprule
+\textbf{Access pattern} & \textbf{Recommended index}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Access pattern} & \textbf{Recommended index}\\
+\midrule
+\endhead
+User role/permission lookup & Composite indexes on \db{USER_ROLES(user_id, role_id)} and \db{ROLE_PERMISSIONS(role_id, permission_id)}; unique on each pair.\\
+Patient timelines & Index patient foreign key plus descending creation time on intakes, prescriptions, snapshots, assessments, regimens, and tickets.\\
+Medication identification & Version/release plus normalized registration token, normalized name key, and accepted ingredient key.\\
+Interaction lookup & Unique canonical pair key within version/release; indexes on participant safety entity and interaction ID.\\
+Review work queues & Partial/composite indexes on assignee, status, priority, and creation time.\\
+Reminder dispatch & Index active schedule and next due time; unique event key on schedule and scheduled time.\\
+Audit investigation & Actor/time and target-type/target-ID/time indexes; consider time-based partitioning when volume requires it.\\
+Support queue & Assignee/status/priority and creator/created-time indexes.\\
+\bottomrule
+\end{longtable}
+
+Indexes should be validated against actual query plans after representative data is loaded. Large text, raw JSON, and evidence payloads should not be indiscriminately indexed.
+
+\subsection{Transactions and Concurrency}
+
+Critical operations require transactions: accepting a review decision and changing mapping status; publishing a release; freezing a medication snapshot; writing assessment results; assigning review/support work; and generating idempotent reminder events. Optimistic version columns are recommended for mutable workflow rows. Long-running OCR and assessment jobs should update job state through controlled transitions rather than hold database transactions open.
+
+\subsection{Backup, Retention, and Observability}
+
+Backups must include the relational database and coordinated object-storage versions. Restore tests should verify that document references and hashes still resolve. Operational metrics should cover import failures, validation severity, review backlog, assessment latency, unresolved identification rate, reminder delivery failure, and support SLA without exposing medication or message content in metric labels.
+

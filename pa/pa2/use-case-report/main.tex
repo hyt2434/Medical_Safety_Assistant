@@ -1,0 +1,233 @@
+% !TeX program = xelatex
+\documentclass[10pt,a4paper]{article}
+
+% ==================================================
+% DOCUMENT METADATA
+% ==================================================
+\input{metadata}
+
+% ==================================================
+% PACKAGES
+% ==================================================
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+
+\usepackage[
+    a4paper,
+    top=2.2cm,
+    bottom=2.2cm,
+    left=2.5cm,
+    right=2.5cm,
+    headheight=15pt
+]{geometry}
+
+\usepackage{setspace}
+\setstretch{1.05}
+
+\usepackage{xcolor}
+\usepackage{array,longtable,tabularx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{pdflscape}
+\usepackage{titlesec}
+\usepackage[unicode,hidelinks]{hyperref}
+
+% build.ps1 converts the original SVG diagrams to vector PDF first.
+\graphicspath{{sections/images/}}
+
+% ==================================================
+% COLORS AND CUSTOM COMMANDS
+% ==================================================
+\definecolor{instructionblue}{RGB}{0,92,170}
+
+\newcommand{\instruction}[1]{%
+    \par
+    \textcolor{instructionblue}{\itshape[#1]}
+    \par
+}
+
+\newcommand{\field}[1]{%
+    \textcolor{instructionblue}{\itshape<#1>}
+}
+
+% Table column types
+\newcolumntype{L}[1]{%
+    >{\raggedright\arraybackslash}p{#1}
+}
+
+\newcolumntype{Y}{%
+    >{\raggedright\arraybackslash}X
+}
+
+% ==================================================
+% DOCUMENT FORMATTING
+% ==================================================
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\emergencystretch=3em
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\LTpre}{0pt}
+\setlength{\LTpost}{0pt}
+
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+
+\titleformat{\section}
+    {\bfseries\large}
+    {\thesection.}
+    {0.5em}
+    {}
+
+\titleformat{\subsection}
+    {\bfseries}
+    {\thesubsection}
+    {0.5em}
+    {}
+
+% ==================================================
+% HEADER AND FOOTER
+% ==================================================
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyhead[L]{\ProjectName}
+\fancyhead[R]{Version \DocumentVersion}
+
+\fancyfoot[L]{%
+    \OrganizationName\ -- \ConfidentialityText
+}
+\fancyfoot[R]{Page \thepage}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ==================================================
+% PDF METADATA
+% ==================================================
+\hypersetup{
+    pdftitle={\DocumentTitle\ (\ProjectName)},
+    pdfauthor={\DocumentAuthors},
+    pdfsubject={PA2 Use-Case Specification}
+}
+
+% ==================================================
+% SECTION LOADER
+% ==================================================
+\newcommand{\loadsection}[2]{%
+    \IfFileExists{sections/#1.tex}{%
+        \input{sections/#1}%
+    }{%
+        \section{#2}
+        \textit{Content to be completed.}
+    }%
+}
+
+% ==================================================
+% DOCUMENT
+% ==================================================
+\begin{document}
+\hypersetup{pageanchor=false}
+
+% ==================================================
+% TITLE PAGE
+% ==================================================
+\begin{titlepage}
+    \centering
+
+    \vspace*{2.2cm}
+
+    {\Large\bfseries
+        \ProjectName\par
+    }
+
+    \vspace{2cm}
+
+    {\Huge\bfseries
+        \DocumentTitle\par
+    }
+
+    \vspace{1.95cm}
+
+    {\large
+        Version \DocumentVersion\par
+    }
+
+    \vfill
+
+    \begin{tabularx}{0.9\textwidth}{
+        @{} L{3.5cm} Y @{}
+    }
+        \textbf{Document identifier:}
+            & \DocumentIdentifier\\[6pt]
+
+        \textbf{Prepared by:}
+            & \DocumentAuthors\\[6pt]
+
+        \textbf{Group:}
+            & \GroupNumber\\[6pt]
+
+        \textbf{Organization:}
+            & \OrganizationName\\[6pt]
+
+        \textbf{Date:}
+            & \DocumentDate\\
+    \end{tabularx}
+
+    \vfill
+\end{titlepage}
+\hypersetup{pageanchor=true}
+
+% ==================================================
+% REVISION HISTORY
+% ==================================================
+\section*{Revision History}
+\addcontentsline{toc}{section}{Revision History}
+
+\begin{tabularx}{\textwidth}{
+    |L{2.4cm}|L{1.7cm}|Y|L{3cm}|
+}
+\hline
+\textbf{Date}
+    & \textbf{Version}
+    & \textbf{Description}
+    & \textbf{Author}\\
+\hline
+1 November 2026
+    & 1.0
+    & Initial PA2 Use-Case Specification
+    & Group 02\\
+\hline
+\end{tabularx}
+
+% ==================================================
+% TABLE OF CONTENTS
+% ==================================================
+\clearpage
+\begingroup
+\small
+\setstretch{1.0}
+\setlength{\parskip}{0pt}
+\tableofcontents
+\endgroup
+\clearpage
+
+% ==================================================
+% MAIN CONTENT
+% ==================================================
+
+% Models: sections/01-use-case-model.tex
+\loadsection{03-use-cases-combined}{Use-case Models and Specifications}
+
+\clearpage
+
+% Specifications: sections/02-use-case-specifications.tex
+% The combined section includes the model followed by its specification.
+
+% ==================================================
+% END DOCUMENT
+% ==================================================
+\end{document}

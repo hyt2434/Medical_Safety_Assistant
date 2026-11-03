@@ -1,0 +1,3 @@
+export function assistantMascot() {
+  return `<svg viewBox="0 0 80 90" class="bot" aria-hidden="true"><path d="M12 44C12 4 68 4 68 44v23C68 92 12 92 12 67Z" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="2"/><path d="M14 40c2-36 50-36 52 0Z" fill="var(--color-paper-2)" stroke="var(--color-accent)" stroke-width="2"/><path d="M40 20v14m-7-7h14" stroke="var(--color-accent)" stroke-width="5"/><ellipse cx="29" cy="54" rx="3" ry="5" fill="var(--color-accent-strong)"/><ellipse cx="51" cy="54" rx="3" ry="5" fill="var(--color-accent-strong)"/><path d="M31 67q9 8 18 0" fill="none" stroke="var(--color-accent)" stroke-width="2"/></svg>`;
+}

@@ -1,0 +1,46 @@
+@startuml UC_18
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-18: Handle Technical Support Request
+
+' Figure 18 / UC-18; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Technical Support" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Handle Technical\nSupport Request" as Main
+  usecase "Request Additional\nTechnical Information" as RequestInfo
+  RequestInfo ..> Main : <<extend>>\n[details needed]
+  note bottom of Main
+    Use permitted technical details;
+    restrict private medical content.
+    Record authorized progress or
+    resolution; failed updates create
+    no unsupported outcome.
+  end note
+  note bottom of RequestInfo
+    Request necessary technical details only.
+    States: Open, In Progress,
+    Pending User Response or Resolved.
+  end note
+}
+Actor1 -- Main
+Actor1 -- RequestInfo
+@enduml
