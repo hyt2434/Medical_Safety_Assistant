@@ -1,0 +1,44 @@
+@startuml UC_13
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-13: Share Patient Health Summary with HCP
+
+' Figure 13 / UC-13; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Share Patient Health Summary\nwith HCP" as Main
+  usecase "Review Sharing Scope\nand Confirm Permission" as Consent
+  Main ..> Consent : <<include>>
+  note top of Main
+    Only the chosen summary is accessible to
+    the permitted recipient or case.
+    Declined permission or failed sharing
+    grants no new access.
+  end note
+  note bottom of Consent
+    Warn when the summary is outdated;
+    the patient may share with limits visible
+    or return separately to UC-12 to regenerate it.
+  end note
+}
+Actor1 -- Main
+@enduml

@@ -1,0 +1,13 @@
+/* PA1 palette and type families retained. System fonts work without a network. */
+:root {
+  --color-paper: #f5f9f7; --color-surface: #fff; --color-paper-2: #edf4ef;
+  --color-ink: #183e36; --color-muted: #52695f; --color-accent: #246e60;
+  --color-accent-strong: #174c42; --color-accent-ink: #fff; --color-rule: #c9d8ce;
+  --color-warning: #795411; --color-warning-soft: #fff5d9;
+  --color-danger: #a03432; --color-danger-soft: #fff0ed;
+  --color-success: #246444; --color-focus: #006b77;
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --space-xs: .5rem; --space-sm: .75rem; --space-md: 1rem; --space-lg: 1.5rem; --space-xl: 2rem;
+  --radius-sm: 6px; --radius-md: 12px; --dur-micro: 120ms;
+}

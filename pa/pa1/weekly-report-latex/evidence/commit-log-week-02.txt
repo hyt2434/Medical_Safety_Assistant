@@ -1,0 +1,13 @@
+Git commit log -- Week 2, 2026-10-12 through 2026-10-18, Asia/Bangkok
+Source: local repository, git log --no-merges --format='%H | %aI | %an | %s'
+
+53ef20b3a0b9cbe102e163a953282cab3c3fcceb | 2026-10-18T16:00:48+07:00 | Hoang Yen Trang | feat(frontend): dựng giao diện React TypeScript theo Stitch - Bổ sung các màn hình người dùng, HCP và quản trị - Thêm breadcrumb, lịch sử chat và mascot Tiểu Bạch - Dùng font prototype UI và tối ưu responsive - Thay prototype HTML bằng 26 ảnh chụp frontend
+d5a7d2bc45a415bec97fb50d7354ac81d635fec3 | 2026-10-18T13:38:11+07:00 | Hoang Yen Trang | initial version of ui
+079e6b109205303ea820b460cb1fa5c3f0f7c9bb | 2026-10-16T10:30:46+07:00 | Hoang Yen Trang | initial UI prototype
+fe17b978a2954a5fd4c9139877194a91abcb7b6e | 2026-10-16T10:24:35+07:00 | Hoàng Yến Trang | chore: remove misplaced GitHub Project tracking document from main
+3a730fbf55d4a1644dbac30c5539131709bca995 | 2026-10-16T10:16:50+07:00 | Hoàng Yến Trang | docs: add GitHub Projects tracking guide aligned with PA1 plan and vision
+dc112440c3092bf77b153bbf9af7392083e92ebd | 2026-10-16T08:14:04+07:00 | Hoang Yen Trang | add agent skill hallmark
+698e8f64101852a9dbc83041ef53f403f2ed4aff | 2026-10-16T07:58:03+07:00 | Hoang Yen Trang | finish vision document
+dfce5a4be76cab83f6885b0bf76242f7b4295171 | 2026-10-16T01:53:38+07:00 | Hoang Yen Trang | update gitignore
+2202298827cecf0db8b253a7c4063253efd9d149 | 2026-10-16T01:23:04+07:00 | Hoang Yen Trang | finish project plan
+4bf1ad4a5c1c2e097e3bbdea85d23b979ab0c32f | 2026-10-15T22:59:38+07:00 | Hoang Yen Trang | add PA1

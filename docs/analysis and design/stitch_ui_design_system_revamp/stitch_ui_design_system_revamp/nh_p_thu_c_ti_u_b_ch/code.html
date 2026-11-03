@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>Tiểu Bạch - Nhập Toa Thuốc An Toàn</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            teal: {
+              main: '#287a74',
+              hover: '#1e625d',
+              dark: '#164e4a',
+              light: '#e6f4f2',
+            },
+            mint: {
+              DEFAULT: '#55a9a0',
+              soft: '#aeeed3',
+              badge: '#dcfce7',
+              text: '#166534',
+            },
+            cream: {
+              DEFAULT: '#fff8b0',
+              soft: '#fef9c3',
+              border: '#facc15',
+              darkText: '#854d0e',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-[#f8fafc] text-[#0f172a] font-sans antialiased min-h-full flex flex-col">
+<!-- Header Chuẩn Tiểu Bạch -->
+<header class="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#e2e8f0] shadow-sm">
+<div class="h-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex items-center justify-between gap-4">
+<!-- Logo Brand -->
+<div class="flex items-center gap-3">
+<img alt="Tiểu Bạch Logo" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VF2AZLQS3JQ3DWXTYJc09wyutpdbpGizs_kt8xEhN25WLnjvCCMzu3y2BPv6BeUc8YMhhR1xLtkjLGly2BWqDu4EYu_R-_6m2N0GOavH3PMFM0rEG5JXFQdLHXIH1RyEUWHsOf6QHpPnNYhVC3i-4JmS__KoMWWmPZ9i5HIs00Nt-1mwNv3yz86AgnsfVKieJe9RVrMxpMCKihzd4y2nZMHlS7CForoNRQdriYzsHBwHAvwXtfpc8h9Y0"/>
+<div class="flex flex-col">
+<span class="text-xl font-extrabold text-[#287a74] leading-tight tracking-tight">Tiểu Bạch</span>
+<span class="text-xs text-slate-500 font-medium leading-none mt-0.5">Trợ lý an toàn dược phẩm y khoa</span>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="hidden lg:flex items-center gap-1.5 p-1.5 bg-[#f1f5f9] rounded-2xl border border-[#e2e8f0]">
+<a class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-[#287a74] hover:bg-white/80 transition-all" data-path="trang-chu" href="#">Tổng quan</a>
+<a class="px-4 py-2 rounded-xl text-sm font-bold bg-[#287a74] text-white shadow-sm transition-all flex items-center gap-1.5" data-path="nhap-thuoc" href="#">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+          Nhập toa thuốc
+        </a>
+<a class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-[#287a74] hover:bg-white/80 transition-all" data-path="thuoc-cua-toi" href="#">Thuốc của tôi</a>
+<a class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-[#287a74] hover:bg-white/80 transition-all" data-path="chat-tieu-bach" href="#">Chat Tiểu Bạch</a>
+<a class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-[#287a74] hover:bg-white/80 transition-all" data-path="lich-nhac" href="#">Lịch nhắc</a>
+<a class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-[#287a74] hover:bg-white/80 transition-all" data-path="khong-gian-chuyen-mon-hcp" href="#">Góc Bác sĩ HCP</a>
+</nav>
+<!-- Right Utility Controls -->
+<div class="flex items-center gap-3">
+<!-- Font size toggle A / A+ -->
+<div class="flex items-center bg-[#f1f5f9] rounded-xl p-1 border border-[#e2e8f0]" title="Điều chỉnh cỡ chữ tiện ích">
+<button class="px-2.5 py-1 text-xs font-semibold text-slate-600 rounded-lg bg-white shadow-xs hover:text-slate-900 transition-all" type="button">A</button>
+<button class="px-2.5 py-1 text-sm font-bold text-[#287a74] rounded-lg hover:bg-white/80 transition-all" type="button">A+</button>
+</div>
+<!-- User profile -->
+<a class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-[#e2e8f0] bg-white hover:border-[#287a74]/40 hover:bg-[#f8fafc] transition-all" data-path="ho-so" href="#">
+<div class="w-8 h-8 rounded-full bg-[#287a74] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            DS
+          </div>
+<div class="hidden sm:flex flex-col text-left">
+<span class="text-xs font-bold text-slate-800 leading-tight">Dược sĩ trực tuyến</span>
+<span class="text-[11px] text-emerald-600 font-semibold leading-tight">Bảo vệ mức cao</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-[18px]">expand_more</span>
+</a>
+</div>
+</div>
+</header>
+<!-- Main Content Workbench -->
+<main class="w-full pt-24 pb-16 flex-1 bg-[#f8fafc]">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col gap-6">
+<!-- Stepper 3 Bước Rõ Ràng -->
+<div class="w-full bg-white rounded-2xl p-5 sm:p-6 border border-[#e2e8f0] shadow-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex flex-col">
+<span class="text-xs font-bold uppercase tracking-wider text-[#287a74]">Chuẩn an toàn dược lâm sàng Tiểu Bạch</span>
+<h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">Tiếp Nhận &amp; Đối Soát Đơn Thuốc</h1>
+</div>
+<!-- Stepper flow -->
+<div class="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 md:pb-0">
+<!-- Step 1 (Active) -->
+<div class="flex items-center gap-2 bg-[#287a74] text-white px-4 py-2 rounded-xl shadow-xs flex-shrink-0">
+<span class="w-6 h-6 rounded-full bg-white text-[#287a74] flex items-center justify-center font-bold text-xs">1</span>
+<span class="text-xs sm:text-sm font-bold whitespace-nowrap">Tải/Nhập toa (Đang làm)</span>
+</div>
+<div class="w-6 h-0.5 bg-[#cbd5e1] flex-shrink-0"></div>
+<!-- Step 2 -->
+<div class="flex items-center gap-2 bg-[#f1f5f9] text-slate-600 px-3.5 py-2 rounded-xl border border-[#e2e8f0] flex-shrink-0">
+<span class="w-6 h-6 rounded-full bg-[#e2e8f0] text-slate-600 flex items-center justify-center font-semibold text-xs">2</span>
+<span class="text-xs sm:text-sm font-medium whitespace-nowrap">Đối soát hoạt chất</span>
+</div>
+<div class="w-6 h-0.5 bg-[#cbd5e1] flex-shrink-0"></div>
+<!-- Step 3 -->
+<div class="flex items-center gap-2 bg-[#f1f5f9] text-slate-500 px-3.5 py-2 rounded-xl border border-[#e2e8f0] flex-shrink-0">
+<span class="w-6 h-6 rounded-full bg-[#e2e8f0] text-slate-500 flex items-center justify-center font-semibold text-xs">3</span>
+<span class="text-xs sm:text-sm font-medium whitespace-nowrap">Báo cáo an toàn</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Workbench 2 Cột -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- CỘT TRÁI: Tải / Quét / Giọng nói toa thuốc -->
+<div class="lg:col-span-5 flex flex-col gap-5">
+<div class="bg-white rounded-2xl p-5 sm:p-6 border border-[#e2e8f0] shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-xl bg-[#e6f4f2] text-[#287a74] flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">document_scanner</span>
+</div>
+<div>
+<h2 class="text-base font-bold text-slate-900">Vùng nạp toa thuốc</h2>
+<p class="text-xs text-slate-500">Hỗ trợ ảnh scan, camera hoặc file PDF</p>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#dcfce7] text-[#166534] border border-[#aeeed3]">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                OCR sẵn sàng
+              </span>
+</div>
+<!-- Drag & Drop / Preview Box -->
+<div class="relative w-full rounded-2xl border-2 border-dashed border-[#55a9a0]/50 hover:border-[#287a74] bg-[#f8fafc] p-4 transition-all group flex flex-col items-center">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 shadow-inner">
+<img alt="Mẫu toa thuốc bệnh viện đã tải lên" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK0AQ1DAYJhy_p6f1fPM86iU5vEbAWLmzog0Z0C7V-j9-pPK-QnR2WGTJnP6SFmVHFogr1DinyRBj5Tt4nuKOqAY33VF-HGx-q9um8H-vZSEJdnplSgQKhbj65e1b_ghQNjz2ffAxNJ_-UfQHR2DJ8-y-JkwklPMRYe2niXnVTu-DZ1g7XU677LZ01o04hfZuhEuWq7WHQMGrp1WCIWKXt6Bv36HqoQnts3yNkGjRONhT3emySaPh1"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex flex-col justify-end p-3.5 text-white">
+<div class="flex items-center gap-1.5 text-xs font-semibold">
+<span class="material-symbols-outlined text-[#aeeed3] text-[18px]">verified</span>
+                    Toa BV Chợ Rẫy — BS. CKII Nguyễn Văn An
+                  </div>
+<span class="text-[11px] text-slate-300">Độ phân giải: 300 DPI • Tự động nắn thẳng góc</span>
+</div>
+<div class="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-[#287a74] border border-[#e2e8f0] shadow-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">crop_free</span>
+                  Khung căn tự động
+                </div>
+</div>
+<!-- Upload action triggers -->
+<div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3.5">
+<button class="min-h-[44px] px-3 py-2 rounded-xl bg-[#287a74] hover:bg-[#1e625d] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                  Chụp bằng điện thoại
+                </button>
+<button class="min-h-[44px] px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-[#e2e8f0] text-xs font-bold flex items-center justify-center gap-1.5 transition-all" type="button">
+<span class="material-symbols-outlined text-[#287a74] text-[18px]">upload_file</span>
+                  Tải tệp / Kéo thả
+                </button>
+</div>
+</div>
+<!-- Alternative Input Methods -->
+<div class="grid grid-cols-2 gap-2.5">
+<button class="p-3 rounded-xl bg-[#f8fafc] hover:bg-[#e6f4f2] border border-[#e2e8f0] hover:border-[#55a9a0] flex items-center gap-2.5 transition-all text-left group" type="button">
+<div class="w-8 h-8 rounded-lg bg-[#e6f4f2] text-[#287a74] group-hover:bg-[#55a9a0] group-hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">mic</span>
+</div>
+<div>
+<div class="text-xs font-bold text-slate-800">Đọc giọng nói</div>
+<div class="text-[11px] text-slate-500">Nhận dạng tiếng Việt</div>
+</div>
+</button>
+<button class="p-3 rounded-xl bg-[#f8fafc] hover:bg-[#e6f4f2] border border-[#e2e8f0] hover:border-[#55a9a0] flex items-center gap-2.5 transition-all text-left group" type="button">
+<div class="w-8 h-8 rounded-lg bg-[#e6f4f2] text-[#287a74] group-hover:bg-[#55a9a0] group-hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">keyboard</span>
+</div>
+<div>
+<div class="text-xs font-bold text-slate-800">Nhập bằng phím</div>
+<div class="text-[11px] text-slate-500">Tra cứu danh mục</div>
+</div>
+</button>
+</div>
+<!-- Mẹo chụp ảnh điểm nhấn Vàng Kem (#fff8b0 / #fef9c3) -->
+<div class="rounded-xl p-3.5 bg-[#fef9c3] border border-[#facc15] flex items-start gap-2.5">
+<span class="material-symbols-outlined text-[#854d0e] text-[20px] flex-shrink-0 mt-0.5">tips_and_updates</span>
+<div class="text-xs text-[#854d0e] leading-relaxed">
+<strong class="font-bold text-amber-900">Mẹo chụp rõ nét:</strong> Đặt đơn thuốc trên bề mặt phẳng, chụp thẳng góc từ trên xuống dưới ánh sáng phòng vừa đủ, tránh bị đổ bóng hoặc lóa đèn flash để AI nhận dạng chính xác từng miligram.
+              </div>
+</div>
+</div>
+</div>
+<!-- CỘT PHẢI: Dữ liệu OCR trích xuất tự động & Cảnh báo -->
+<div class="lg:col-span-7 flex flex-col gap-5">
+<!-- OCR Header bar -->
+<div class="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div>
+<div class="flex items-center gap-2">
+<h2 class="text-lg font-bold text-slate-900">Dữ liệu OCR trích xuất tự động</h2>
+<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-[#e6f4f2] text-[#287a74]">2 loại thuốc</span>
+</div>
+<p class="text-xs text-slate-500 mt-0.5">Đã đối soát với Cơ sở dữ liệu Dược Quốc gia &amp; Bộ Y Tế</p>
+</div>
+<button class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#287a74] text-[#287a74] hover:bg-[#e6f4f2] text-xs font-bold transition-all self-start sm:self-auto" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+              Thêm dòng thuốc
+            </button>
+</div>
+<!-- THẺ THUỐC 1: Amlodipine 5mg -->
+<div class="bg-white rounded-2xl p-5 border border-[#e2e8f0] hover:border-[#55a9a0] shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#287a74]"></div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-[#e6f4f2] text-[#287a74] flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">pill</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold uppercase tracking-wider text-[#287a74]">Thuốc 01 • Tim mạch</span>
+<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#dcfce7] text-[#166534] border border-[#aeeed3] flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">verified</span>
+                      Khớp 99.4% danh mục DAV
+                    </span>
+</div>
+<h3 class="text-base font-extrabold text-slate-900">Amlodipine Besylate 5mg</h3>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors self-end sm:self-auto" title="Xóa dòng thuốc" type="button">
+<span class="material-symbols-outlined text-[18px]">delete_outline</span>
+</button>
+</div>
+<!-- Fields Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Hoạt chất chính</label>
+<div class="px-3 py-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-semibold text-slate-800 flex items-center justify-between">
+<span>Amlodipine</span>
+<span class="material-symbols-outlined text-emerald-600 text-[16px]">check_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Hàm lượng định liều</label>
+<div class="px-3 py-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-semibold text-slate-800">
+                  5 mg / viên nén
+                </div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Thời điểm &amp; Cách dùng</label>
+<div class="px-3 py-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-semibold text-slate-800">
+                  1 viên • Sáng sau ăn (08:00)
+                </div>
+</div>
+</div>
+<!-- Suggestion pill -->
+<div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#f1f5f9] text-xs text-slate-600">
+<span class="material-symbols-outlined text-[#287a74] text-[18px]">alarm_on</span>
+<span>Lịch nhắc dự kiến: <strong>08:00 sáng mỗi ngày</strong>, duy trì đều đặn ổn định huyết áp.</span>
+</div>
+</div>
+<!-- THẺ THUỐC 2: Simvastatin 20mg -->
+<div class="bg-white rounded-2xl p-5 border border-[#e2e8f0] hover:border-[#55a9a0] shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#55a9a0]"></div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-[#e6f4f2] text-[#287a74] flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">medication</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold uppercase tracking-wider text-[#55a9a0]">Thuốc 02 • Mỡ máu</span>
+<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#dcfce7] text-[#166534] border border-[#aeeed3] flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">verified</span>
+                      Khớp với dữ liệu Bộ Y Tế
+                    </span>
+</div>
+<h3 class="text-base font-extrabold text-slate-900">Simvastatin 20mg</h3>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors self-end sm:self-auto" title="Xóa dòng thuốc" type="button">
+<span class="material-symbols-outlined text-[18px]">delete_outline</span>
+</button>
+</div>
+<!-- Fields Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Hoạt chất chính</label>
+<div class="px-3 py-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-semibold text-slate-800 flex items-center justify-between">
+<span>Simvastatin</span>
+<span class="material-symbols-outlined text-emerald-600 text-[16px]">check_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Hàm lượng định liều</label>
+<div class="px-3 py-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-semibold text-slate-800">
+                  20 mg / viên bao phim
+                </div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Thời điểm &amp; Cách dùng</label>
+<div class="px-3 py-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-semibold text-slate-800">
+                  1 viên • Tối trước khi ngủ (21:00)
+                </div>
+</div>
+</div>
+<!-- Caution inside medicine item -->
+<div class="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50 text-xs text-amber-800 border border-amber-200">
+<span class="material-symbols-outlined text-amber-600 text-[18px]">warning</span>
+<span><strong>Lưu ý ẩm thực:</strong> Tuyệt đối không dùng cùng nước ép bưởi chùm (grapefruit).</span>
+</div>
+</div>
+<!-- Khối Cảnh Báo Vàng Kem Điểm Nhấn (#fff8b0, viền #facc15) -->
+<div class="rounded-2xl p-4 sm:p-5 bg-[#fff8b0] border-2 border-[#facc15] shadow-sm flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-xl bg-[#facc15] text-[#854d0e] flex items-center justify-center flex-shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-[24px]">crisis_alert</span>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="text-xs font-extrabold uppercase tracking-wider text-[#854d0e]">Cảnh báo an toàn Tiểu Bạch</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/80 text-amber-900 border border-[#facc15]">Cần đối soát</span>
+</div>
+<p class="text-sm font-semibold text-slate-900 leading-snug">
+                Tiểu Bạch phát hiện 01 lưu ý tương tác tiềm ẩn giữa Simvastatin và thực phẩm. Vui lòng bấm tiếp tục để đối soát chi tiết.
+              </p>
+<p class="text-xs text-slate-700 mt-0.5">
+                Đồng thời hệ thống sẽ tự động rà soát nguy cơ hạ huyết áp tư thế khi kết hợp Amlodipine với các đơn thuốc hiện tại của bạn.
+              </p>
+</div>
+</div>
+<!-- Action Buttons Cuối Trang -->
+<div class="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2">
+<button class="w-full sm:w-auto min-h-[48px] px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-[#e2e8f0] text-sm font-bold flex items-center justify-center gap-2 transition-all" type="button">
+<span class="material-symbols-outlined text-slate-500 text-[18px]">bookmark_border</span>
+              Lưu bản nháp
+            </button>
+<a class="w-full sm:w-auto min-h-[52px] px-8 py-3 rounded-xl bg-[#287a74] hover:bg-[#1e625d] text-white text-sm sm:text-base font-extrabold shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all group" data-path="xac-nhan" href="#">
+<span>Tiếp tục xác nhận an toàn</span>
+<span class="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Chuẩn Tiểu Bạch -->
+<footer class="w-full bg-white border-t border-[#e2e8f0] py-8 mt-auto">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<img alt="Tiểu Bạch Logo" class="h-6 w-auto object-contain opacity-80" src="https://lh3.googleusercontent.com/aida/AEtjO1VF2AZLQS3JQ3DWXTYJc09wyutpdbpGizs_kt8xEhN25WLnjvCCMzu3y2BPv6BeUc8YMhhR1xLtkjLGly2BWqDu4EYu_R-_6m2N0GOavH3PMFM0rEG5JXFQdLHXIH1RyEUWHsOf6QHpPnNYhVC3i-4JmS__KoMWWmPZ9i5HIs00Nt-1mwNv3yz86AgnsfVKieJe9RVrMxpMCKihzd4y2nZMHlS7CForoNRQdriYzsHBwHAvwXtfpc8h9Y0"/>
+<span class="text-sm font-bold text-[#287a74]">Tiểu Bạch</span>
+<span class="text-xs text-slate-500">— Đồng hành an toàn dược phẩm cho mọi gia đình Việt Nam.</span>
+</div>
+<div class="flex items-center gap-6 text-xs text-slate-500 font-semibold">
+<a class="hover:text-[#287a74] transition-colors" data-path="trang-chu" href="#">Trang chủ</a>
+<a class="hover:text-[#287a74] transition-colors" data-path="khong-gian-chuyen-mon-hcp" href="#">Cổng Bác sĩ HCP</a>
+<a class="hover:text-[#287a74] transition-colors" data-path="chinh-sach" href="#">Chính sách y khoa</a>
+<a class="hover:text-[#287a74] transition-colors" data-path="tro-giup" href="#">Trợ giúp 24/7</a>
+</div>
+<p class="text-xs text-slate-400">© 2025 Tiểu Bạch. Chuẩn y khoa an toàn dược lâm sàng.</p>
+</div>
+</footer>
+</body></html>

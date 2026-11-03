@@ -1,0 +1,70 @@
+% Build from the report directory with ./build.ps1.
+% The original SVGs and generated vector PDFs live in sections/images/.
+% No Inkscape or shell escape is required by the LaTeX compilation.
+
+\clearpage
+\section{Detailed Use-Case Models}
+\label{sec:detailed-use-case-models}
+
+This section presents the detailed use-case models of the Medication Safety
+Assistant research prototype. Each diagram corresponds to one use-case
+specification, from UC-01 to UC-18. Actors, functions, and conditional
+alternative behaviours are shown using UML associations,
+\texttt{<<include>>}, \texttt{<<extend>>}, and generalization where applicable.
+Labels A1, A2, and so on refer to the alternative flows of the corresponding
+specification. These relationships describe functional dependencies;
+the specifications define execution order, return steps, and
+pre- and post-conditions. HCP review outcomes are simulated.
+
+\begingroup
+\captionsetup{hypcap=false}
+\graphicspath{{sections/images/}}
+
+% Capture the portrait text width: it is the available page height after
+% rotation. Do not use the portrait \textheight as the landscape image height.
+\newlength{\UCModelLandscapeHeight}
+\setlength{\UCModelLandscapeHeight}{\textwidth}
+
+% Each diagram starts on a landscape page. Avoid floating figures so that
+% captions and images remain together and preserve UC order.
+\newcommand{\UCModelFigure}[3]{%
+  \clearpage
+  \begin{landscape}
+    \subsection{UC-#1: #2}
+    \label{subsec:uc-model-#1}
+    \noindent
+    \begin{minipage}{\linewidth}
+      \centering
+      \includegraphics[
+        width=\linewidth,
+        height=0.72\UCModelLandscapeHeight,
+        keepaspectratio
+      ]{#3.pdf}
+      \captionof{figure}{UC-#1: #2 -- detailed use-case model.}
+      \label{fig:uc-model-#1}
+    \end{minipage}
+  \end{landscape}
+}
+
+\UCModelFigure{01}{Sign In}{UC_01}
+\UCModelFigure{02}{Enter and Confirm Medication Information}{UC_02}
+\UCModelFigure{03}{Check Medication Safety}{UC_03}
+\UCModelFigure{04}{Request HCP Review}{UC_04}
+\UCModelFigure{05}{Review Medication Safety Case}{UC_05}
+\UCModelFigure{06}{Set Up Medication Reminders}{UC_06}
+\UCModelFigure{07}{Manage Medication Reminders}{UC_07}
+\UCModelFigure{08}{Record Dose Status}{UC_08}
+\UCModelFigure{09}{View Adherence History}{UC_09}
+\UCModelFigure{10}{View Medication and Safety History}{UC_10}
+\UCModelFigure{11}{Ask a Medication Question}{UC_11}
+\UCModelFigure{12}{Generate Patient Health Summary}{UC_12}
+\UCModelFigure{13}{Share Patient Health Summary with HCP}{UC_13}
+\UCModelFigure{14}{Review Medication Dataset Record}{UC_14}
+\UCModelFigure{15}{Manage User Accounts and Roles}{UC_15}
+\UCModelFigure{16}{View Administrative Activity History}{UC_16}
+\UCModelFigure{17}{Report Technical Issue}{UC_17}
+\UCModelFigure{18}{Handle Technical Support Request}{UC_18}
+
+\endgroup
+\clearpage
+

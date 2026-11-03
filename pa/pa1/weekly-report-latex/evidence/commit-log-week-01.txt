@@ -1,0 +1,21 @@
+Git commit log -- Week 1, 2026-10-05 through 2026-10-11, Asia/Bangkok
+Source: local repository, git log --no-merges --format='%H | %aI | %an | %s'
+
+3abcf6602f9c9015c4da74157db272773488bc1d | 2026-10-11T22:13:23+07:00 | DRAGON-1312 | Modify LaTeX document class and input files
+419c7a03b653c270acf786f1a062abe8378e0188 | 2026-10-11T22:12:43+07:00 | DRAGON-1312 | Update table-of-contents.tex
+18cda981bec1ed87c930ec408e59b663d382b813 | 2026-10-11T22:12:29+07:00 | DRAGON-1312 | Revise cover page layout and content
+785077f30b50f3a7580cc25dcf7db14f2c5ce048 | 2026-10-11T22:12:04+07:00 | DRAGON-1312 | Revise user interviews section and add participant table
+6d329a174562b579207ec8aaac689493b4ee64de | 2026-10-11T22:11:10+07:00 | DRAGON-1312 | Revise key features section with detailed system overview
+13278ff772f163a3778345d2dee4f4bd03340639 | 2026-10-11T22:10:47+07:00 | DRAGON-1312 | Rename 03-target-users.tex to 03-users-and-scope.tex
+9d8b28277fe1db29b2f79b04d61b122d7a52b136 | 2026-10-11T22:10:09+07:00 | DRAGON-1312 | Enhance target users and environments section
+63a5415b8bd8669d0b326fb608dcb791fd26e47 | 2026-10-11T22:09:43+07:00 | DRAGON-1312 | Revise introduction with project details and objectives
+ef89045c514b0bcc25b55feb59fb233381563b30 | 2026-10-11T22:09:23+07:00 | DRAGON-1312 | Revise team members section with specific details
+d91f56832163fb43a490238b3b201ecb83be460a | 2026-10-11T22:08:48+07:00 | DRAGON-1312 | Delete docs/latex/config/font-sizes.tex
+952577b1c3469e79a2f3ec77c54ac1bcc45f504c | 2026-10-11T22:07:30+07:00 | DRAGON-1312 | Refactor table of contents styling in LaTeX config
+6a7267324902a085d967882017178a7f69499b38 | 2026-10-11T22:07:06+07:00 | DRAGON-1312 | Refactor LaTeX packages and layout configuration
+dcfee1cbbfaf254deabbaef546b0508f0cc8ea6d | 2026-10-11T22:06:39+07:00 | DRAGON-1312 | Update project metadata for Medication Safety Assistant
+a88c57c9309f4bb2256b677622449a8e09610fc1 | 2026-10-11T22:06:03+07:00 | DRAGON-1312 | Update header and footer styles in LaTeX config
+271e1f51867afc471eafad34c24eef33999b95a7 | 2026-10-11T22:05:31+07:00 | DRAGON-1312 | Replace cover frame command with new definition
+08ee785031b3c5221e78dda99c451720c38888da | 2026-10-11T21:13:26+07:00 | Hoang Yen Trang | add diagram workflow
+e563ab676d2cab17e39af8db9160e57dff0f4334 | 2026-10-11T15:12:28+07:00 | Hoang Yen Trang | create documentation center
+5e2cccdc41a881a51a180e846c8444cf6994ba0e | 2026-10-11T15:02:59+07:00 | Hoang Yen Trang | init project
