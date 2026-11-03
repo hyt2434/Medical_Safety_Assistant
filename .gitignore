@@ -71,4 +71,5 @@ node_modules/
 /pa/pa1/project-plan/**/preview-*.png
 # Temporary files and local datasets
 /tmp/
+# Local Module 1 OCR inputs and outputs may contain personal/medical data.
 /data/local/
