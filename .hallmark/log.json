@@ -1,0 +1,11 @@
+[
+  {
+    "date": "2026-11-01",
+    "scope": "app",
+    "macrostructure": "Workbench",
+    "theme": "custom",
+    "theme_axes": "near-white / Bricolage Grotesque + IBM Plex Sans / teal",
+    "enrichment": "none",
+    "brief": "Align PA2 TypeScript frontend with a locked Hallmark design system; preserve all use-case flows."
+  }
+]

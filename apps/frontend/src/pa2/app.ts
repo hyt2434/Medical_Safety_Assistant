@@ -1,0 +1,1537 @@
+import "./styles.css";
+import "@fontsource-variable/bricolage-grotesque";
+import "@fontsource-variable/ibm-plex-sans";
+import "./hallmark.css";
+import { assistantMascot } from "./mascot";
+import { uiIcon } from "./chrome";
+import type {
+  Role,
+  State,
+  Medication,
+  Assessment,
+  ReviewRequest,
+  Summary,
+  Audit,
+} from "./models";
+const $ = <T extends HTMLElement = HTMLInputElement>(selector: string): T => {
+  const element = document.querySelector<T>(selector);
+  if (!element) throw new Error(`Missing UI element: ${selector}`);
+  return element;
+};
+
+// Local, fictional demonstration only. Role guards illustrate flows, not server security.
+const KEY = "msa-frontend-pa2-v2";
+const roles = {
+  patient: "Bệnh nhân",
+  hcp: "Chuyên viên y tế",
+  reviewer: "Chuyên gia dữ liệu",
+  admin: "Quản trị viên",
+  support: "Hỗ trợ kỹ thuật",
+};
+const names = {
+  patient: "Nguyễn An (mẫu)",
+  hcp: "BS. Minh (mẫu)",
+  reviewer: "DS. Linh (mẫu)",
+  admin: "Quản trị viên (mẫu)",
+  support: "Hỗ trợ viên (mẫu)",
+};
+const nav: Record<Role, [string, string, string][]> = {
+  patient: [
+    ["home", "◷", "Hôm nay"],
+    ["intake", "＋", "Nhập thuốc"],
+    ["safety", "◇", "Kiểm tra an toàn"],
+    ["review", "↗", "Trao đổi với HCP"],
+    ["reminders", "◴", "Nhắc thuốc"],
+    ["history", "≡", "Lịch sử"],
+    ["chat", "◌", "Trợ lý thuốc"],
+    ["summary", "▤", "Tóm tắt sức khỏe"],
+  ],
+  hcp: [
+    ["queue", "≡", "Hàng chờ duyệt"],
+    ["review", "↗", "Hồ sơ & hội thoại"],
+    ["shared", "▤", "Tóm tắt được chia sẻ"],
+  ],
+  reviewer: [["dataset", "▤", "Duyệt dữ liệu"]],
+  admin: [
+    ["accounts", "⊞", "Tài khoản & vai trò"],
+    ["audit", "≡", "Nhật ký quản trị"],
+  ],
+  support: [["tickets", "≡", "Hàng chờ hỗ trợ"]],
+};
+const scenarios: Record<string, [string, string][]> = {
+  login: [
+    ["normal", "Thành công"],
+    ["credentials", "Sai thông tin đăng nhập"],
+    ["blocked", "Tài khoản bị khóa"],
+    ["roles", "Không tải được quyền"],
+  ],
+  intake: [
+    ["normal", "Bình thường"],
+    ["unclear", "Yêu cầu chưa rõ"],
+    ["processing", "Không xử lý được đầu vào"],
+    ["save", "Không lưu được"],
+  ],
+  safety: [
+    ["normal", "Cảnh báo nghiêm trọng (mẫu)"],
+    ["clear", "Không phát hiện trong phạm vi mẫu"],
+    ["unresolved", "Không nhận diện được thuốc"],
+    ["missing", "Thiếu dữ liệu tương tác"],
+    ["failure", "Lỗi sau khi đã phát hiện cảnh báo"],
+  ],
+  review: [
+    ["normal", "Bình thường"],
+    ["unassigned", "Chưa có HCP nhận hồ sơ"],
+    ["denied", "Không được phép truy cập"],
+    ["changed", "Hồ sơ đã thay đổi"],
+    ["save", "Không lưu được"],
+  ],
+  reminders: [
+    ["normal", "Bình thường"],
+    ["unverified", "Chưa xác minh lịch"],
+    ["notifications", "Không hỗ trợ thông báo trình duyệt"],
+    ["save", "Không lưu được"],
+  ],
+  history: [
+    ["normal", "Bình thường"],
+    ["empty", "Không có kết quả"],
+    ["unavailable", "Thiếu một phần lịch sử"],
+    ["denied", "Không được phép xem"],
+  ],
+  chat: [
+    ["normal", "Trả lời minh họa"],
+    ["unclear", "Cần làm rõ"],
+    ["missing", "Không có nguồn đáng tin cậy"],
+    ["urgent", "Ngoài phạm vi / khẩn cấp"],
+    ["modify", "Yêu cầu thay đổi hồ sơ"],
+  ],
+  summary: [
+    ["normal", "Bình thường"],
+    ["missing", "Thông tin sức khỏe còn thiếu"],
+    ["outdated", "Bản tóm tắt cũ"],
+    ["denied", "Người nhận chưa được phép"],
+    ["save", "Không lưu / chia sẻ được"],
+  ],
+  dataset: [
+    ["normal", "Bình thường"],
+    ["missing", "Thiếu bằng chứng"],
+    ["mapping", "Ánh xạ không nhất quán"],
+    ["changed", "Phiên bản đã thay đổi"],
+    ["save", "Không lưu được"],
+  ],
+  accounts: [
+    ["normal", "Bình thường"],
+    ["denied", "Thay đổi quyền bị từ chối"],
+    ["save", "Không lưu được"],
+  ],
+  audit: [
+    ["normal", "Bình thường"],
+    ["empty", "Không có kết quả"],
+    ["unavailable", "Dịch vụ nhật ký lỗi"],
+  ],
+  support: [
+    ["normal", "Bình thường"],
+    ["private", "Tệp có thông tin bệnh nhân"],
+    ["save", "Không gửi được"],
+  ],
+  tickets: [
+    ["normal", "Bình thường"],
+    ["private", "Nội dung y tế bị che"],
+    ["denied", "Không được phép"],
+    ["save", "Không lưu được"],
+  ],
+};
+const now = () => new Date().toISOString();
+const id = (prefix: string) =>
+  `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+const esc = (value: unknown) =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ]!,
+  );
+const date = (value: string) => new Date(value).toLocaleString("vi-VN");
+const initial = (): State => ({
+  version: 1,
+  revision: 1,
+  confirmed: true,
+  meds: [
+    {
+      id: "A",
+      name: "Thuốc mẫu A",
+      ingredient: "Hoạt chất mẫu A",
+      strength: "Theo nhãn mẫu",
+      instructions: "08:00",
+      verified: true,
+    },
+    {
+      id: "B",
+      name: "Thuốc mẫu B",
+      ingredient: "Hoạt chất mẫu B",
+      strength: "Theo nhãn mẫu",
+      instructions: "20:00",
+      verified: true,
+    },
+    {
+      id: "C",
+      name: "Thuốc mẫu C",
+      ingredient: "Hoạt chất mẫu C",
+      strength: "Theo nhãn mẫu",
+      instructions: "12:00",
+      verified: true,
+    },
+  ],
+  assessments: [],
+  requests: [],
+  plans: [
+    {
+      id: "plan-C",
+      med: "C",
+      time: "12:00",
+      status: "Active",
+      notifications: true,
+      source: "Hướng dẫn đã xác nhận (mẫu)",
+      proposal: null,
+    },
+  ],
+  doses: [
+    {
+      id: "dose-C",
+      med: "C",
+      time: "12:00",
+      day: "2026-11-01",
+      status: "Chưa ghi nhận",
+      recorded: null,
+      changes: [],
+    },
+  ],
+  summaries: [],
+  tickets: [],
+  chat: [],
+  reviews: [],
+  audit: [],
+  accounts: [
+    {
+      id: "u-patient",
+      name: "Nguyễn An",
+      email: "patient@demo.local",
+      roles: ["patient"],
+      status: "Active",
+    },
+    {
+      id: "u-hcp",
+      name: "Minh",
+      email: "hcp@demo.local",
+      roles: ["hcp"],
+      status: "Active",
+    },
+    {
+      id: "u-reviewer",
+      name: "Linh",
+      email: "reviewer@demo.local",
+      roles: ["reviewer"],
+      status: "Active",
+    },
+    {
+      id: "u-admin",
+      name: "Admin",
+      email: "admin@demo.local",
+      roles: ["admin"],
+      status: "Active",
+    },
+    {
+      id: "u-support",
+      name: "Support",
+      email: "support@demo.local",
+      roles: ["support"],
+      status: "Active",
+    },
+  ],
+});
+let state: State;
+try {
+  state = JSON.parse(localStorage.getItem(KEY) || "null");
+} catch {
+  state = initial();
+}
+if (!state || state.version !== 1) state = initial();
+let role: Role = "patient",
+  selectedRole: Role = "patient",
+  signedIn = false;
+let scenario = "normal",
+  current = "login";
+let draft: Medication[] | null = null,
+  replyTo: string | null = null,
+  selectedAssessment: string | null = null,
+  summaryDraft: Summary | null = null,
+  editAccount: string | null = null,
+  activeRequestId: string | null = null;
+let filter = { med: "", status: "", from: "", to: "" };
+const latest = () => state.assessments.at(-1);
+const request = () =>
+  state.requests.find((r) => r.id === activeRequestId) ||
+  state.requests.find((r) => r.assessment === latest()?.id);
+const medName = (mid: string) =>
+  state.meds.find((m) => m.id === mid)?.name || mid;
+const badge = (text: string, tone = "") =>
+  `<span class="badge ${tone}">${esc(text)}</span>`;
+const empty = (text: string) => `<div class="empty">${esc(text)}</div>`;
+const banner = (text: string, tone = "") =>
+  `<div class="banner ${tone}">${text}</div>`;
+const button = (label: string, action: string, secondary = false, extra = "") =>
+  `<button type="button" data-action="${action}" class="${secondary ? "secondary" : ""}" ${extra}>${label}</button>`;
+const link = (label: string, route: string, secondary = false) =>
+  `<a class="button ${secondary ? "secondary" : ""}" href="#${route}">${label}</a>`;
+const field = (
+  label: string,
+  name: string,
+  value = "",
+  type = "text",
+  required = false,
+) =>
+  `<label>${label}<input name="${name}" type="${type}" value="${esc(value)}" ${required ? "required" : ""}></label>`;
+const options = (list: string[][], value: string) =>
+  list
+    .map(
+      ([key, label]) =>
+        `<option value="${esc(key)}" ${value === key ? "selected" : ""}>${esc(label)}</option>`,
+    )
+    .join("");
+let notificationTimer: ReturnType<typeof setTimeout>;
+function notify(text: string, error = false) {
+  const n = $("#notice");
+  n.textContent = text;
+  n.dataset.error = String(error);
+  clearTimeout(notificationTimer);
+  notificationTimer = setTimeout(() => (n.textContent = ""), 6500);
+}
+async function confirmAction(title: string, body: string): Promise<boolean> {
+  const d = $<HTMLDialogElement>("#confirm-dialog");
+  $("#confirm-title").textContent = title;
+  $("#confirm-body").textContent = body;
+  d.returnValue = "cancel";
+  d.showModal();
+  return new Promise((resolve) =>
+    d.addEventListener("close", () => resolve(d.returnValue === "ok"), {
+      once: true,
+    }),
+  );
+}
+function commit(change: (s: State) => void, message = "") {
+  if (scenario === "save") {
+    notify(
+      "Không lưu được. Dữ liệu trước đó được giữ nguyên; hãy thử lại.",
+      true,
+    );
+    return false;
+  }
+  const next = structuredClone(state);
+  change(next);
+  try {
+    localStorage.setItem(KEY, JSON.stringify(next));
+    state = next;
+  } catch {
+    notify(
+      "Trình duyệt không lưu được dữ liệu. Thao tác chưa được ghi nhận.",
+      true,
+    );
+    return false;
+  }
+  render();
+  if (message) notify(message);
+  return true;
+}
+function audit(s: State, action: string, target: string) {
+  s.audit.unshift({
+    id: id("log"),
+    at: now(),
+    actor: names[role],
+    action,
+    target,
+  });
+}
+function allowed(route: string) {
+  return (
+    signedIn && (route === "support" || nav[role].some((n) => n[0] === route))
+  );
+}
+function go(route: string) {
+  if (location.hash === `#${route}`) render();
+  else location.hash = route;
+}
+function demoControls() {
+  const list = scenarios[current];
+  return `<details class="scenario"><summary>Điều khiển bản mẫu · thử các tình huống khác</summary><p>Chỉ mô phỏng trong trình duyệt. Không xác thực thật, không kết nối OCR, AI hay cơ sở dữ liệu y tế.</p>${list ? `<label>Tình huống<select id="scenario">${options(list, scenario)}</select></label>` : ""}${button("Đặt lại dữ liệu mẫu", "reset", true)}</details>`;
+}
+function render() {
+  const route = location.hash.slice(1) || "home";
+  if (!signedIn) {
+    current = "login";
+    $("#app").innerHTML = login();
+    return;
+  }
+  if (current !== route) {
+    scenario = "normal";
+    replyTo = null;
+  }
+  current = route;
+  const permitted = allowed(route),
+    title = nav[role].find((n) => n[0] === route)?.[2] || "Hỗ trợ kỹ thuật";
+  $("#app").innerHTML =
+    `<div class="shell"><div class="workspace"><header class="topbar"><a class="brand" href="#${nav[role][0][0]}"><span class="mark">${uiIcon("safety")}</span><span>Tiểu Bạch<small>MEDSAFETY / PA2</small></span></a><button type="button" class="secondary menu-toggle" data-action="toggle-menu" aria-controls="workspace-navigation" aria-expanded="false" aria-label="Menu">${uiIcon("menu")}<span>Menu</span></button><p>${esc(title)} <span class="prototype-tag">Bản mẫu tương tác</span></p><div class="identity"><span class="avatar">${role === "patient" ? "AN" : role.slice(0, 2).toUpperCase()}</span><div><strong>${names[role]}</strong><small>${roles[role]}</small></div>${button("Đổi vai trò", "logout", true)}</div></header><div class="navigation-menu" id="workspace-navigation"><nav aria-label="Điều hướng chính">${[...nav[role], ["support", "?", "Báo lỗi kỹ thuật"]].map(([r, icon, label]) => `<a class="nav-link" href="#${r}" ${r === route ? 'aria-current="page"' : ""}><span class="nav-icon" aria-hidden="true">${uiIcon(r)}</span>${label}</a>`).join("")}</nav></div><main id="main" class="content" tabindex="-1">${permitted ? views[route]() : banner("Vai trò hiện tại không được phép mở trang này.", "danger")}${demoControls()}</main>${role === "patient" && route !== "chat" ? `<a class="assistant-shortcut" href="#chat" aria-label="Hỏi Tiểu Bạch"><span>Hỏi Tiểu Bạch</span>${assistantMascot()}</a>` : ""}</div></div>`;
+  document.title = `${title} · Medication Safety Assistant`;
+}
+function heading(uc: string, title: string, description: string, action = "") {
+  return `<div class="page-heading"><div><p class="eyebrow">${uc}</p><h1>${title}</h1><p class="muted">${description}</p></div>${action}</div>`;
+}
+function login() {
+  return `<main id="main" class="login"><section class="intro"><a class="brand" href="#"><span class="mark">${uiIcon("safety")}</span><span>Tiểu Bạch<small>MEDSAFETY / PA2</small></span></a><p class="eyebrow">Thông tin rõ ràng · chăm sóc kết nối</p><h1>Mỗi bước dùng thuốc, thêm một điểm tựa.</h1><p>Xem lại thông tin, theo dõi nhắc thuốc và trao đổi trực tiếp với chuyên viên y tế.</p><ul><li>Xác nhận đầu vào trước khi kiểm tra.</li><li>Nhìn rõ giới hạn của từng kết quả.</li><li>Theo dõi câu trả lời trong cùng một hồ sơ.</li></ul><p class="muted">Prototype học tập. Tên thuốc, kết quả và tài khoản đều là dữ liệu giả lập.</p></section><section class="panel"><p class="eyebrow">UC-01</p><h2>Đăng nhập bản mẫu</h2><p>Chọn vai trò để trải nghiệm đúng không gian làm việc.</p><div class="role-list">${Object.entries(
+    roles,
+  )
+    .map(([r, n]) =>
+      button(
+        n,
+        "choose-role",
+        true,
+        `data-role="${r}" aria-pressed="${r === selectedRole}"`,
+      ),
+    )
+    .join(
+      "",
+    )}</div><form id="login-form">${field("Tài khoản mẫu", "email", `${selectedRole}@demo.local`, "email", true)}${field("Mật khẩu mẫu", "password", "demo123", "password", true)}<p><small>Mật khẩu cho mọi vai trò: <strong>demo123</strong>. Không nhập mật khẩu thật.</small></p><div class="error" id="login-error" role="alert"></div><button type="submit">Đăng nhập →</button></form>${demoControls()}</section></main>`;
+}
+function home() {
+  const r = request();
+  return (
+    heading(
+      "Không gian bệnh nhân",
+      "Chào An, hôm nay bạn thế nào?",
+      "Các việc cần theo dõi được tập hợp tại đây. Bắt đầu bằng việc kiểm tra thông tin thuốc.",
+      link("＋ Nhập thông tin thuốc", "intake"),
+    ) +
+    `<div class="stat-line"><div><strong>${state.meds.length}</strong><span>Thuốc trong hồ sơ</span></div><div><strong>${state.plans.filter((p) => p.status === "Active").length}</strong><span>Lịch nhắc đang bật</span></div><div><strong>${state.requests.filter((r) => r.status !== "Reviewed").length}</strong><span>Hồ sơ đang chờ phản hồi</span></div></div><div class="grid"><div class="stack"><section class="panel"><div class="panel-heading"><h2>Lịch dùng thuốc mẫu</h2>${badge("01 / 11 / 2026")}</div>${state.doses.map((d) => `<div class="row"><div><p class="eyebrow">${d.time}</p><strong>${esc(medName(d.med))}</strong><small> · lịch đã có từ trước</small></div><div>${badge(d.status)} ${link("Ghi nhận", "reminders", true)}</div></div>`).join("")}<p class="source">Chỉ ghi nhận việc dùng thuốc; tắt nhắc không có nghĩa là ngừng thuốc.</p></section><section class="panel"><p class="eyebrow">Bước tiếp theo</p><h2>Hiểu rõ kết quả trước khi chia sẻ</h2><p>Kiểm tra an toàn hiển thị riêng cảnh báo, thuốc chưa nhận diện và những dữ liệu còn thiếu.</p>${link("Xem kiểm tra an toàn →", "safety", true)}</section></div><aside class="stack"><section class="panel tint"><p class="eyebrow">Kết nối chăm sóc</p><h2>Trao đổi cùng HCP</h2><p>${r ? "Hồ sơ của bạn: " + esc(r.status) : "Bạn quyết định hồ sơ nào được chia sẻ với chuyên viên y tế."}</p>${link(r ? "Mở hội thoại" : "Gửi yêu cầu xem xét", "review")}</section><section class="panel"><h2>Tóm tắt sức khỏe</h2><p>Rà soát thuốc, thông tin tự khai và kết quả đã lưu trước khi chia sẻ.</p>${link("Tạo bản tóm tắt", "summary", true)}</section></aside></div>`
+  );
+}
+function intake() {
+  if (!draft) draft = structuredClone(state.meds);
+  return (
+    heading(
+      "UC-02 · Nhập và xác nhận",
+      "Thông tin thuốc của bạn",
+      "Kiểm tra từng trường theo nguồn bạn có. Chỗ chưa rõ sẽ được giữ là chưa xác định.",
+    ) +
+    `<div class="steps"><span class="active">01 · Cung cấp thông tin</span><span>02 · Kiểm tra & xác nhận</span><span>03 · Kiểm tra an toàn</span></div><div class="grid"><section class="panel"><form id="intake-form"><label>Cách nhập<select id="input-method"><option value="manual">Nhập tay / văn bản</option><option value="image">Ảnh đơn thuốc (mô phỏng OCR)</option><option value="voice">Giọng nói (bản chép mẫu)</option></select></label><div id="input-tools">${field("Nội dung nguồn (tùy chọn)", "raw", "", "text")}</div><div class="actions" style="margin-bottom:var(--space-md)">${button("Xử lý đầu vào mẫu", "process", true)}${button("Thêm thuốc", "add-med", true)}</div>${draft.map((m, i) => `<fieldset class="med-form"><legend>Thuốc ${i + 1}</legend><div class="form-grid">${field("Tên thuốc", "name-" + i, m.name, "text", true)}${field("Hoạt chất · để trống nếu chưa rõ", "ingredient-" + i, m.ingredient)}${field("Hàm lượng", "strength-" + i, m.strength)}${field("Giờ theo hướng dẫn có sẵn", "instructions-" + i, m.instructions)}</div>${button("Bỏ dòng này", "remove-med", true, `data-index="${i}"`)}</fieldset>`).join("")}<label class="check"><input name="confirmed" type="checkbox" required> Tôi đã đối chiếu các thông tin trên với nguồn đã cung cấp.</label><button type="submit">Lưu thông tin đã xác nhận</button></form></section><aside class="stack"><div class="panel tint"><h2>Bạn giữ quyền xác nhận</h2><p>Nhận dạng ảnh và giọng nói ở đây dùng nội dung mẫu. Không có tệp nào được gửi lên máy chủ.</p><p>Trường bỏ trống vẫn được đánh dấu chưa đầy đủ. Xác nhận đầu vào không đồng nghĩa với xác nhận an toàn.</p></div>${banner("Chỉ nhập dữ liệu giả lập vào prototype. Không sử dụng thông tin bệnh nhân thật.", "warn")}</aside></div>`
+  );
+}
+function assessmentDetails(a: Assessment | undefined) {
+  if (!a)
+    return empty(
+      "Chưa có kết quả. Hãy chạy kiểm tra từ thông tin đã xác nhận.",
+    );
+  const stale = a.revision !== state.revision;
+  return `${stale ? banner("Kết quả thuộc phiên bản thuốc cũ; không phản ánh hồ sơ hiện tại.", "warn") : ""}<div class="panel-heading"><div><h2>${esc(a.status)}</h2><small>${date(a.at)} · ${esc(a.id)}</small></div>${badge(a.severe ? "Có cảnh báo" : "Kết quả mẫu", a.severe ? "danger" : "warn")}</div>${a.severe ? banner("<strong>Cảnh báo nghiêm trọng — dữ liệu giả lập</strong><p>Thuốc mẫu A và B cần HCP xem xét. Chỉ nhắc thuốc mới liên quan bị giữ; lịch đang có không tự dừng.</p>", "danger") : ""}<div class="row"><div><strong>Tương tác thuốc–thuốc</strong><p>${esc(a.pair)}</p></div></div><div class="row"><div><strong>Trùng hoạt chất</strong><p>${esc(a.duplicate)}</p></div></div><div class="row"><div><strong>Giới hạn dữ liệu</strong><p>${esc(a.limit)}</p></div></div><p class="source">Nguồn: kịch bản minh họa PA2. Không phải kết luận từ DDInter hay hướng dẫn điều trị.</p>`;
+}
+function safety() {
+  return (
+    heading(
+      "UC-03 · Kiểm tra thuốc",
+      "Điều gì đã được kiểm tra?",
+      "Kết quả phân biệt rõ phần đã đánh giá và phần chưa đủ dữ liệu.",
+      button(
+        "Chạy kiểm tra mẫu",
+        "assess",
+        false,
+        !state.confirmed ? "disabled" : "",
+      ),
+    ) +
+    (!state.confirmed
+      ? banner(
+          "Cần xác nhận thông tin trước khi kiểm tra. " +
+            link("Nhập thuốc", "intake"),
+          "warn",
+        )
+      : "") +
+    `<div class="grid"><section class="panel">${assessmentDetails(latest())}</section><aside class="stack"><section class="panel"><h2>Thuốc trong lần kiểm tra</h2>${state.meds.map((m) => `<div class="row"><div><strong>${esc(m.name)}</strong><small>${esc(m.ingredient || "Chưa xác định hoạt chất")}</small></div>${badge(m.ingredient ? "Đã nhập" : "Còn thiếu", m.ingredient ? "" : "warn")}</div>`).join("")}</section><section class="panel tint"><h2>Cần người cùng xem xét?</h2><p>Chọn kết quả đã lưu và xem phạm vi chia sẻ trước khi gửi.</p>${link("Yêu cầu HCP xem xét", "review")}</section></aside></div>`
+  );
+}
+function conversation(r: ReviewRequest) {
+  return `<div class="thread">${r.messages.length ? r.messages.map((m) => `<article class="message ${m.role === "hcp" ? "hcp" : ""}"><header><strong>${esc(m.author)}</strong><small>${date(m.at)}</small></header>${m.replyTo ? `<blockquote>Trả lời: ${esc(r.messages.find((x) => x.id === m.replyTo)?.text || "Tin nhắn trước")}</blockquote>` : ""}<p>${esc(m.text)}</p>${button("↳ Trả lời câu này", "reply", true, `data-id="${m.id}"`)}</article>`).join("") : empty("Hồ sơ đã gửi. Chưa có phản hồi.")}</div>`;
+}
+function review() {
+  let r = request();
+  if (scenario === "denied")
+    return (
+      heading("UC-04 / UC-05", "Hồ sơ & hội thoại", "") +
+      banner(
+        "Không có quyền mở hồ sơ. Nội dung bệnh nhân không được hiển thị.",
+        "danger",
+      )
+    );
+  if (!r) {
+    if (role === "hcp")
+      return (
+        heading(
+          "UC-05",
+          "Hồ sơ & hội thoại",
+          "Chỉ hiển thị hồ sơ đã có sự đồng ý chia sẻ.",
+        ) +
+        empty("Chưa có hồ sơ được chia sẻ. Chuyển sang patient để tạo yêu cầu.")
+      );
+    return (
+      heading(
+        "UC-04 · Xin ý kiến chuyên môn",
+        "Chia sẻ một hồ sơ với HCP",
+        "Quyền chia sẻ chỉ áp dụng cho kết quả và các thông tin hiện bên dưới.",
+      ) +
+      `<div class="grid"><section class="panel">${assessmentDetails(latest())}</section><section class="panel"><h2>Xác nhận phạm vi chia sẻ</h2><p>Người nhận: <strong>BS. Minh (mẫu)</strong></p><ul><li>Thuốc trong lần đánh giá đã lưu.</li><li>Cảnh báo và giới hạn của kết quả đó.</li><li>Hội thoại liên quan đến hồ sơ.</li></ul><form id="share-case"><label class="check"><input name="consent" type="checkbox" required> Tôi cho phép chia sẻ hồ sơ này.</label><button ${!latest() ? "disabled" : ""}>Gửi yêu cầu xem xét</button></form><p class="source">Không tự chia sẻ toàn bộ lịch sử hoặc tóm tắt sức khỏe.</p></section></div>`
+    );
+  }
+  const a = state.assessments.find((x) => x.id === r.assessment);
+  return (
+    heading(
+      "UC-05 · Hồ sơ " + r.id,
+      "Một hồ sơ, một cuộc hội thoại",
+      "Câu hỏi tiếp theo của patient sẽ đưa hồ sơ trở lại hàng chờ HCP.",
+      badge(r.status, "warn"),
+    ) +
+    `<div class="grid"><section class="panel"><h2>Trao đổi về hồ sơ</h2>${conversation(r)}${replyTo ? `<div class="reply-context">Đang trả lời: ${esc(r.messages.find((m) => m.id === replyTo)?.text)} ${button("Bỏ chọn", "cancel-reply", true)}</div>` : ""}<form id="case-reply" class="conversation-input"><label>${role === "hcp" ? "Phản hồi của HCP" : "Câu hỏi / thông tin bổ sung"}<textarea name="message" required placeholder="Viết nội dung trao đổi…"></textarea></label>${
+      role === "hcp"
+        ? `<label>Kết quả xem xét<select name="outcome">${options(
+            [
+              ["Reviewed", "Đã xem xét (mô phỏng)"],
+              ["Awaiting Patient Response", "Cần bệnh nhân bổ sung"],
+              ["Unresolved", "Chưa giải quyết"],
+            ],
+            r.status,
+          )}</select></label><label class="check"><input name="schedule" type="checkbox"> Xác nhận lịch hiện có / đề xuất hiển thị bên cạnh (mô phỏng). Chỉ áp dụng khi đã xem xét và giải quyết.</label>`
+        : ""
+    }<button type="submit">${role === "hcp" ? "Lưu phản hồi & kết quả" : "Gửi và đưa lại vào hàng chờ"}</button></form></section><aside class="stack"><section class="panel">${assessmentDetails(a)}</section><section class="panel tint"><h2>Lịch đang chờ</h2>${
+      state.plans
+        .filter((p) => p.status === "Pending" || p.proposal)
+        .map(
+          (p) =>
+            `<p>${esc(medName(p.med))}: ${esc(p.time)}${p.proposal ? " → đề xuất " + esc(p.proposal) : ""}</p>`,
+        )
+        .join("") || "<p>Chưa có đề xuất nhắc thuốc.</p>"
+    }<small>Chỉ xác nhận được ghi nhận hợp lệ mới gỡ giữ nhắc thuốc mới. Kết luận y tế trong prototype là mô phỏng.</small></section></aside></div>`
+  );
+}
+function queue() {
+  return (
+    heading(
+      "UC-05 · Không gian HCP",
+      "Hàng chờ xem xét",
+      "Ưu tiên những hồ sơ có câu trả lời mới từ bệnh nhân.",
+    ) +
+    `<section class="panel"><h2>Hồ sơ đã được cấp quyền</h2>${state.requests.length ? state.requests.map((r) => `<div class="row"><div><strong>${esc(r.id)} · Nguyễn An (mẫu)</strong><p>${esc(r.status)} · ${date(r.updated)}</p>${r.status === "Pending HCP Response" ? badge("Có phản hồi mới", "warn") : ""}</div>${button("Mở hồ sơ →", "open-case", false, `data-id="${r.id}"`)}</div>`).join("") : empty("Chưa có yêu cầu. Patient cần chia sẻ hồ sơ trước.")}</section>`
+  );
+}
+function reminders() {
+  return (
+    heading(
+      "UC-06 / 07 / 08 · Nhắc thuốc",
+      "Lịch rõ ràng, ghi nhận dễ dàng",
+      "Giờ dùng thuốc lấy từ hướng dẫn đã có. Thay đổi giờ mới cần được xem xét.",
+    ) +
+    `<div class="grid"><div class="stack"><section class="panel"><h2>Lịch nhắc hiện có</h2>${state.plans.map((p) => `<div class="row"><div><strong>${esc(medName(p.med))} · ${esc(p.time)}</strong><p>${badge(p.status, p.status === "Pending" ? "warn" : "")} ${p.notifications ? "Thông báo bật" : "Thông báo tắt"}</p><small>${esc(p.source)}</small>${p.proposal ? `<p>Giờ đề xuất: ${esc(p.proposal)} · Chờ HCP</p>` : ""}</div><div class="actions">${button(p.notifications ? "Tắt thông báo" : "Bật thông báo", "toggle-notify", true, `data-id="${p.id}"`)}${button("Đề xuất giờ", "propose-time", true, `data-id="${p.id}"`)}</div></div>`).join("")}<form id="proposal-form" hidden><h3>Đề xuất thay đổi</h3><input type="hidden" name="plan">${field("Giờ mới đề xuất", "time", "", "time", true)}<button>Gửi đề xuất</button> ${button("Hủy", "cancel-proposal", true)}</form></section><section class="panel"><h2>Ghi nhận liều mẫu</h2>${state.doses
+      .map(
+        (d) =>
+          `<form class="dose-form" data-id="${d.id}"><div class="row"><div><strong>${esc(medName(d.med))}</strong><p>${d.day} · ${d.time}</p><small>Hiện tại: ${esc(d.status)}</small></div><label>Trạng thái<select name="status">${options(
+            [
+              ["Đã uống", "Đã uống"],
+              ["Bỏ lỡ", "Bỏ lỡ"],
+              ["Chủ động bỏ qua", "Chủ động bỏ qua"],
+            ],
+            d.status,
+          )}</select></label><button>Ghi nhận</button></div></form>`,
+      )
+      .join(
+        "",
+      )}${link("Xem lịch sử ghi nhận", "history", true)}</section></div><aside class="panel"><h2>Thêm nhắc thuốc mới</h2><form id="new-reminder"><label>Thuốc<select name="med">${options(
+      state.meds.map((m) => [m.id, m.name]),
+      "A",
+    )}</select></label><p>Lịch được lấy từ trường “Giờ theo hướng dẫn có sẵn”.</p><label class="check"><input name="verified" type="checkbox" required> Tôi đã đối chiếu lịch với hướng dẫn có sẵn.</label><button>Tạo lịch nhắc</button></form><p class="source">Cảnh báo nghiêm trọng / kiểm tra chưa đầy đủ giữ nhắc mới ở Pending. Lịch đang có không bị dừng tự động.</p>${scenario === "notifications" ? banner("Không có thông báo trình duyệt. Lịch hợp lệ vẫn hiển thị trong ứng dụng.", "warn") : ""}</aside></div>`
+  );
+}
+function history() {
+  if (scenario === "denied")
+    return banner("Không được phép xem bản ghi này.", "danger");
+  let doses = state.doses.filter(
+    (d) =>
+      (!filter.med || d.med === filter.med) &&
+      (!filter.status || d.status === filter.status) &&
+      (!filter.from || d.day >= filter.from) &&
+      (!filter.to || d.day <= filter.to),
+  );
+  if (scenario === "empty") doses = [];
+  return (
+    heading(
+      "UC-09 / UC-10",
+      "Lịch sử của bạn",
+      "Kết quả cũ giữ nguyên bối cảnh và phiên bản thuốc tại thời điểm đánh giá.",
+    ) +
+    (scenario === "unavailable"
+      ? banner(
+          "Một phần lịch sử chưa tải được. Các bản ghi hiển thị không đại diện toàn bộ thời gian.",
+          "warn",
+        )
+      : "") +
+    `<section class="panel"><h2>Lịch sử dùng thuốc</h2><form id="history-filter" class="filter"><label>Thuốc<select name="med">${options([["", "Tất cả"], ...state.meds.map((m) => [m.id, m.name])], filter.med)}</select></label><label>Trạng thái<select name="status">${options(
+      [
+        ["", "Tất cả"],
+        ["Đã uống", "Đã uống"],
+        ["Bỏ lỡ", "Bỏ lỡ"],
+        ["Chủ động bỏ qua", "Chủ động bỏ qua"],
+      ],
+      filter.status,
+    )}</select></label>${field("Từ ngày", "from", filter.from, "date")}${field("Đến ngày", "to", filter.to, "date")}<button>Lọc</button></form>${doses.length ? `<div class="table-wrap"><table><thead><tr><th>Thuốc</th><th>Lịch</th><th>Trạng thái</th><th>Ghi nhận</th></tr></thead><tbody>${doses.map((d) => `<tr><td>${esc(medName(d.med))}</td><td>${d.day} ${d.time}</td><td>${badge(d.status)}</td><td>${d.recorded ? date(d.recorded) : "Chưa có"}<small>${d.changes.length} lần cập nhật</small></td></tr>`).join("")}</tbody></table></div>` : empty("Không có bản ghi phù hợp. Thử đổi bộ lọc.")}</section><section class="panel" style="margin-top:var(--space-lg)"><h2>Kết quả an toàn đã lưu</h2>${
+      state.assessments.length
+        ? [...state.assessments]
+            .reverse()
+            .map(
+              (a) =>
+                `<div class="row"><div><strong>${esc(a.status)}</strong><p>${date(a.at)} · ${a.revision === state.revision ? "Khớp hồ sơ hiện tại" : "Phiên bản thuốc cũ"}</p></div>${button("Xem kết quả", "history-detail", true, `data-id="${a.id}"`)}</div>`,
+            )
+            .join("")
+        : empty("Chưa có lịch sử đánh giá.")
+    }<div id="assessment-detail">${selectedAssessment ? assessmentDetails(state.assessments.find((a) => a.id === selectedAssessment)) : ""}</div></section>`
+  );
+}
+function chat() {
+  return (
+    heading(
+      "UC-11 · Trợ lý thuốc",
+      "Bạn muốn tìm hiểu điều gì?",
+      "Câu trả lời mẫu dựa trên ngữ cảnh đã cho phép. Không tự thay đổi hồ sơ hay lịch thuốc.",
+    ) +
+    `<div class="grid"><section class="panel"><div class="thread">${state.chat.length ? state.chat.map((m) => `<article class="message ${m.role === "bot" ? "hcp" : ""}"><strong>${m.role === "bot" ? "Trợ lý · trả lời mẫu" : "Bạn"}</strong><p>${esc(m.text)}</p>${m.route ? link("Mở màn hình xác nhận →", m.route, true) : ""}</article>`).join("") : empty("Hãy thử: “Tôi muốn xem lại lịch nhắc thuốc”.")}</div><form id="chat-form"><label>Câu hỏi<textarea name="question" required placeholder="Nhập câu hỏi…"></textarea></label><label class="check"><input type="checkbox" name="context" checked> Cho phép sử dụng thông tin mẫu trong hồ sơ hiện tại.</label><div class="actions"><button>Gửi câu hỏi</button>${button("Dùng câu hỏi giọng nói mẫu", "voice-chat", true)}</div></form></section><aside class="panel tint"><h2>Phạm vi hỗ trợ</h2><p>Giải thích cách dùng các chức năng và trạng thái hồ sơ.</p><p>Câu hỏi chẩn đoán, kê đơn hoặc đổi điều trị cần chuyên viên y tế.</p>${link("Trao đổi với HCP", "review", true)}<p class="source">Bản này dùng câu trả lời được lập trình sẵn, chưa gọi mô hình AI.</p></aside></div>`
+  );
+}
+function summary() {
+  const saved = state.summaries.at(-1);
+  return (
+    heading(
+      "UC-12 / UC-13",
+      "Tóm tắt trước, chia sẻ sau",
+      "Mỗi bản lưu là một bản chụp thông tin. Bạn quyết định khi nào và với ai được chia sẻ.",
+      button("Tạo bản nháp mới", "draft-summary"),
+    ) +
+    `<div class="grid"><section class="panel"><h2>${summaryDraft ? "Bản nháp cần bạn kiểm tra" : "Bản tóm tắt đã xác nhận"}</h2>${summaryDraft ? `<form id="summary-form"><p>${date(summaryDraft.at)} · ${state.meds.length} thuốc</p><ul>${summaryDraft.meds.map((m) => `<li>${esc(m.name)} — ${esc(m.ingredient || "Chưa xác định hoạt chất")}</li>`).join("")}</ul><label>Thông tin sức khỏe tự khai<textarea name="details">${esc(summaryDraft.details)}</textarea></label><p class="muted">Dị ứng: chưa có thông tin · Tình trạng bệnh: chưa xác minh.</p><label class="check"><input type="checkbox" required> Tôi đã kiểm tra bản tóm tắt này.</label><div class="actions"><button>Lưu bản đã xác nhận</button>${button("Hủy bản nháp", "cancel-summary", true)}</div></form>` : saved ? `<p>${date(saved.at)} · ${esc(saved.id)}</p><ul>${saved.meds.map((m) => `<li>${esc(m.name)} — ${esc(m.ingredient || "Chưa xác định")}</li>`).join("")}</ul><p>${esc(saved.details)}</p><p>${esc(saved.assessment)}</p>${saved.revision !== state.revision || scenario === "outdated" ? banner("Bản tóm tắt cũ. Có thể tạo lại hoặc chia sẻ kèm giới hạn này.", "warn") : ""}` : empty("Tạo bản nháp để xem lại thông tin trước khi lưu.")}</section><aside class="panel"><h2>Phạm vi chia sẻ</h2>${saved ? `<p>Chỉ chia sẻ bản <strong>${esc(saved.id)}</strong>.</p><form id="share-summary"><label>Người nhận<select name="recipient"><option value="hcp">BS. Minh — được phép (mẫu)</option><option value="other">Tài khoản chưa được phép (mẫu)</option></select></label><label class="check"><input type="checkbox" required> Tôi cho phép người nhận xem bản tóm tắt đã chọn.</label><button>Chia sẻ bản này</button></form><p class="source">Trạng thái: ${saved.shared ? "Đã chia sẻ với BS. Minh" : "Chưa chia sẻ"}</p>` : empty("Cần lưu bản tóm tắt trước khi chia sẻ.")}</aside></div>`
+  );
+}
+function shared() {
+  return (
+    heading(
+      "UC-13 · Không gian HCP",
+      "Tóm tắt được chia sẻ",
+      "Chỉ những bản bệnh nhân chủ động chia sẻ mới xuất hiện.",
+    ) +
+    state.summaries
+      .filter((s) => s.shared)
+      .map(
+        (s) =>
+          `<section class="panel"><h2>${esc(s.id)}</h2><p>${date(s.at)} · Nguyễn An (mẫu)</p><p>${esc(s.details)}</p><ul>${s.meds.map((m) => `<li>${esc(m.name)}</li>`).join("")}</ul>${s.revision !== state.revision ? banner("Thông tin có thể đã cũ.", "warn") : ""}</section>`,
+      )
+      .join("") +
+    (state.summaries.some((s) => s.shared)
+      ? ""
+      : empty("Chưa có bản tóm tắt được chia sẻ."))
+  );
+}
+function dataset() {
+  return (
+    heading(
+      "UC-14 · Không gian reviewer",
+      "Duyệt chất lượng dữ liệu",
+      "Quyết định cho bản ghi và bằng chứng nguồn; không phải quyết định điều trị cho bệnh nhân.",
+    ) +
+    `<div class="grid"><section class="panel"><div class="panel-heading"><h2>REC-DEMO-01</h2>${badge(state.reviews.at(-1)?.decision || "Candidate", "warn")}</div><div class="row"><strong>Sản phẩm</strong><span>Thuốc mẫu A</span></div><div class="row"><strong>Hoạt chất</strong><span>Hoạt chất mẫu A</span></div><div class="row"><strong>Ánh xạ ứng viên</strong><span>${scenario === "mapping" ? "Mâu thuẫn tên / định danh" : "DEMO-ENTITY-A"}</span></div><div class="row"><strong>Phiên bản</strong><span>demo-v1 · chưa phát hành</span></div><h3>Bằng chứng nguồn</h3>${scenario === "missing" ? banner("Không có bằng chứng: không thể chọn Accept.", "warn") : `<p>Tài liệu mẫu SRC-DEMO-01, dòng 12: “Thuốc mẫu A chứa Hoạt chất mẫu A”. Đây là nội dung giả lập để thao tác duyệt.</p>`}<p class="source">Quyết định không tự động phát hành dữ liệu và không chứng minh giá trị lâm sàng.</p></section><section class="panel"><h2>Ghi nhận quyết định</h2><form id="dataset-form"><label>Kết quả<select name="decision"><option value="Accept" ${["missing", "mapping"].includes(scenario) ? "disabled" : ""}>Accept</option><option value="Needs Correction" ${["missing", "mapping"].includes(scenario) ? "selected" : ""}>Needs Correction</option><option value="Reject">Reject</option></select></label><label>Lý do<textarea name="reason" required></textarea></label><button>Lưu quyết định</button></form><h3 style="margin-top:var(--space-lg)">Lịch sử duyệt</h3>${state.reviews.map((r) => `<p>${badge(r.decision)} ${esc(r.reason)}<small> · ${date(r.at)} · DS. Linh</small></p>`).join("") || empty("Chưa có quyết định.")}</section></div>`
+  );
+}
+function accounts() {
+  const a = state.accounts.find((a) => a.id === editAccount);
+  return (
+    heading(
+      "UC-15 · Quản trị",
+      "Tài khoản & vai trò",
+      "Cấp quyền theo nhiệm vụ. Admin không tự có quyền xem hồ sơ y tế.",
+    ) +
+    `<div class="grid"><section class="panel"><h2>Danh sách tài khoản</h2>${state.accounts.map((u) => `<div class="row"><div><strong>${esc(u.name)}</strong><p>${esc(u.email)}</p><small>${u.roles.map((r) => roles[r as Role]).join(", ")} · ${u.status}</small></div>${button("Chỉnh sửa", "edit-account", true, `data-id="${u.id}"`)}</div>`).join("")}</section><section class="panel"><h2>${a ? "Cập nhật tài khoản" : "Tạo tài khoản mẫu"}</h2><form id="account-form">${field("Họ tên", "name", a?.name || "", "text", true)}${field("Email", "email", a?.email || "", "email", true)}<label>Trạng thái<select name="status">${options(
+      [
+        ["Active", "Active"],
+        ["Blocked", "Blocked"],
+      ],
+      a?.status || "Active",
+    )}</select></label><fieldset><legend>Vai trò</legend>${Object.entries(roles)
+      .map(
+        ([r, label]) =>
+          `<label class="check"><input type="checkbox" name="roles" value="${r}" ${a?.roles.includes(r as Role) ? "checked" : ""}>${label}</label>`,
+      )
+      .join(
+        "",
+      )}</fieldset><p><small>Không cho phép vô hiệu hóa tài khoản admin cuối cùng.</small></p><div class="actions"><button>Xem và xác nhận thay đổi</button>${button("Hủy / tạo mới", "cancel-account", true)}</div></form></section></div>`
+  );
+}
+function auditView() {
+  return (
+    heading(
+      "UC-16 · Quản trị",
+      "Lịch sử hoạt động",
+      "Chỉ hiển thị sự kiện quản trị và thông tin tài khoản; không chứa nội dung y tế.",
+    ) +
+    (scenario === "unavailable"
+      ? banner("Dịch vụ nhật ký chưa sẵn sàng. Hãy thử lại.", "warn")
+      : `<section class="panel"><form id="audit-filter" class="filter">${field("Tài khoản / hành động", "query")} ${field("Ngày", "day", "", "date")}<button>Lọc</button></form><div id="audit-results">${auditRows(state.audit)}</div></section>`)
+  );
+}
+function auditRows(rows: Audit[]) {
+  if (scenario === "empty") rows = [];
+  return rows.length
+    ? `<div class="table-wrap"><table><thead><tr><th>Thời điểm</th><th>Người thực hiện</th><th>Hành động</th><th>Đối tượng</th></tr></thead><tbody>${rows.map((a) => `<tr><td>${date(a.at)}</td><td>${esc(a.actor)}</td><td>${esc(a.action)}</td><td>${esc(a.target)}</td></tr>`).join("")}</tbody></table></div>`
+    : empty("Không có sự kiện phù hợp.");
+}
+function support() {
+  return (
+    heading(
+      "UC-17 · Hỗ trợ",
+      "Báo một sự cố kỹ thuật",
+      "Mô tả lỗi thao tác, thiết bị và thời điểm. Không gửi nội dung đơn thuốc hay thông tin sức khỏe.",
+    ) +
+    `<div class="grid"><section class="panel"><form id="ticket-form">${field("Tiêu đề sự cố", "title", "", "text", true)}<label>Nhóm sự cố<select name="category">${options(
+      [
+        ["OCR", "Đọc ảnh / OCR"],
+        ["login", "Đăng nhập"],
+        ["reminder", "Thông báo"],
+        ["other", "Khác"],
+      ],
+      "OCR",
+    )}</select></label><label>Mô tả bước gặp lỗi<textarea name="description" required></textarea></label><label class="check"><input name="diagnostic" type="checkbox"> Gửi chẩn đoán tối thiểu: trình duyệt, mã lỗi, thời điểm (mẫu).</label>${scenario === "private" ? banner("Tệp mẫu chứa thông tin bệnh nhân. Cần bỏ tệp hoặc che thông tin trước khi gửi. " + button("Bỏ tệp có thông tin riêng tư", "remove-private", true), "warn") : ""}<button>Gửi báo lỗi</button></form></section><section class="panel"><h2>Yêu cầu của bạn</h2>${
+      state.tickets
+        .filter((t) => t.reporter === role)
+        .map(
+          (t) =>
+            `<article class="message"><strong>${esc(t.id)} · ${esc(t.title)}</strong><p>${badge(t.status, "warn")}</p>${t.notes.map((n) => `<p>${esc(n.text)}<small> · ${date(n.at)}</small></p>`).join("")}${t.status === "Pending User Response" ? `<form class="ticket-reply" data-id="${t.id}"><label>Bổ sung thông tin kỹ thuật<textarea name="reply" required></textarea></label><button>Gửi bổ sung</button></form>` : ""}</article>`,
+        )
+        .join("") || empty("Chưa có yêu cầu hỗ trợ.")
+    }</section></div>`
+  );
+}
+function tickets() {
+  return (
+    heading(
+      "UC-18 · Technical support",
+      "Hàng chờ hỗ trợ",
+      "Chỉ xử lý thông tin kỹ thuật trong ticket được giao.",
+    ) +
+    (scenario === "denied"
+      ? banner("Không được phép truy cập ticket.", "danger")
+      : `<div class="stack">${
+          state.tickets.length
+            ? state.tickets
+                .map(
+                  (t) =>
+                    `<section class="panel"><div class="panel-heading"><h2>${esc(t.id)} · ${esc(t.title)}</h2>${badge(t.status, "warn")}</div><p>${esc(t.description)}</p><div class="inline-code">${t.diagnostic ? "event: upload_failed\ncode: DEMO_TIMEOUT\nclient: browser (sample)\npayload: [redacted]" : "Người gửi không đính kèm thông tin chẩn đoán."}</div>${scenario === "private" ? banner("Nội dung y tế đã bị che; hỗ trợ viên chỉ thấy chi tiết kỹ thuật.", "warn") : ""}${t.notes.map((n) => `<p>${esc(n.text)} <small>${date(n.at)}</small></p>`).join("")}<form class="resolve-ticket" data-id="${t.id}"><div class="form-grid"><label>Trạng thái<select name="status">${options(
+                      [
+                        ["Open", "Open"],
+                        ["In Progress", "In Progress"],
+                        ["Pending User Response", "Pending User Response"],
+                        ["Resolved", "Resolved"],
+                      ],
+                      t.status,
+                    )}</select></label><label>Ghi chú / cách xử lý<textarea name="note" required></textarea></label></div><button>Lưu tiến độ</button></form></section>`,
+                )
+                .join("")
+            : empty("Chưa có ticket. Dùng một vai trò để gửi báo lỗi trước.")
+        }</div>`)
+  );
+}
+const views: Record<string, () => string> = {
+  home,
+  intake,
+  safety,
+  review,
+  queue,
+  reminders,
+  history,
+  chat,
+  summary,
+  shared,
+  dataset,
+  accounts,
+  audit: auditView,
+  support,
+  tickets,
+};
+function captureDraft() {
+  const f = document.querySelector<HTMLFormElement>("#intake-form");
+  if (!f || !draft) return;
+  const d = new FormData(f);
+  draft.forEach((m, i) => {
+    for (const key of [
+      "name",
+      "ingredient",
+      "strength",
+      "instructions",
+    ] as const)
+      m[key] = String(d.get(key + "-" + i) || "").trim();
+  });
+}
+function gate(s: State, mid: string) {
+  const a = s.assessments.at(-1);
+  const r = s.requests.find((r) => r.assessment === a?.id);
+  const confirmed =
+    !!r?.confirmedMeds?.includes(mid) && r.confirmedRevision === s.revision;
+  return (
+    !confirmed &&
+    (!a ||
+      a.revision !== s.revision ||
+      a.status !== "Assessed" ||
+      a.held.includes(mid))
+  );
+}
+function reevaluate(s: State, r: ReviewRequest) {
+  s.plans.forEach((p) => {
+    if (r.confirmedMeds.includes(p.med)) {
+      if (p.proposal) {
+        p.time = p.proposal;
+        p.proposal = null;
+      }
+      if (p.status === "Pending") {
+        p.status = "Active";
+        if (!s.doses.some((d) => d.plan === p.id))
+          s.doses.push({
+            id: id("dose"),
+            plan: p.id,
+            med: p.med,
+            time: p.time,
+            day: "2026-11-01",
+            status: "Chưa ghi nhận",
+            recorded: null,
+            changes: [],
+          });
+      }
+    }
+  });
+}
+document.addEventListener("change", (event) => {
+  const e = { target: event.target as HTMLInputElement };
+  if (e.target.id === "scenario") {
+    captureDraft();
+    scenario = e.target.value;
+    render();
+  }
+  if (e.target.id === "input-method")
+    $("#input-tools").innerHTML =
+      e.target.value === "image"
+        ? '<label>Ảnh nguồn (chỉ chọn cục bộ)<input name="image" type="file" accept="image/*"></label>'
+        : e.target.value === "voice"
+          ? banner(
+              "Nhấn “Xử lý đầu vào mẫu” để nạp bản chép giả lập. Micro không được bật.",
+            )
+          : field("Nội dung nguồn (tùy chọn)", "raw");
+});
+document.addEventListener("click", async (e) => {
+  const menuButton = (e.target as Element).closest<HTMLButtonElement>('[data-action="toggle-menu"]');
+  if (menuButton) {
+    const expanded = $(".shell").classList.toggle("menu-open");
+    menuButton.setAttribute("aria-expanded", String(expanded));
+    return;
+  }
+  if (!(e.target as Element).closest("#workspace-navigation")) closeNavigation();
+  const b = (e.target as Element).closest<HTMLButtonElement>("[data-action]");
+  if (!b || b.disabled) return;
+  const action = b.dataset.action;
+  if (action === "choose-role") {
+    selectedRole = b.dataset.role as Role;
+    render();
+    return;
+  }
+  if (action === "logout") {
+    signedIn = false;
+    scenario = "normal";
+    draft = null;
+    replyTo = null;
+    summaryDraft = null;
+    selectedAssessment = null;
+    activeRequestId = null;
+    render();
+    return;
+  }
+  if (action === "open-case") {
+    activeRequestId = b.dataset.id!;
+    go("review");
+    return;
+  }
+  if (action === "reset") {
+    if (
+      await confirmAction(
+        "Đặt lại bản mẫu?",
+        "Xóa các thao tác minh họa đã lưu trong trình duyệt này.",
+      )
+    ) {
+      try {
+        localStorage.removeItem(KEY);
+        state = initial();
+        draft = null;
+        summaryDraft = null;
+        scenario = "normal";
+        render();
+        notify("Đã khôi phục dữ liệu mẫu.");
+      } catch {
+        notify("Không xóa được dữ liệu trình duyệt.", true);
+      }
+    }
+    return;
+  }
+  if (!allowed(current))
+    return notify("Không được phép thực hiện thao tác.", true);
+  if (action === "process") {
+    captureDraft();
+    if (scenario === "processing")
+      return notify(
+        "Không xử lý được đầu vào. Chọn nhập tay hoặc thử lại.",
+        true,
+      );
+    if (scenario === "unclear")
+      return notify(
+        "Bạn muốn nhập thuốc hay đặt câu hỏi? Hãy chọn cách nhập hoặc mở Trợ lý thuốc.",
+        true,
+      );
+    const method = $("#input-method").value;
+    if (method === "manual") {
+      notify(
+        "Đã giữ văn bản nguồn. Hãy điền các trường thuốc bên dưới để xác nhận.",
+      );
+      return;
+    }
+    if (method === "image" && !$("[name=image]").files?.length)
+      return notify("Chọn ảnh trước khi xử lý mẫu.", true);
+    b.disabled = true;
+    b.textContent = "Đang xử lý mẫu…";
+    await new Promise((r) => setTimeout(r, 450));
+    draft = initial().meds;
+    render();
+    notify("Đã nạp thuốc giả lập, không trích xuất từ ảnh / âm thanh thật.");
+  }
+  if (action === "add-med") {
+    captureDraft();
+    (draft ??= []).push({
+      id: id("med"),
+      name: "",
+      ingredient: "",
+      strength: "",
+      instructions: "",
+      verified: false,
+    });
+    render();
+  }
+  if (action === "remove-med") {
+    captureDraft();
+    draft?.splice(Number(b.dataset.index), 1);
+    render();
+  }
+  if (action === "assess") {
+    if (!state.confirmed || !state.meds.length)
+      return notify("Cần ít nhất một thuốc đã xác nhận.", true);
+    b.disabled = true;
+    b.textContent = "Đang kiểm tra mẫu…";
+    await new Promise((r) => setTimeout(r, 400));
+    const mode = scenario,
+      identified = state.meds.filter((m) => m.ingredient),
+      severe =
+        ["normal", "failure"].includes(mode) &&
+        state.meds.some((m) => m.id === "A") &&
+        state.meds.some((m) => m.id === "B");
+    const incomplete =
+      ["unresolved", "missing", "failure"].includes(mode) ||
+      identified.length !== state.meds.length;
+    const a = {
+      id: id("SA"),
+      at: now(),
+      revision: state.revision,
+      meds: structuredClone(state.meds),
+      severe,
+      held: severe ? ["A", "B"] : [],
+      status:
+        mode === "failure"
+          ? "Incomplete"
+          : incomplete
+            ? "Partially assessed"
+            : "Assessed",
+      pair:
+        mode === "missing"
+          ? "Chưa đánh giá — thiếu dữ liệu tương tác"
+          : mode === "unresolved"
+            ? "Chưa đánh giá các cặp có thuốc chưa xác định"
+            : state.meds.length < 2
+              ? "Không áp dụng — chỉ có một thuốc"
+              : severe
+                ? "Có cảnh báo nghiêm trọng trong kịch bản mẫu"
+                : "Không phát hiện trong các kiểm tra mẫu đã hoàn tất",
+      duplicate:
+        identified.length < 2
+          ? "Không đủ hai hoạt chất được xác định"
+          : new Set(identified.map((m) => m.ingredient.toLowerCase())).size <
+              identified.length
+            ? "Có tên hoạt chất trùng trong đầu vào"
+            : "Không thấy tên hoạt chất trùng trong đầu vào",
+      limit:
+        mode === "failure"
+          ? "Kiểm tra bị gián đoạn; cảnh báo đã tìm thấy vẫn được lưu."
+          : incomplete
+            ? "Có thuốc / kiểm tra chưa đủ dữ liệu. Không được diễn giải là an toàn."
+            : "Chỉ là dữ liệu minh họa, không chứng minh thuốc an toàn.",
+    };
+    activeRequestId = null;
+    commit(
+      (s) => s.assessments.push(a),
+      "Đã lưu kết quả mẫu và giới hạn đánh giá.",
+    );
+  }
+  if (action === "reply") {
+    replyTo = b.dataset.id!;
+    render();
+    $("[name=message]")?.focus();
+  }
+  if (action === "cancel-reply") {
+    replyTo = null;
+    render();
+  }
+  if (action === "toggle-notify") {
+    const p = state.plans.find((p) => p.id === b.dataset.id);
+    if (!p) return;
+    if (
+      await confirmAction(
+        p.notifications ? "Tắt thông báo này?" : "Bật lại thông báo?",
+        `Chỉ thay đổi thông báo cho ${medName(p.med)}. Hướng dẫn dùng thuốc giữ nguyên.`,
+      )
+    )
+      commit(
+        (s) =>
+          (s.plans.find((x) => x.id === p.id)!.notifications =
+            !p.notifications),
+        "Đã cập nhật tùy chọn thông báo.",
+      );
+  }
+  if (action === "propose-time") {
+    const p = state.plans.find((p) => p.id === b.dataset.id),
+      f = $<HTMLFormElement>("#proposal-form");
+    if (!p) return;
+    f.hidden = false;
+    (f.elements.namedItem("plan") as HTMLInputElement).value = p.id;
+    (f.elements.namedItem("time") as HTMLInputElement).value = p.time;
+    (f.elements.namedItem("time") as HTMLInputElement).focus();
+  }
+  if (action === "cancel-proposal")
+    $<HTMLFormElement>("#proposal-form").hidden = true;
+  if (action === "history-detail") {
+    selectedAssessment = b.dataset.id!;
+    render();
+    $("#assessment-detail").scrollIntoView({ block: "start" });
+  }
+  if (action === "voice-chat") {
+    $("[name=question]").value = "Tôi muốn xem lại lịch nhắc thuốc";
+    notify("Đã điền câu hỏi mẫu; chưa ghi âm giọng nói.");
+  }
+  if (action === "draft-summary") {
+    if (!state.meds.length)
+      return notify(
+        "Cần ít nhất một thông tin được phép để tạo tóm tắt.",
+        true,
+      );
+    summaryDraft = {
+      id: id("SUM"),
+      at: now(),
+      revision: state.revision,
+      meds: structuredClone(state.meds),
+      details:
+        "Thông tin tự khai: chưa bổ sung. Dị ứng và tình trạng bệnh chưa được xác minh.",
+      assessment: latest() ? latest()!.status : "Chưa có kết quả an toàn",
+      shared: false,
+    };
+    render();
+  }
+  if (action === "cancel-summary") {
+    summaryDraft = null;
+    render();
+  }
+  if (action === "edit-account") {
+    editAccount = b.dataset.id!;
+    render();
+  }
+  if (action === "cancel-account") {
+    editAccount = null;
+    render();
+  }
+  if (action === "remove-private") {
+    scenario = "normal";
+    $(".banner.warn")?.remove();
+    const select = $("#scenario");
+    if (select) select.value = "normal";
+    notify("Đã bỏ tệp mẫu có thông tin riêng tư.");
+  }
+});
+document.addEventListener("submit", async (e) => {
+  const f = e.target as HTMLFormElement;
+  if (f.closest("#confirm-dialog")) return;
+  e.preventDefault();
+  const d = new FormData(f);
+  if (f.id === "login-form") {
+    const account = state.accounts.find(
+      (a) => a.email === String(d.get("email")).trim(),
+    );
+    let error = "";
+    if (
+      scenario === "credentials" ||
+      d.get("password") !== "demo123" ||
+      !account
+    )
+      error = "Thông tin đăng nhập không đúng. Dùng tài khoản mẫu và demo123.";
+    else if (scenario === "blocked" || account.status === "Blocked")
+      error = "Tài khoản bị khóa. Chưa tạo phiên đăng nhập.";
+    else if (scenario === "roles" || !account.roles.includes(selectedRole))
+      error = "Không có quyền cho vai trò đã chọn. Chưa tạo phiên đăng nhập.";
+    if (error) {
+      $("#login-error").textContent = error;
+      return;
+    }
+    role = selectedRole;
+    signedIn = true;
+    scenario = "normal";
+    current = "login";
+    go(nav[role][0][0]);
+    render();
+    return;
+  }
+  if (!allowed(current)) return notify("Không được phép lưu thao tác.", true);
+  if (f.id === "intake-form") {
+    captureDraft();
+    if (!draft?.length)
+      return notify("Thêm ít nhất một thuốc trước khi xác nhận.", true);
+    if (!d.get("confirmed"))
+      return notify("Cần xác nhận thông tin đầu vào.", true);
+    const meds = structuredClone(draft).map((m) => ({
+      ...m,
+      verified: !!m.instructions,
+    }));
+    if (
+      commit((s) => {
+        s.meds = meds;
+        s.confirmed = true;
+        s.revision++;
+      }, "Đã lưu. Các kết quả cũ vẫn giữ nguyên và được gắn nhãn phiên bản cũ.")
+    ) {
+      draft = null;
+      go("safety");
+    }
+  }
+  if (f.id === "share-case") {
+    const a = latest();
+    if (!a || !d.get("consent"))
+      return notify("Cần kết quả đã lưu và quyền chia sẻ.", true);
+    if (request()) {
+      notify("Đã có yêu cầu cho kết quả này. Mở lại hội thoại hiện có.");
+      render();
+      return;
+    }
+    commit(
+      (s) =>
+        s.requests.push({
+          id: id("CASE"),
+          assessment: a.id,
+          status: "Pending",
+          updated: now(),
+          assigned: scenario === "unassigned" ? null : "hcp",
+          messages: [],
+          consent: true,
+          confirmedMeds: [],
+          confirmedRevision: null,
+        }),
+      "Yêu cầu đã gửi, đang chờ HCP; chưa có kết luận xem xét.",
+    );
+  }
+  if (f.id === "case-reply") {
+    const r = request();
+    if (!r?.consent || scenario === "denied")
+      return notify("Không có quyền phản hồi.", true);
+    if (scenario === "changed")
+      return notify(
+        "Hồ sơ đã thay đổi. Tải lại tình huống bình thường trước khi lưu.",
+        true,
+      );
+    const text = String(d.get("message")).trim();
+    if (!text) return notify("Nhập nội dung trước khi gửi.", true);
+    const outcome = String(d.get("outcome") || "Pending HCP Response"),
+      schedule = d.get("schedule") === "on";
+    const a = state.assessments.find((a) => a.id === r.assessment);
+    if (!a) return notify("Assessment missing. Reload the case.", true);
+    if (schedule && (outcome !== "Reviewed" || a.revision !== state.revision))
+      return notify(
+        "Chỉ xác nhận lịch khi đã giải quyết và hồ sơ khớp phiên bản hiện tại.",
+        true,
+      );
+    const parent = replyTo;
+    if (
+      commit(
+        (s) => {
+          const item = s.requests.find((x) => x.id === r.id)!;
+          item.messages.push({
+            id: id("msg"),
+            at: now(),
+            author: names[role],
+            role,
+            text,
+            replyTo: parent,
+          });
+          item.updated = now();
+          item.status = role === "hcp" ? outcome : "Pending HCP Response";
+          if (role === "hcp") {
+            item.assigned = "hcp";
+            if (schedule) {
+              item.confirmedMeds = a.meds.map((m) => m.id);
+              item.confirmedRevision = s.revision;
+              reevaluate(s, item);
+            }
+          }
+        },
+        role === "hcp"
+          ? "Đã lưu phản hồi HCP mô phỏng."
+          : "Đã đưa hồ sơ trở lại hàng chờ HCP.",
+      )
+    ) {
+      replyTo = null;
+      render();
+    }
+  }
+  if (f.id === "new-reminder") {
+    const med = state.meds.find((m) => m.id === d.get("med"));
+    if (!med || !state.confirmed || !d.get("verified"))
+      return notify("Cần thuốc và hướng dẫn đã xác nhận.", true);
+    if (
+      !/^([01]\d|2[0-3]):[0-5]\d$/.test(med.instructions) ||
+      !med.verified ||
+      scenario === "unverified"
+    )
+      return notify(
+        "Lịch thiếu hoặc chưa xác minh. Chưa tạo nhắc thuốc.",
+        true,
+      );
+    if (state.plans.some((p) => p.med === med.id))
+      return notify("Thuốc đã có lịch; hãy dùng chức năng quản lý.", true);
+    const pending = gate(state, med.id),
+      pid = id("PLAN");
+    commit(
+      (s) => {
+        s.plans.push({
+          id: pid,
+          med: med.id,
+          time: med.instructions,
+          status: pending ? "Pending" : "Active",
+          notifications: true,
+          source: "Nguồn người dùng đã đối chiếu (mẫu)",
+          proposal: null,
+        });
+        if (!pending)
+          s.doses.push({
+            id: id("dose"),
+            plan: pid,
+            med: med.id,
+            time: med.instructions,
+            day: "2026-11-01",
+            status: "Chưa ghi nhận",
+            recorded: null,
+            changes: [],
+          });
+      },
+      pending
+        ? "Lịch mới đang Pending, cần HCP xem xét."
+        : "Đã bật lịch hợp lệ trong ứng dụng mẫu.",
+    );
+  }
+  if (f.id === "proposal-form") {
+    const p = state.plans.find((p) => p.id === d.get("plan")),
+      time = String(d.get("time"));
+    if (!p) return;
+    if (time === p.time)
+      return notify("Giờ đề xuất trùng lịch hiện tại.", true);
+    if (
+      await confirmAction(
+        "Gửi đề xuất đổi giờ?",
+        `Giữ lịch ${p.time}; giờ ${time} chỉ được áp dụng sau xác nhận HCP.`,
+      )
+    )
+      commit((s) => {
+        s.plans.find((x) => x.id === p.id)!.proposal = time;
+        const r = s.requests.find(
+          (x) => x.assessment === s.assessments.at(-1)?.id,
+        );
+        if (r) {
+          r.status = "Pending HCP Response";
+          r.updated = now();
+          r.confirmedMeds = r.confirmedMeds.filter((mid) => mid !== p.med);
+          r.messages.push({
+            id: id("msg"),
+            at: now(),
+            author: names[role],
+            role,
+            text: `Đề xuất giờ cho ${medName(p.med)}: ${p.time} → ${time}.`,
+            replyTo: null,
+          });
+        }
+      }, "Đề xuất đã lưu; lịch hiện tại giữ nguyên. Nếu chưa có hồ sơ HCP, hãy gửi yêu cầu xem xét.");
+  }
+  if (f.classList.contains("dose-form")) {
+    const dose = state.doses.find((x) => x.id === f.dataset.id);
+    if (!dose) return notify("Không tìm thấy liều dùng.", true);
+    const status = String(d.get("status"));
+    if (
+      await confirmAction(
+        "Xác nhận trạng thái liều?",
+        `${medName(dose.med)} · ${dose.time}: ${dose.status} → ${status}.`,
+      )
+    )
+      commit((s) => {
+        const x = s.doses.find((x) => x.id === dose.id)!;
+        x.changes.push({ from: x.status, to: status, at: now() });
+        x.status = status;
+        x.recorded = now();
+      }, "Đã lưu vào lịch sử dùng thuốc.");
+  }
+  if (f.id === "history-filter") {
+    filter = {
+      med: String(d.get("med") || ""),
+      status: String(d.get("status") || ""),
+      from: String(d.get("from") || ""),
+      to: String(d.get("to") || ""),
+    };
+    render();
+  }
+  if (f.id === "chat-form") {
+    const question = String(d.get("question")).trim();
+    if (!question) return;
+    const q = question.toLowerCase();
+    let mode = scenario;
+    if (mode === "normal") {
+      if (/khó thở|cấp cứu|đau ngực|ngừng thuốc|tăng liều/.test(q))
+        mode = "urgent";
+      else if (/đổi|sửa|thêm|xóa/.test(q)) mode = "modify";
+      else if (q.length < 8) mode = "unclear";
+    }
+    const answers: Record<string, string> = {
+      unclear:
+        "Bạn muốn hỏi về lịch nhắc thuốc, kết quả kiểm tra hay gửi câu hỏi cho HCP?",
+      missing:
+        "Bản mẫu không có nguồn đủ tin cậy để trả lời câu hỏi này. Hãy trao đổi với HCP.",
+      urgent:
+        "Trợ lý không chẩn đoán hoặc thay đổi điều trị. Nếu đang có tình trạng khẩn cấp, hãy tìm trợ giúp y tế khẩn cấp; các câu hỏi điều trị cần trao đổi trực tiếp với HCP.",
+      modify:
+        "Tôi chưa thay đổi dữ liệu. Hãy mở màn hình liên quan, kiểm tra và xác nhận thao tác.",
+      normal: d.get("context")
+        ? `Hồ sơ mẫu hiện có ${state.meds.length} thuốc và ${state.plans.length} lịch nhắc. Bạn có thể mở Nhắc thuốc để xem từng trạng thái. Nguồn: hồ sơ mẫu của bạn.`
+        : "Bạn có thể xem lịch nhắc thuốc từ menu. Tôi không sử dụng hồ sơ cá nhân trong câu trả lời này.",
+    };
+    commit((s) =>
+      s.chat.push(
+        { role: "patient", text: question },
+        {
+          role: "bot",
+          text: answers[mode] || answers.missing,
+          route:
+            mode === "modify"
+              ? "intake"
+              : mode === "normal"
+                ? "reminders"
+                : null,
+        },
+      ),
+    );
+  }
+  if (f.id === "summary-form" && summaryDraft) {
+    const item = {
+      ...structuredClone(summaryDraft),
+      details:
+        String(d.get("details")).trim() || "Chưa cung cấp thông tin tự khai.",
+    };
+    if (
+      commit(
+        (s) => s.summaries.push(item),
+        "Đã lưu bản xác nhận. Chưa chia sẻ với ai.",
+      )
+    ) {
+      summaryDraft = null;
+      render();
+    }
+  }
+  if (f.id === "share-summary") {
+    const s = state.summaries.at(-1);
+    if (!s) return;
+    if (scenario === "denied" || d.get("recipient") !== "hcp")
+      return notify(
+        "Người nhận không được phép. Chưa chia sẻ thông tin.",
+        true,
+      );
+    if (
+      await confirmAction(
+        "Chia sẻ bản tóm tắt?",
+        `Chỉ bản ${s.id} được chia sẻ với BS. Minh (mẫu).`,
+      )
+    )
+      commit(
+        (x) => (x.summaries.find((y) => y.id === s.id)!.shared = true),
+        "Đã cấp quyền cho người nhận đã chọn.",
+      );
+  }
+  if (f.id === "dataset-form") {
+    const decision = String(d.get("decision")),
+      reason = String(d.get("reason")).trim();
+    if (!reason) return notify("Cần lý do quyết định.", true);
+    if (scenario === "changed")
+      return notify(
+        "Phiên bản đã thay đổi. Tải lại bản mới trước khi duyệt.",
+        true,
+      );
+    if (decision === "Accept" && ["missing", "mapping"].includes(scenario))
+      return notify(
+        "Chưa thể Accept khi bằng chứng / mapping chưa phù hợp.",
+        true,
+      );
+    commit(
+      (s) =>
+        s.reviews.push({
+          decision,
+          reason,
+          at: now(),
+          source: scenario === "missing" ? null : "SRC-DEMO-01",
+          version: "demo-v1",
+        }),
+      "Đã lưu quyết định chất lượng dữ liệu, chưa phát hành dữ liệu.",
+    );
+  }
+  if (f.id === "account-form") {
+    const assigned = d.getAll("roles") as Role[],
+      email = String(d.get("email")).trim().toLowerCase(),
+      name = String(d.get("name")).trim(),
+      status = String(d.get("status"));
+    if (!name || !assigned.length)
+      return notify("Cần tên và ít nhất một vai trò.", true);
+    if (
+      state.accounts.some(
+        (u) => u.email.toLowerCase() === email && u.id !== editAccount,
+      )
+    )
+      return notify("Email đã tồn tại. Chọn email khác.", true);
+    const old = state.accounts.find((u) => u.id === editAccount),
+      adminCount = state.accounts.filter(
+        (u) => u.roles.includes("admin") && u.status === "Active",
+      ).length;
+    if (
+      scenario === "denied" ||
+      (old?.roles.includes("admin") &&
+        adminCount === 1 &&
+        (!assigned.includes("admin") || status !== "Active"))
+    )
+      return notify(
+        "Không được phép thay đổi này. Phải giữ ít nhất một admin hoạt động.",
+        true,
+      );
+    if (
+      await confirmAction(
+        "Lưu thay đổi tài khoản?",
+        `${email} · ${assigned.map((r) => roles[r as Role]).join(", ")} · ${status}`,
+      )
+    )
+      commit((s) => {
+        const item = {
+          id: editAccount || id("u"),
+          name,
+          email,
+          status,
+          roles: assigned,
+        };
+        if (editAccount)
+          s.accounts = s.accounts.map((u) => (u.id === editAccount ? item : u));
+        else s.accounts.push(item);
+        audit(
+          s,
+          editAccount ? "Cập nhật tài khoản / vai trò" : "Tạo tài khoản",
+          email,
+        );
+      }, "Đã lưu tài khoản và nhật ký quản trị.");
+  }
+  if (f.id === "audit-filter") {
+    const q = String(d.get("query")).toLowerCase(),
+      day = String(d.get("day"));
+    $("#audit-results").innerHTML = auditRows(
+      state.audit.filter(
+        (a) =>
+          (!q || (a.actor + a.action + a.target).toLowerCase().includes(q)) &&
+          (!day || a.at.slice(0, 10) === day),
+      ),
+    );
+  }
+  if (f.id === "ticket-form") {
+    if (scenario === "private")
+      return notify("Bỏ hoặc che dữ liệu riêng tư trước khi gửi.", true);
+    const title = String(d.get("title")).trim(),
+      description = String(d.get("description")).trim();
+    if (!title || !description)
+      return notify("Cần tiêu đề và mô tả sự cố.", true);
+    const tid = id("TKT");
+    commit(
+      (s) =>
+        s.tickets.push({
+          id: tid,
+          title,
+          description,
+          category: String(d.get("category")),
+          diagnostic: d.get("diagnostic") === "on",
+          reporter: role,
+          status: "Open",
+          notes: [],
+          created: now(),
+        }),
+      `Đã tạo ticket ${tid}.`,
+    );
+  }
+  if (f.classList.contains("resolve-ticket")) {
+    if (scenario === "denied") return notify("Không có quyền xử lý.", true);
+    const text = String(d.get("note")).trim();
+    if (!text) return notify("Cần ghi chú xử lý.", true);
+    commit((s) => {
+      const t = s.tickets.find((t) => t.id === f.dataset.id);
+      if (!t) return;
+      t.status = String(d.get("status"));
+      t.notes.push({ text, at: now(), actor: names[role] });
+    }, "Đã cập nhật ticket và lịch sử xử lý.");
+  }
+  if (f.classList.contains("ticket-reply")) {
+    const text = String(d.get("reply")).trim();
+    if (!text) return;
+    commit((s) => {
+      const t = s.tickets.find(
+        (t) => t.id === f.dataset.id && t.reporter === role,
+      );
+      if (!t) return;
+      t.notes.push({ text, at: now(), actor: names[role] });
+      t.status = "In Progress";
+    }, "Đã gửi bổ sung cho hỗ trợ kỹ thuật.");
+  }
+});
+window.addEventListener("hashchange", () => {
+  captureDraft();
+  render();
+  window.scrollTo(0, 0);
+});
+render();
+
+function closeNavigation() {
+  document.querySelector(".shell")?.classList.remove("menu-open");
+  document.querySelector(".menu-toggle")?.setAttribute("aria-expanded", "false");
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.querySelector(".shell.menu-open")) {
+    closeNavigation();
+    document.querySelector<HTMLButtonElement>(".menu-toggle")?.focus();
+  }
+});

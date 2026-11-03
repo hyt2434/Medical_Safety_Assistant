@@ -1,0 +1,44 @@
+@startuml UC_17
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-17: Report Technical Issue
+
+' Figure 17 / UC-17; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Registered User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Report Technical Issue" as Main
+  usecase "Review Issue Details\nand Attachments" as Review
+  Main ..> Review : <<include>>
+  note top of Main
+    Show a ticket identifier and status only
+    after the ticket is successfully stored.
+    Canceled or failed creation is not reported
+    as a successful submission.
+  end note
+  note bottom of Review
+    Required information must be provided;
+    request removal or masking of unnecessary
+    patient information before submission.
+  end note
+}
+Actor1 -- Main
+@enduml
