@@ -1,0 +1,1263 @@
+{
+  "version": 4,
+  "tables": [
+    {
+      "name": "msa_ref.medications",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "source_medication_id",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "dataset_build",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "brand_name",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "manufacturer",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "dosage_form",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "route",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "component_count",
+          "type": "integer",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "product_details",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "indications",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "'[]'::jsonb"
+        },
+        {
+          "name": "priorities",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "'[]'::jsonb"
+        },
+        {
+          "name": "source_locator",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa_ref.ingredients",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "source_ingredient_id",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "dataset_build",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "name_original",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "name_normalized",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "acceptance_scope",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "source_locator",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa_ref.medication_ingredients",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "medication_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "ingredient_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "dataset_build",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "source_component_id",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "ordinal",
+          "type": "integer",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "ingredient_name_raw",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "ingredient_text_raw",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "chemical_form_raw",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "equivalence_raw",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "strength_basis",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "source_locator",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa_ref.ddinter_mappings",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "source_mapping_id",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "component_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "dataset_build",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "target_id",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "mapping_set_id",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "target_catalog_sha256",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "retrieval_evidence",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "'[]'::jsonb"
+        },
+        {
+          "name": "source_locator",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa.conversation_sessions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": "'OPEN'"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        },
+        {
+          "name": "closed_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa.conversation_messages",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "conversation_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "sequence_no",
+          "type": "bigint",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "role",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "text_content",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "metadata",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "'{\"schema\":\"message.v4\",\"content_refs\":[]}'::jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.workflow_instances",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "conversation_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "origin_message_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "intake_session_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "workflow_type",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "fsm_version",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "nullable": false,
+          "default": "'COLLECTING'"
+        },
+        {
+          "name": "revision",
+          "type": "integer",
+          "nullable": false,
+          "default": "1"
+        },
+        {
+          "name": "context",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "'{\"schema\":\"workflow.v4\",\"pending_questions\":[],\"draft\":null,\"pending_confirmation\":null}'::jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.intake_sessions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "conversation_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "purpose",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": "'OPEN'"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.intake_inputs",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "session_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "message_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "modality",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "content_type",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "payload_or_locator",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "input_digest",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.intake_extractions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "input_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "attempt_no",
+          "type": "integer",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "extractor_name",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "extractor_version",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "result",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "errors",
+          "type": "jsonb",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.intake_items",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "extraction_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "item_ordinal",
+          "type": "integer",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "origin_evidence",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.medication_entry_versions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "item_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "version_no",
+          "type": "integer",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "supersedes_version_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "source_extraction_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "medication_fields",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "content_digest",
+          "type": "text",
+          "nullable": false,
+          "default": "GENERATED ALWAYS"
+        },
+        {
+          "name": "confirmed_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "confirmation_key",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.entry_matches",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "entry_version_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "attempt_no",
+          "type": "integer",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "match_status",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "candidate_rank",
+          "type": "integer",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "product_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "reference_build",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "matcher_version",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "confidence",
+          "type": "numeric",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "match_evidence",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.medication_list_snapshots",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "supersedes_snapshot_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "context_key",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "data_context",
+          "type": "text",
+          "nullable": false,
+          "default": "'PATIENT'"
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": false,
+          "default": "'DRAFT'"
+        },
+        {
+          "name": "as_of_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "snapshot_digest",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        },
+        {
+          "name": "sealed_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa.snapshot_entries",
+      "columns": [
+        {
+          "name": "snapshot_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "entry_version_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "entry_match_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "component_context",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa.safety_assessments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "snapshot_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "retry_of_assessment_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "request_key",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "engine_version",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "knowledge_builds",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "check_results",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "execution_status",
+          "type": "text",
+          "nullable": false,
+          "default": "'RUNNING'"
+        },
+        {
+          "name": "error_details",
+          "type": "jsonb",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "result_digest",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "started_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        },
+        {
+          "name": "finished_at",
+          "type": "timestamptz",
+          "nullable": true,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa.safety_findings",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "assessment_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "snapshot_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "prior_finding_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "finding_key",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "finding_type",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "severity",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "source_severity",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "explanation",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "recommended_next_step",
+          "type": "text",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "evidence",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "recorded_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.finding_entries",
+      "columns": [
+        {
+          "name": "finding_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "entry_version_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "snapshot_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        }
+      ]
+    },
+    {
+      "name": "msa.patient_health_sources",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "message_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "supersedes_source_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "corrects_source_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "origin",
+          "type": "text",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "source_content",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "verification_status",
+          "type": "text",
+          "nullable": false,
+          "default": "'REPORTED'"
+        },
+        {
+          "name": "source_date",
+          "type": "date",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "source_locator",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "content_digest",
+          "type": "text",
+          "nullable": false,
+          "default": "GENERATED ALWAYS"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ]
+    },
+    {
+      "name": "msa.patient_health_summaries",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "gen_random_uuid()"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "series_root_id",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "supersedes_summary_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "version_no",
+          "type": "integer",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "workflow_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "draft_revision",
+          "type": "integer",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "medication_snapshot_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "primary_assessment_id",
+          "type": "uuid",
+          "nullable": true,
+          "default": "—"
+        },
+        {
+          "name": "summary_content",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "source_manifest",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "confirmation_digest",
+          "type": "text",
+          "nullable": false,
+          "default": "GENERATED ALWAYS"
+        },
+        {
+          "name": "confirmation_key",
+          "type": "uuid",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "generation_context",
+          "type": "jsonb",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "generated_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "—"
+        },
+        {
+          "name": "confirmed_at",
+          "type": "timestamptz",
+          "nullable": false,
+          "default": "—"
+        }
+      ]
+    }
+  ]
+}
