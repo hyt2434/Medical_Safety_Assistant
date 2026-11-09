@@ -73,3 +73,6 @@ node_modules/
 /tmp/
 # Local Module 1 OCR inputs and outputs may contain personal/medical data.
 /data/local/
+
+# Tesseract runtime cache; language packages are restored by npm install.
+/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/
