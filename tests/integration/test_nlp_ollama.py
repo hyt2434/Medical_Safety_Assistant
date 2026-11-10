@@ -7,8 +7,8 @@ import os
 import pytest
 
 from module1_intake.nlp.models import Intent, Understanding
-from module1_intake.nlp.providers import InferenceCategory, InferenceError, OllamaProvider, understand
-from module1_intake.nlp.validation import validate_understanding
+from module1_intake.nlp.understanding.providers import InferenceCategory, InferenceError, OllamaProvider, understand
+from module1_intake.nlp.understanding.validation import validate_understanding
 
 
 @pytest.fixture(scope='module')

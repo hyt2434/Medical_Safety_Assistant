@@ -6,10 +6,10 @@ import httpx
 import pytest
 
 from module1_intake.nlp.models import Administration, DialogueAct, Intent, IntentCandidate, Medication, Understanding
-from module1_intake.nlp.providers import (
+from module1_intake.nlp.understanding.providers import (
     InferenceCategory as C, InferenceError, MockProvider, OllamaProvider, understand,
 )
-from module1_intake.nlp.validation import validate_medication
+from module1_intake.nlp.understanding.validation import validate_medication
 
 
 SECRET = 'SYNTHETIC_PRIVATE_SENTINEL_7823'

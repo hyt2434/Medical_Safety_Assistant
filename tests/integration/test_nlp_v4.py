@@ -13,8 +13,8 @@ import psycopg
 from psycopg.conninfo import conninfo_to_dict
 import pytest
 
-from module1_intake.nlp.dialogue import Chatbot
-from module1_intake.nlp.providers import MockProvider
+from module1_intake.nlp.dialogue_management.manager import Chatbot
+from module1_intake.nlp.understanding.providers import MockProvider
 from module1_intake.nlp.models import Medication, Understanding
 from shared.db import CoreRepository
 
@@ -94,6 +94,8 @@ def test_real_multi_drug_correction_target_and_foreign_owner(setup):
     assert 'số mấy' in r.text
     r = send(bot, r, 'sửa thuốc 2 thành B 100mg')
     r = send(bot, r, 'không rõ')
+    assert r.state == 'CLARIFYING'  # The other target still needs its own unknown decision.
+    r = send(bot, r, 'không rõ')
     rows = bot.store.entries(bot.store.workflow(r.workflow_id))
     assert [e['medication_fields']['strength_raw'] for e in rows] == ['500mg', '100mg']
     foreign = Chatbot(CoreRepository(db, authenticated_owner=uuid4()), MockProvider())
@@ -134,7 +136,7 @@ def test_real_failed_inference_retains_input_only(setup):
 
 
 def test_real_negation_uncertainty_and_handoff_preflight(setup, monkeypatch):
-    from module1_intake.nlp.handoff import identify_confirmed
+    from module1_intake.nlp.integration.handoff import identify_confirmed
     db, repo, _, r = setup
     text = 'Có lẽ không dùng A 500mg, dạng viên nén'
     med = Medication(name_raw='A', strength_raw='500mg', dosage_form_raw='viên nén', evidence_text=text)

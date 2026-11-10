@@ -4,11 +4,11 @@ import unicodedata
 
 import pytest
 
-from module1_intake.nlp.interactive import format_understanding
+from module1_intake.nlp.interfaces.interactive import format_understanding
 from module1_intake.nlp.models import Administration, Intent, IntentCandidate, Medication, Understanding
-from module1_intake.nlp.providers import InferenceCategory, InferenceError, MockProvider, understand
-from module1_intake.nlp.routing import detect
-from module1_intake.nlp.validation import EvidenceError, validate_medication, validate_understanding
+from module1_intake.nlp.understanding.providers import InferenceCategory, InferenceError, MockProvider, understand
+from module1_intake.nlp.understanding.routing import detect
+from module1_intake.nlp.understanding.validation import EvidenceError, validate_medication, validate_understanding
 from tests.unit.test_nlp import conversation, send
 
 

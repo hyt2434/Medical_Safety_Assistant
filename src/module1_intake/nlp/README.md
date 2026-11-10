@@ -1,191 +1,151 @@
-# Module 1 NLP chatbot MVP
+# NLP Chatbot MVP V2
 
-Vietnamese medication intake with reviewable raw evidence. Confirmation verifies
-the transcription, not product identity or clinical safety. The chatbot never
-prescribes, changes/stops treatment, generates first aid, or invents DDI results.
+Vietnamese medication intake and structured-first Q&A using local Ollama/Qwen and
+the existing Core V4 repository. Confirmation verifies transcription only, never
+product identity or clinical safety. Missing evidence never becomes a model-authored
+medical answer.
 
-Architecture, persistence contracts, specification mismatches and boundaries are
-documented in [CONTRACT_NOTES.md](CONTRACT_NOTES.md).
+| Document | Purpose |
+| --- | --- |
+| [Architecture](ARCHITECTURE.md) | Folder map, responsibilities, compatibility and safety contracts |
+| [Application API](API.md) | Frontend DTOs, host integration, service methods and capability limits |
+| [V2 design input](../../../docs/requirements/NLP_CHATBOT_MVP_DESIGN_V2.txt) | Original requirements; the implemented Core V4 contract takes precedence |
 
-## Install and run
+## Setup
 
-From the repository root, Python 3.10+ and installed NLP dependencies are required.
-Persisted dialogue additionally requires an already provisioned Core V4 database
-with the existing identity contract. The CLI never bootstraps a DB, imports
-reference data, creates users, or downloads an LLM.
-
-### Interactive real Ollama extraction (no PostgreSQL)
-
-With local Ollama running, `qwen3.5:9b` installed and the repository `.venv` ready:
+Run commands from the repository root. Python 3.10+, local Ollama with an installed
+`qwen3.5:9b`, and an existing development Core V4 deployment are needed for the
+persisted application. Stateless extraction and offline tests need no database.
 
 ```powershell
-& .\src\module1_intake\nlp\interactive_ollama.ps1
+# New checkout: create the environment, then install development requirements.
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r .\src\module1_intake\nlp\requirements-dev.txt
+$env:NLP_OLLAMA_URL = 'http://127.0.0.1:11434'
 ```
 
-Type Vietnamese medication sentences repeatedly, then `/exit` to quit (EOF and
-Ctrl+C also exit). For example:
+`requirements.txt` contains the three runtime packages: Pydantic, HTTPX and psycopg.
+`requirements-dev.txt` adds pytest. No embeddings, paid APIs or extra model packages
+are required. Application/extraction launchers reuse `.venv`; they never install
+packages, download models, bootstrap a database, create users or import reference
+data. Test-only bootstrap is an explicit option described below.
+
+## Run
+
+Stateless real-Qwen extraction:
+
+```powershell
+& .\src\module1_intake\nlp\interactive_ollama.ps1 -Model 'qwen3.5:9b' -TimeoutSeconds 120
+```
+
+Each input has an empty context. This tests extraction/validation only, without
+dialogue, confirmation or persistence. Enter `/exit`, EOF or Ctrl+C to finish.
+
+Persisted application:
+
+```powershell
+$nlpDsn = Read-Host 'Existing isolated development Core V4 DSN'
+$nlpOwner = Read-Host 'Existing synthetic identity.users UUID in that database'
+& .\src\module1_intake\nlp\application_ollama.ps1 `
+    -Dsn $nlpDsn -Owner $nlpOwner -Model 'qwen3.5:9b' -TimeoutSeconds 120
+```
+
+`-Owner` must identify an existing development user; generating an arbitrary UUID
+does not create that user. In the marked NLP test database, existing synthetic
+identities can be inspected with `SELECT id FROM identity.users ORDER BY id;`.
+Production hosts supply their authenticated owner as described in [API.md](API.md).
+
+At `app>`, enter one line at a time:
 
 ```text
-Tôi đang uống Panadol 500mg, mỗi sáng 1 viên. Bác sĩ kê 2 hộp.
-Có lẽ tôi đang dùng Vitamin C, không nhớ hàm lượng.
+Tôi được kê 2 hộp Panadol 500mg.
+Thêm vào danh sách; dạng viên nén.
+Sửa thuốc 1 thành Panadol 250mg.
+cách xác nhận
+/json
+xác nhận
+/handoff
 /exit
 ```
 
-This is **stateless NLP extraction testing**: each sentence receives an empty
-context. It does not test dialogue, confirmation, persistence or medication safety.
-It requires no owner, `CORE_DB_DSN`, database server or PostgreSQL driver imports.
-The existing `OllamaProvider`, current system prompt, Pydantic models and strict
-source evidence validation are reused. Output shows validated intent evidence,
-medication evidence, every raw slot, administrations, missing/unreported data
-slots, uncertain fields and ambiguity. Missing slots are not mandatory-field or
-safety judgments. Validated source text is displayed in the local terminal;
-prefer synthetic examples. Rejected output is never displayed: errors show safe
-categories, attempts and HTTP status, then the next input can be tried.
+Separate multiple drug clauses with `;`. Review every raw field before confirming.
+Use `/new` for another workflow, `/resume UUID` to restore an owned workflow, and
+`/revise` after completion to open corrections without changing confirmed history.
+`/json` shows the current frontend DTO. `-Workflow UUID` resumes at launcher startup.
 
-`ADD_MEDICATION` means an intake candidate, including a patient medication report
-or report of an existing prescription. It does not mean permission to save.
-`record_request_raw` displays an exact recognized explicit save/add request prefix
-when present; neither value authorizes confirmation. Combined timing evidence is
-retained (for example `timing_raw="sáng và tối"`) and `timing_slots_raw` exposes
-the two literal dayparts without choosing times or duplicating dose instructions.
-Alternatives and ranges remain combined. See [contract semantics](CONTRACT_NOTES.md)
-and [real Qwen before/after evaluation](INTENT_TIMING_REVIEW.md).
+Optional launcher arguments `-ReferenceBuild`, `-Module2Reference`, and `-DdiIndex`
+connect existing published Core REF, read-only Module 2 reference and Module 3 index
+respectively. `/identify`, `/assess`, and `/safety-answer` explicitly use those
+services after the required guards. Without the needed sources they report
+UNAVAILABLE; they never infer safety from a mapping ID or absent findings.
 
-The launcher restores its environment changes and accepts
-`-Model 'qwen3.5:9b' -TimeoutSeconds 120`.
-Direct CLI equivalent after setting `PYTHONPATH=./src`:
+The original development CLI remains available with `PYTHONPATH=./src`:
+`python -m module1_intake.nlp --provider mock --owner <existing-uuid>` and
+`python -m module1_intake.nlp --nlp-test`. Persisted mode also needs `CORE_DB_DSN`.
+The mock grammar is intentionally limited; it is not an NLP accuracy benchmark.
+
+## Regression tests
 
 ```powershell
-.\.venv\Scripts\python.exe -X utf8 -m module1_intake.nlp --nlp-test --model qwen3.5:9b
+# Offline: no database, real model, download or paid API.
+& .\src\module1_intake\nlp\test_mvp.ps1 -Dsn ''
+
+# Real Qwen extraction only; no PostgreSQL.
+& .\src\module1_intake\nlp\test_ollama.ps1 -Model 'qwen3.5:9b' -TimeoutSeconds 120
+
+# Complete suite, using the already provisioned isolated NLP fixture database.
+$nlpTestDsn = 'host=127.0.0.1 port=55432 dbname=msa_core_test_v4nlpresumechecks user=core_fixture_admin'
+& .\src\module1_intake\nlp\test_mvp.ps1 `
+    -Dsn $nlpTestDsn -RealOllama -Model 'qwen3.5:9b'
 ```
 
-### Persisted chatbot
+The full suite requires the existing local PostgreSQL server and installed model.
+Only loopback, marked databases named `msa_core_test_v4nlp<suffix>checks` are
+accepted. The marker is `Medication Safety Assistant Core V4 isolated test`.
+`msa_core_test_v4checks` and all shared/production databases are excluded by the
+test guard before connection/bootstrap. For a new synthetic fixture only, the
+same launcher accepts `-Bootstrap` and reuses the existing Core test helper.
+Omit `-Bootstrap` for an already provisioned database. Test fixture users and
+records stay in the dedicated NLP database.
+
+`-Dsn` enables PostgreSQL tests; `-RealOllama` sets `NLP_RUN_REAL_OLLAMA=1` for real
+inference, including combined Qwen/DB cases. Launchers restore their environment
+changes. Reports go to ignored `artifacts/nlp_mvp_v2/junit.xml`:
 
 ```powershell
-py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r src/module1_intake/nlp/requirements.txt
-$env:PYTHONPATH = (Resolve-Path ./src).Path
-$env:CORE_DB_DSN = Read-Host 'Existing development Core V4 DSN'
-$owner = Read-Host 'Existing development owner UUID'
-.\.venv\Scripts\python.exe -X utf8 -m module1_intake.nlp --provider mock --owner $owner
+[xml]$nlpReport = Get-Content -Raw .\artifacts\nlp_mvp_v2\junit.xml
+$nlpReport.testsuites.testsuite | Select-Object tests,failures,errors,skipped,time
 ```
 
-Demo sequence (mock grammar deliberately limited; scripted mocks cover wider tests):
+Current acceptance coverage: **142 offline**, **11 PostgreSQL with mock extraction**,
+**2 combined real-Qwen/PostgreSQL**, and **14 real-Qwen extraction** tests: **169**
+in total. Offline-only runs intentionally skip the other 27. Tests cover raw
+evidence, source timing, safe errors, owner/revision/digest gates, immutable
+corrections, side questions, resume, idempotent confirmation, grounded Q&A and the
+existing explicit Module 2/3 adapters. Five architecture checks protect aliases,
+46 captured public schema exports, dependency boundaries and inactive RAG.
+Synthetic engineering tests do not establish clinical validity or model accuracy.
 
-```text
-Tôi đang uống Panadol
-500mg, dạng viên nén
-sửa thuốc 1 thành Panadol 250mg
-cách xác nhận
-xác nhận
-/revise
-sửa thuốc 1 thành Panadol 500mg
-xác nhận
-/quit
-```
+## Diagnostics and limits
 
-For multiple drugs separate clauses with `;`. Only new explicit fragments are
-extracted. Use `--workflow <printed-workflow-uuid>` to resume and `/quit` to exit.
-The mock supports simple raw names, strengths, forms, count doses, schedules,
-durations and package quantities; it is not a Vietnamese accuracy benchmark.
+Ollama uses loopback HTTP `/api/chat`, JSON schema output, `think=false`,
+`stream=false`, temperature zero, no proxy inheritance and no redirects. Thinking
+must stay disabled: earlier Qwen runs exhausted generation on thinking and returned
+empty content. Incomplete envelopes, truncated output, invalid schemas and
+ungrounded spans remain rejected.
 
-For Ollama, start your local Ollama server and install a model separately. Then:
+`InferenceError` exposes safe category, attempt and HTTP status metadata only.
+Categories distinguish connectivity, timeout, HTTP status/envelope, incomplete or
+empty response, excessive size, JSON, schema, evidence and provider failures.
+Logs never include patient text, context, thinking, raw responses or exception
+bodies. On failure, use clarification or the host's manual-entry route; inference
+does not authorize writes or medication changes.
 
-```powershell
-ollama list
-$env:NLP_OLLAMA_MODEL = Read-Host 'Installed model tag from ollama list'
-$env:NLP_OLLAMA_URL = 'http://127.0.0.1:11434'
-$env:NLP_OLLAMA_TIMEOUT = '60'
-.\.venv\Scripts\python.exe -X utf8 -m module1_intake.nlp --provider ollama --owner $owner
-```
+Span/regex rules can conservatively reject unusual phrasing. Source-slot deletion,
+whole-turn recovery after arbitrary partial persistence failure, production HTTP
+authentication, candidate-resolution UI, clinical advice, reminders/HCP/summary
+execution and Phase B document retrieval remain outside this MVP.
 
-Ollama uses `/api/chat`, JSON schema `format`, `stream=false`, `think=false`,
-temperature zero, no proxy inheritance and no redirects. Only loopback HTTP endpoints are accepted.
-See [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs).
-Thinking is explicitly disabled for extraction; see [Ollama thinking controls](https://docs.ollama.com/capabilities/thinking).
-On local Ollama 0.40.15 with `qwen3.5:9b`, the original request used the default
-thinking mode and returned HTTP 200 with `done_reason="length"`, empty content,
-and 2,966 generated tokens. Pydantic then rejected the empty content as invalid
-JSON. The same Unicode-verified synthetic input and unchanged schema passed
-schema and evidence validation with only `think=false` added (45.4s failed vs
-3.5s successful on that warm local run). This was neither a connectivity failure
-nor a schema incompatibility; no evidence checks were relaxed.
-
-Real uncertainty testing also found that a nonempty model `uncertain_fields`
-list could suppress the validator's conservative flags for present core slots.
-Validation now unions those backend flags with the model list whenever explicit
-uncertainty is present, rather than trusting an incomplete model annotation.
-
-The provider now rejects incomplete envelopes and empty content before parsing.
-`understand()` retains bounded retries and raises `InferenceError` with a safe
-`.category`, `.http_status` and `.diagnostics` tuple (category, attempt number,
-HTTP status only). Categories distinguish connectivity, timeout, HTTP status,
-HTTP response/envelope, incomplete response, empty response, response size,
-JSON syntax, Pydantic schema, evidence and other provider errors. Warning logs
-contain only these allowlisted codes and numbers. Exceptions, response bodies,
-thinking, source text, context and Pydantic input/error locations are never
-included in diagnostics or logged by this module. The chatbot continues to ask
-for clarification/manual input on failure; inference never authorizes medication
-changes or confirmation.
-
-## Tests
-
-Offline tests require no DB, model, download, or paid API:
-
-```powershell
-$env:PYTHONPATH = (Resolve-Path ./src).Path
-.\.venv\Scripts\python.exe -X utf8 -m pytest -q tests/unit/test_nlp.py tests/unit/test_nlp_diagnostics.py tests/unit/test_nlp_interactive.py tests/unit/test_nlp_semantics.py
-```
-
-Run real Qwen extraction separately with one PowerShell command from the repository
-root (existing `.venv`, dependencies, local Ollama and downloaded model required):
-
-```powershell
-& .\src\module1_intake\nlp\test_ollama.ps1
-```
-
-This runs `tests/integration/test_nlp_ollama.py` with real local inference on
-synthetic text only: Panadol 500mg, both dose/timing orders, prescribed 2 hộp,
-two medications, missing fields, uncertainty, negation, a context-only name in a
-follow-up, and an actual missing-model HTTP 404. It also checks prescription
-reports versus explicit record requests, combined dayparts versus alternatives,
-and information questions. It accesses no database and does not install/download
-models. Tests require valid JSON, strict Pydantic types,
-exact source grounding, separate drug evidence and correct expected slots. The
-script restores its environment changes and fails if checks fail. Optional script
-parameters are `-Model 'qwen3.5:9b' -TimeoutSeconds 120`. These tests skip by
-default unless `NLP_RUN_REAL_OLLAMA=1`; mocked HTTP tests establish no real model
-inference or clinical accuracy. Synthetic extraction checks are not a clinical
-accuracy benchmark.
-
-Real PostgreSQL tests default to skip. They require a separate loopback, marked
-database named `msa_core_test_v4nlp<suffix>checks`; `msa_core_test_v4checks` and
-all other names are rejected before any connection/bootstrap. To create a new
-isolated synthetic fixture database using the EXISTING V4 bootstrap helper:
-
-```powershell
-$env:NLP_TEST_DSN = 'host=127.0.0.1 port=55432 dbname=msa_core_test_v4nlplocalchecks user=core_fixture_admin'
-$env:NLP_TEST_BOOTSTRAP = '1'
-.\.venv\Scripts\python.exe -X utf8 -m pytest -q tests/unit/test_nlp.py tests/integration/test_nlp_v4.py
-Remove-Item Env:NLP_TEST_BOOTSTRAP
-```
-
-Bootstrap applies existing immutable V4 migrations to this isolated database and
-creates test-only identity fixtures there through the existing helper. There are
-no reference imports or writes to an existing identity deployment. Synthetic test
-records are retained in the marked database for inspection. Do not use a shared
-DSN. For an already bootstrapped NLP fixture DB omit `NLP_TEST_BOOTSTRAP`.
-
-The DB tests exercise actual JSONB/enum/owner guards, raw quantities, displayed
-PostgreSQL hashes, immutable confirmed history, corrections, process resume and
-partial-confirmation retry. Unit tests use a repository spy solely as a test double.
-The PostgreSQL tests use mock inference. Real medication verification, broader
-LLM quality and end-to-end Module 2/3 behavior require separate evaluation and
-are not claimed.
-
-Known limits: conservative span/regex rules can reject valid unusual phrasing;
-an exact source substring is evidence of transcription, not proof of correct
-semantic interpretation. Complex abbreviation resolution, clinical interpretation,
-automatic retry of a whole turn after arbitrary persistence failures, source-slot
-deletion, external reference sources, RAG, fine-tuning, summaries, HCP sharing,
-symptom diagnosis and emergency instruction generation are outside this MVP.
+Keep local environments, secrets, caches, reports and test artifacts out of Git.
+All canonical modules, compatibility forwards, tests, contract fingerprints and
+four PowerShell launchers are maintained source.

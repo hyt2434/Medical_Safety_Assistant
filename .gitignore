@@ -61,15 +61,64 @@ node_modules/
 /tests/artifacts/
 
 # Document-specific output (other report PDFs/images remain trackable)
-/pa/pa0/project-proposal/main.pdf
-/pa/pa0/project-proposal/**/*.acn
-/pa/pa0/project-proposal/**/*.acr
-/pa/pa0/project-proposal/**/*.alg
-/pa/pa0/project-proposal/**/*.dvi
-/pa/pa0/project-proposal/**/*.ps
-/pa/pa1/vision-document/**/preview-*.png
-/pa/pa1/project-plan/**/preview-*.png
+/docs/pa/pa0/project-proposal/main.pdf
+/docs/pa/pa0/project-proposal/**/*.acn
+/docs/pa/pa0/project-proposal/**/*.acr
+/docs/pa/pa0/project-proposal/**/*.alg
+/docs/pa/pa0/project-proposal/**/*.dvi
+/docs/pa/pa0/project-proposal/**/*.ps
+/docs/pa/pa1/vision-document/**/preview-*.png
+/docs/pa/pa1/project-plan/**/preview-*.png
 # Temporary files and local datasets
 /tmp/
 # Local Module 1 OCR inputs and outputs may contain personal/medical data.
 /data/local/
+
+# Local runtime and evidence; keep canonical source and approved tracked data.
+/artifacts/
+/data/datasets/
+venv/
+env/
+ENV/
+.tox/
+.nox/
+__pypackages__/
+*.egg-info/
+.coverage
+.coverage.*
+coverage/
+htmlcov/
+coverage.xml
+junit*.xml
+pytest*.xml
+**/pgdata/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.ssh/
+credentials.json
+service-account*.json
+**/.hallmark/
+
+# Locally materialized OCR language weights.
+/src/module1_intake/ocr/node/ocr/tessdata/
+
+# Preserved standalone PA1 React prototype: generated output stays local.
+/docs/pa/pa1/react-prototype/dist/
+/docs/pa/pa1/react-prototype/test-results/
+/docs/pa/pa1/react-prototype/playwright-report/
+/docs/pa/pa1/react-prototype/artifacts/

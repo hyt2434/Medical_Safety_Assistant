@@ -7,9 +7,10 @@ from uuid import uuid4
 import pytest
 
 from tests.integration.test_nlp_v4 import connection
-from module1_intake.nlp.application import ApplicationService, ConfirmationRequest, TurnRequest
+from module1_intake.nlp.interfaces.application import ApplicationService, ConfirmationRequest, TurnRequest
 from module1_intake.nlp.models import DialogueAct, Intent, Medication, Understanding
-from module1_intake.nlp.providers import MockProvider, OllamaProvider
+from module1_intake.nlp.understanding.providers import MockProvider, OllamaProvider
+from module1_intake.nlp.qa_pipeline.contracts import RetrievalQuery
 from shared.db import CoreRepository
 
 
@@ -38,13 +39,18 @@ def test_real_core_pending_target_resume_and_owner_scoped_records(repo):
     assert r.next_action == 'SHOW_REVIEW' and len(r.entries) == 1
     assert len(restored.records.list(history=True)) == 2
     assert len(restored.records.list()) == 1
+    history = restored.records.retrieve(RetrievalQuery('Xem lịch sử thuốc', 'general'))
+    assert history.coverage == 'OWNER_SCOPED_HISTORY' and len(history.facts) == 2
     foreign = ApplicationService(CoreRepository(repo.db, authenticated_owner=uuid4()), MockProvider())
     assert foreign.records.list() == []
+    empty = foreign.records.retrieve(RetrievalQuery('Xem thuốc', 'general'))
+    assert len(empty.facts) == 1 and 'Chưa có bản ghi' in empty.facts[0].text
     with pytest.raises(PermissionError): foreign.resume(r.workflow_id)
     with pytest.raises(ValueError): send(restored, r.model_copy(update={'revision': r.revision - 1}), 'xác nhận')
     done = restored.confirm(ConfirmationRequest(workflow_id=r.workflow_id, revision=r.revision,
         request_key=uuid4(), explicit_confirmation=True))
     assert done.action_authorized and done.entries[0].confirmed
+    assert restored.resume(done.workflow_id).assistant_message == done.assistant_message
     assert restored.handoff(done.workflow_id).entries[0].medication.strength_raw == '500mg'
 
 
@@ -86,6 +92,7 @@ def test_real_core_explicit_module2_and_module3_adapters_with_existing_synthetic
     r = service.start(task=Intent.ADD_MEDICATION)
     r = send(service, r, text)
     r = send(service, r, 'không rõ')
+    r = send(service, r, 'không rõ')  # One unknown decision per medication target.
     r = service.confirm(ConfirmationRequest(workflow_id=r.workflow_id, revision=r.revision, request_key=uuid4(), explicit_confirmation=True))
     assert repo._one('SELECT count(*) AS n FROM msa.entry_matches WHERE user_id=%s',(repo.owner,))['n'] == 0
     matches = service.identify(r.workflow_id, dataset_build=build)
@@ -108,7 +115,8 @@ def test_real_core_explicit_module2_and_module3_adapters_with_existing_synthetic
 @pytest.fixture
 def qwen():
     if os.environ.get('NLP_RUN_REAL_OLLAMA') != '1': pytest.skip('Real Qwen opt-in required')
-    return OllamaProvider('qwen3.5:9b', timeout=120)
+    return OllamaProvider(os.environ.get('NLP_OLLAMA_MODEL', 'qwen3.5:9b'),
+        timeout=float(os.environ.get('NLP_OLLAMA_TIMEOUT', '120')))
 
 
 def test_real_qwen_multi_turn_core_purpose_correction_confirmation_and_resume(repo, qwen):

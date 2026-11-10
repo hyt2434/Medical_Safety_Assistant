@@ -1,4 +1,4 @@
-"""Inference-only types; product identities and clinical conclusions are forbidden."""
+"""Shared raw-evidence, handoff and entry-view contracts; no clinical authority."""
 from enum import Enum
 from typing import Literal
 from uuid import UUID
@@ -99,3 +99,13 @@ class Reply(StrictModel):
     revision: int
     state: str
     handoff: Module2Handoff | None = None
+
+
+class EntryView(StrictModel):
+    entry_version_id: UUID
+    item_id: UUID
+    content_digest: str
+    confirmed: bool
+    medication: Medication
+    slot_status: dict[str, str]
+    identity_status: Literal['NOT_ASSESSED'] = 'NOT_ASSESSED'

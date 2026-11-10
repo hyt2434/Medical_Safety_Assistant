@@ -7,15 +7,15 @@ import httpx
 import pytest
 from pydantic import ValidationError
 
-from module1_intake.nlp.application import ApplicationService, ConfirmationRequest, TurnRequest
-from module1_intake.nlp.hybrid_qa import GroundedComposer, HybridQA
+from module1_intake.nlp.interfaces.application import ApplicationService, ConfirmationRequest, TurnRequest
+from module1_intake.nlp.qa_pipeline.composition import GroundedComposer
+from module1_intake.nlp.qa_pipeline.pipeline import HybridQA
 from module1_intake.nlp.models import DialogueAct, Intent, Medication, Understanding
-from module1_intake.nlp.policy import CONTRACTS
-from module1_intake.nlp.providers import MockProvider, OllamaProvider, understand
-from module1_intake.nlp.retrieval import (
-    CoreReferenceRetriever, DisabledDocumentRetriever, EvidenceRef, Module2FactRetriever,
-    RetrievalQuery, RetrievalResult, VerifiedFact,
-)
+from module1_intake.nlp.dialogue_management.policy import CONTRACTS
+from module1_intake.nlp.understanding.providers import MockProvider, OllamaProvider, understand
+from module1_intake.nlp.qa_pipeline.contracts import EvidenceRef, RetrievalQuery, RetrievalResult, VerifiedFact
+from module1_intake.nlp.qa_pipeline.structured import CoreReferenceRetriever, Module2FactRetriever
+from module1_intake.nlp.qa_pipeline.rag.interface import DisabledDocumentRetriever
 from tests.unit.test_nlp import FakeCore, conversation, send
 
 
@@ -118,6 +118,15 @@ def test_reference_question_does_not_trigger_intake_slot_questions():
     assert 'chưa khả dụng' in r.text
 
 
+def test_two_unspecified_medications_need_targets_without_intake_or_assessment():
+    repo, bot, r = conversation(MockProvider([Understanding().model_dump_json()]))
+    r = send(bot, r, 'Kiểm tra hai thuốc này')
+    ctx = bot.store.workflow(r.workflow_id)['context']
+    assert ctx['active_intents'] == ['CHECK_INTERACTION']
+    assert ctx['pending_questions'][0]['field_key'] == 'interaction_target'
+    assert 'medication_entry_versions' not in repo.tables and 'safety_assessments' not in repo.tables
+
+
 def source_result():
     return RetrievalResult(status='WORKING', coverage='SYNTHETIC_TEST_ONLY', facts=[VerifiedFact(
         fact_id='fact1', text='Synthetic verified source statement.', source=EvidenceRef(
@@ -205,3 +214,84 @@ def test_frontend_requests_cannot_supply_owner_or_authorize_by_intent():
     with pytest.raises(ValueError, match='Explicit'):
         service.confirm(ConfirmationRequest(workflow_id=r.workflow_id, revision=r.revision,
             request_key=uuid4(), explicit_confirmation=False))
+
+
+def test_unknown_details_never_waive_another_or_new_medication():
+    repo, bot, r = conversation(MockProvider([
+        Understanding(medications=[Medication(name_raw='A', evidence_text='A'),
+                                   Medication(name_raw='B', evidence_text='B')]).model_dump_json(),
+        raw('thêm thuốc C', name_raw='C')]))
+    r = send(bot, r, 'A; B')
+    r = send(bot, r, 'không rõ')
+    pending = bot.store.workflow(r.workflow_id)['context']['pending_questions'][0]
+    entries = bot.store.entries(bot.store.workflow(r.workflow_id))
+    assert pending['target_id'] == str(entries[1]['id'])
+    assert r.state == 'CLARIFYING'
+    r = send(bot, r, 'không rõ')
+    assert r.state == 'AWAITING_CONFIRMATION'
+    r = send(bot, r, 'thêm thuốc C')
+    pending = bot.store.workflow(r.workflow_id)['context']['pending_questions'][0]
+    assert pending['target_id'] == str(bot.store.entries(bot.store.workflow(r.workflow_id))[2]['id'])
+    assert r.state == 'CLARIFYING'
+
+
+def test_unknown_cannot_resolve_ambiguous_correction_target():
+    repo, bot, r = conversation()
+    r = send(bot, r, 'Tôi đang uống A 500mg; đang dùng B 250mg')
+    r = send(bot, r, 'sửa hàm lượng 100mg')
+    assert bot.store.workflow(r.workflow_id)['context']['pending_questions'][0]['field_key'] == 'target_entry'
+    r = send(bot, r, 'không rõ')
+    assert r.state == 'CLARIFYING'
+    assert all(row['confirmed_at'] is None for row in bot.store.entries(bot.store.workflow(r.workflow_id)))
+
+
+def test_side_question_restores_exact_intake_slot_after_restart():
+    first, question, target, followup = 'Tôi đang uống A', 'Kiểm tra tương tác', 'B', '500mg, dạng viên nén'
+    provider = MockProvider([raw(first, name_raw='A'), Understanding().model_dump_json(),
+                            raw(target, name_raw='B'), raw(followup, strength_raw='500mg', dosage_form_raw='viên nén')])
+    repo = FakeCore()
+    service = ApplicationService(repo, provider)
+    r = service.start(task=Intent.ADD_MEDICATION)
+    r = service.send(TurnRequest(workflow_id=r.workflow_id, revision=r.revision, text=first))
+    pending = r.missing_blockers
+    r = service.send(TurnRequest(workflow_id=r.workflow_id, revision=r.revision, text=question))
+    assert r.missing_blockers[0]['field_key'] == 'interaction_target'
+    service = ApplicationService(repo, provider)
+    r = service.resume(r.workflow_id)
+    r = service.send(TurnRequest(workflow_id=r.workflow_id, revision=r.revision, text=target))
+    assert r.missing_blockers == pending
+    r = service.send(TurnRequest(workflow_id=r.workflow_id, revision=r.revision, text=followup))
+    assert r.state == 'AWAITING_CONFIRMATION' and len(r.entries) == 1
+    assert r.entries[0].medication.name_raw == 'A'
+
+
+def test_resume_shows_current_start_confirmation_and_cancellation_messages():
+    repo = FakeCore()
+    service = ApplicationService(repo, MockProvider())
+    r = service.start(task=Intent.ADD_MEDICATION)
+    assert service.resume(r.workflow_id).assistant_message == r.assistant_message
+    r = service.send(TurnRequest(workflow_id=r.workflow_id, revision=r.revision,
+        text='Tôi đang uống Panadol 500mg, dạng viên nén'))
+    r = service.send(TurnRequest(workflow_id=r.workflow_id, revision=r.revision, text='cách xác nhận'))
+    r = service.confirm(ConfirmationRequest(workflow_id=r.workflow_id, revision=r.revision,
+        request_key=uuid4(), explicit_confirmation=True))
+    restored = ApplicationService(repo, MockProvider()).resume(r.workflow_id)
+    assert restored.assistant_message == r.assistant_message
+    assert restored.dialogue_act == DialogueAct.CONFIRM and not restored.qa_results
+    r = service.revise(r.workflow_id)
+    r = service.send(TurnRequest(workflow_id=r.workflow_id, revision=r.revision, text='hủy'))
+    restored = service.resume(r.workflow_id)
+    assert restored.dialogue_act == DialogueAct.CANCEL and not restored.qa_results
+    assert restored.assistant_message == r.assistant_message and not restored.action_authorized
+
+
+def test_every_required_finding_survives_model_selection_window():
+    result = source_result()
+    result.facts.extend(VerifiedFact(fact_id=f'finding:{n}', text=f'Critical retained finding {n}.',
+        source=result.facts[0].source, required=True) for n in range(20))
+    provider = OllamaProvider('test', transport=httpx.MockTransport(lambda r: httpx.Response(200,
+        json={'done': True, 'message': {'content': '{"fact_ids":["fact1"]}'}})))
+    answer = GroundedComposer(provider).compose('question', result)
+    assert len(answer.evidence_refs) == 21
+    assert all(f'Critical retained finding {n}.' in answer.text for n in range(20))
+    assert answer.composition == 'QWEN_GROUNDED_SELECTION'

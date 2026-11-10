@@ -1,3 +1,8 @@
+Canonical application: this directory owns the current TypeScript/Vite PA2
+frontend. The earlier team-authored React PA1 implementation is preserved at
+[docs/pa/pa1/react-prototype](../../docs/pa/pa1/react-prototype/README.md), with its
+own assets, dependency lock and tests. Root `src/` contains Python modules only.
+
 # Tiểu Bạch — frontend TypeScript PA2
 
 **Bản đang chạy mặc định đã cập nhật theo UC-01–UC-18**, gồm 5 vai trò, hội thoại HCP, tóm tắt sức khỏe, reviewer, admin và technical support. Xem [hướng dẫn PA2](README-PA2.md) để chạy, kiểm thử và chụp ảnh vào báo cáo.
@@ -18,7 +23,7 @@ Phần dưới ghi lại bản PA1 trước khi nâng cấp. Bản này được
 
 ## Tham chiếu triển khai PA1
 
-Giao diện dựng lại bằng **TypeScript + Vite + CSS**, dùng bộ ảnh người dùng cung cấp tại `pa/pa1/ui-prototype/screenshots/` làm tham chiếu. Đây là ứng dụng có phần tử HTML và thao tác thật; không dùng ảnh chụp làm nền giao diện. Không thay đổi prototype PA1/PA2 hoặc báo cáo hiện có.
+Giao diện dựng lại bằng **TypeScript + Vite + CSS**, dùng bộ ảnh người dùng cung cấp tại `docs/pa/pa1/ui-prototype/screenshots/` làm tham chiếu. Đây là ứng dụng có phần tử HTML và thao tác thật; không dùng ảnh chụp làm nền giao diện. Không thay đổi prototype PA1/PA2 hoặc báo cáo hiện có.
 
 ## Chạy ứng dụng
 
