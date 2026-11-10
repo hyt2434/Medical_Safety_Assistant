@@ -1,12 +1,12 @@
-import re
+﻿import re
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from module1_intake.ocr.schemas import MedicationIntake, ExtractionRun, MedicationEntry
-from module1_intake.ocr.parser_models import Extraction
-from module1_intake.ocr.mapping import build_response
+from module1_intake.ocr.models.api import MedicationIntake, ExtractionRun, MedicationEntry
+from module1_intake.ocr.models.extraction import Extraction
+from module1_intake.ocr.application.mapping import build_response
 
 
 class ErdContractTest(unittest.TestCase):

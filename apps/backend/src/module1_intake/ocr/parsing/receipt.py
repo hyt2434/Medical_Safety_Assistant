@@ -1,7 +1,7 @@
 """Conservative receipt adapter. Missing OCR cells remain missing."""
 import re
 import statistics
-from .table_parser import plain, center
+from module1_intake.ocr.common.text_geometry import plain, center
 
 
 def extract_receipt(words):

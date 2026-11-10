@@ -2,7 +2,7 @@
 
 import argparse
 
-from .service import LocalOcrService
+from module1_intake.ocr.application import LocalOcrService
 
 
 def main() -> None:

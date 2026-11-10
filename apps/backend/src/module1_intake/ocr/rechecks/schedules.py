@@ -3,8 +3,8 @@ import json
 import subprocess
 import time
 
-from .numbered_parser import parse_timing_labels
-from .table_parser import plain
+from module1_intake.ocr.parsing.numbered import parse_timing_labels
+from module1_intake.ocr.common.text_geometry import plain
 
 
 def compare_schedules(original, candidate):

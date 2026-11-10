@@ -1,12 +1,12 @@
-import json
+﻿import json
 import subprocess
 import tempfile
 import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from module1_intake.ocr.parser_models import Extraction
-from module1_intake.ocr.receipt_retry import parse_candidate, retry_receipt
+from module1_intake.ocr.models.extraction import Extraction
+from module1_intake.ocr.rechecks.receipts import parse_candidate, retry_receipt
 
 
 class ReceiptRetryTests(unittest.TestCase):
@@ -25,7 +25,7 @@ class ReceiptRetryTests(unittest.TestCase):
         def recognize(command, **kwargs):
             Path(command[3]).write_text(json.dumps({'text': 'Product Viên 10 31.563 315.630'}), encoding='utf-8')
             return subprocess.CompletedProcess(command, 0)
-        with tempfile.TemporaryDirectory() as directory, patch('module1_intake.ocr.receipt_retry.subprocess.run', side_effect=recognize):
+        with tempfile.TemporaryDirectory() as directory, patch('module1_intake.ocr.rechecks.receipts.subprocess.run', side_effect=recognize):
             retry_receipt(Path('image'), Path('script'), Path(directory), extraction, time.monotonic()+30)
         item = extraction.receipt_items[0]
         self.assertEqual(item['unit_price_raw'], '31.565')
@@ -34,7 +34,7 @@ class ReceiptRetryTests(unittest.TestCase):
 
     def test_failure_does_not_remove_original(self):
         extraction = Extraction(receipt_items=[{'product_raw': 'Product', 'item_region': {'left': 0}, 'item_rechecks': []}])
-        with tempfile.TemporaryDirectory() as directory, patch('module1_intake.ocr.receipt_retry.subprocess.run', side_effect=subprocess.TimeoutExpired('node', 20)):
+        with tempfile.TemporaryDirectory() as directory, patch('module1_intake.ocr.rechecks.receipts.subprocess.run', side_effect=subprocess.TimeoutExpired('node', 20)):
             retry_receipt(Path('image'), Path('script'), Path(directory), extraction, time.monotonic()+30)
         self.assertEqual(extraction.receipt_items[0]['product_raw'], 'Product')
         self.assertEqual(extraction.receipt_items[0]['item_rechecks'][0]['error_code'], 'REGION_OCR_TIMEOUT')

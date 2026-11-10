@@ -13,19 +13,7 @@ from typing import Any
 Word = dict[str, Any]
 
 
-def split_product(text: str) -> tuple[str, str | None, bool]:
-    """Split only an unambiguous trailing strength; preserve complex labels."""
-    number = r"\d+(?:[.,]\d+)?"
-    unit = r"(?:mcg|mg|g|ml|%)"
-    component = rf"{number}\s*{unit}"
-    strength = rf"(?:\({component}(?:\s*\+\s*{component})*\)|{component})(?:\s*/\s*(?:g|ml))?"
-    match = re.fullmatch(rf"(?P<name>.+?)\s+(?P<strength>{strength})", text, re.I)
-    if match:
-        name = match.group('name')
-        # Nested strength/form/package descriptions are not safely separable.
-        if name.count('(') == name.count(')') and not re.search(component, name, re.I):
-            return name, match.group('strength'), False
-    return text, None, True
+from module1_intake.ocr.parsing.products import split_product
 
 
 def _plain(text: str) -> str:
@@ -119,22 +107,7 @@ def _has_hospital_header(words: list[Word], first: Word) -> bool:
     return False
 
 
-def extract_printed_prescription(raw: dict[str, Any]) -> dict[str, Any]:
-    """Convert Tesseract evidence into literal medication rows."""
-    words = raw.get("words") or []
-    from .receipt_parser import extract_receipt
-    receipt = extract_receipt(words)
-    if receipt is not None:
-        return receipt
-    from .table_parser import extract_quantity_table
-
-    table = extract_quantity_table(words)
-    if table is not None:
-        return table
-    from .numbered_parser import extract_numbered_prescription
-    numbered = extract_numbered_prescription(words)
-    if numbered is not None:
-        return numbered
+def extract_legacy_prescription(words):
     starters = find_numbered_row_starters(words)
     if not starters:
         raise ValueError("Không tìm thấy dãy số thứ tự thuốc liên tiếp")

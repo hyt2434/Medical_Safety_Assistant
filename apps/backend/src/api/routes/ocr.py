@@ -1,4 +1,4 @@
-"""Module 1 OCR endpoints."""
+﻿"""Module 1 OCR endpoints."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 
-from module1_intake.ocr.schemas import OcrResponse
-from module1_intake.ocr.service import LocalOcrService, OcrError
-from module1_intake.ocr.image_input import CONTENT_TYPES, DESCRIPTION
+from module1_intake.ocr.models.api import OcrResponse
+from module1_intake.ocr.application.service import LocalOcrService, OcrError
+from module1_intake.ocr.imaging.input import CONTENT_TYPES, DESCRIPTION
 
 router = APIRouter(prefix="/api/v1/ocr", tags=["Module 1 - OCR"])
 service = LocalOcrService()

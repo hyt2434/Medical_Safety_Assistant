@@ -1,8 +1,8 @@
-import tempfile
+﻿import tempfile
 import unittest
 from pathlib import Path
 from PIL import Image
-from module1_intake.ocr.image_input import prepare_image
+from module1_intake.ocr.imaging.input import prepare_image
 
 
 class ImageInputTests(unittest.TestCase):

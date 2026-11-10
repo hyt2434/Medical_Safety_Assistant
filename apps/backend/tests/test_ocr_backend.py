@@ -1,4 +1,4 @@
-import json
+﻿import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -6,10 +6,10 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from api.app import app
-from module1_intake.ocr.parser import extract_printed_prescription, find_numbered_row_starters, split_product
-from module1_intake.ocr.parser_models import Extraction
-from module1_intake.ocr.product_fields import parse_table_product
-from module1_intake.ocr.table_parser import reading_lines
+from module1_intake.ocr.parsing.dispatcher import extract_printed_prescription, find_numbered_row_starters, split_product
+from module1_intake.ocr.models.extraction import Extraction
+from module1_intake.ocr.parsing.products import parse_table_product
+from module1_intake.ocr.parsing.tables import reading_lines
 
 
 def word(text: str, x: int, y: int, confidence: float = 95) -> dict:

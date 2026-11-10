@@ -1,4 +1,4 @@
-# Backend
+# Module 1 OCR — Backend và hướng dẫn sử dụng
 
 Backend đầu tiên của Module 1 dùng Tesseract.js chạy hoàn toàn cục bộ để đọc
 đơn thuốc in. Kết quả là bản chép thô (`*_raw`) và luôn yêu cầu người dùng xác
@@ -73,6 +73,32 @@ thời điểm đã bị OCR bỏ mất hoàn toàn. Không suy đơn vị liề
 
 ### Bảng kê nhà thuốc và nhật ký
 
+CV toàn trang chạy trước OCR qua `imaging/preprocessing.py`: grayscale, phóng lớn có
+giới hạn. Khi cả hai bản parse được, CV phải bảo toàn các trường đã có và
+lịch dùng trước khi xét lợi ích thêm trường; xem `selection_blockers` để
+biết lý do giữ bản gốc. Kết quả CV vẫn lưu trong `comparisons` để đối chiếu.
+Pipeline cũng có CLAHE nhẹ có điều kiện, phóng lớn có
+giới hạn và CLAHE nhẹ có điều kiện. So sánh với OCR ảnh normalized; giữ gốc
+nếu CV không parse được hoặc thay đổi số mục. Không tự cắt trang/deskew ở
+phiên bản đầu. Kết quả chọn dựa trên cấu trúc, chưa bảo đảm chính xác chữ.
+Xem `raw_output.ocr.preprocessing` và `image_input.selected_variant`.
+Ảnh và bằng chứng hai phiên bản được lưu cục bộ trong
+`data/local/module1/runs/<extraction_run_id>/`, đã gitignore nhưng chưa tự xóa.
+Cài lại requirements khi cập nhật để có `opencv-python-headless`.
+
+Đơn đánh số có `strength_structure` được OCR lại vùng sản phẩm (gốc, phóng
+2x, phóng 2x + autocontrast). Xem `medications[].product_rechecks` trong
+`raw_output.parsed`: ứng viên và bằng chứng không ghi đè trường gốc. Tọa độ
+OCR mới thuộc crop; dùng `preprocessing.source_region` và `scale` để quy về
+ảnh được chọn cho OCR. `components_raw` giữ từng cặp tên–hàm lượng đọc được
+trong bảng nhiều thành phần; không gộp thành một hàm lượng. `product_review_candidates`
+nhóm ứng viên để giao diện xác nhận, tham chiếu chỉ số 0-based trong `product_rechecks`.
+Các ứng viên luôn PENDING, không tự ghi đè trường gốc hoặc bản ghi database.
+Đọc lại cả `strength_structure` và `product_structure`
+khi có vùng sản phẩm; tối đa 18 lượt trong deadline request chung.
+`administrations[].timing_normalized` là morning/noon/afternoon/evening;
+giữ nguyên `timing_raw`, không suy giờ uống hoặc tự xác nhận dữ liệu.
+
 Ảnh đầu vào: JPG/JPEG/JPE, PNG, WebP, BMP, TIFF/TIF và GIF một khung hình.
 File `.jpe` dùng MIME `image/jpeg`, cùng bộ giải mã với JPG/JPEG.
 Cài dependency bằng `python -m pip install -r requirements.txt` trong backend.
@@ -92,7 +118,7 @@ không ghi đè trường gốc. `field_status: not_extracted` nghĩa là chưa 
 được, không khẳng định trường đó không có trên ảnh. Giá trị đã đọc vẫn chưa
 được xác minh (`extracted_unconfirmed`). So sánh giá hiện theo chuỗi raw nên
 khác định dạng như 4620/4.620 cũng cần đối chiếu.
-Nhật ký vấn đề, giải pháp, kết quả và mở rộng: [OCR development log](../../docs/ocr-development-log.md).
+Nhật ký vấn đề, giải pháp, kết quả và mở rộng: [OCR development log](../../../../../docs/ocr-development-log.md).
 
 Thử OCR riêng vùng (chạy từ thư mục gốc repository):
 
@@ -168,3 +194,62 @@ CLAHE, cân bằng nền sáng, threshold thích nghi và xoay theo góc ước 
 $env:PYTHONPATH = "apps/backend/src"
 python -m module1_intake.ocr data/local/module1/test.png
 ```
+
+## Xác nhận hoặc tải lại ảnh
+
+`raw_output.parsed.review_guidance` cho biết cần `CONFIRM_FIELDS` hay
+`REUPLOAD_OR_MANUAL_REVIEW`. Khi OCR chạy xong nhưng chưa tách được cấu trúc,
+response giữ văn bản OCR và danh sách thuốc rỗng. Đây không phải kết luận ảnh mờ.
+`unresolved_ordinals` phản ánh lỗi tách sản phẩm, không bao gồm mọi lỗi chữ hoặc liều.
+
+Nhánh `quantity_table` giữ nội dung ngoặc trong `parenthetical_raw`, hỗ trợ hàm lượng
+phối hợp và dung tích; không mặc định nội dung ngoặc là hoạt chất.
+
+## Cấu trúc code
+
+Controller HTTP nằm tại `src/api/routes/ocr.py`. Module này không có controller thứ hai và chưa có repository database.
+
+```text
+ocr/
+  __init__.py         API Python công khai của module
+  __main__.py         Chạy OCR trực tiếp từ dòng lệnh
+  application/
+    service.py        Điều phối xử lý và ngân sách thời gian
+    mapping.py        Ánh xạ kết quả sang bản ghi nháp
+    selection.py      So sánh kết quả ảnh chuẩn hóa/CV
+  models/
+    api.py            Hợp đồng response theo ERD
+    extraction.py     Dữ liệu phân tích OCR mở rộng
+  common/
+    __init__.py       Công khai helper dùng chung
+    text_geometry.py  Chuẩn hóa chữ, tọa độ, gom dòng dùng chung
+  imaging/
+    input.py          Kiểm tra định dạng, EXIF, chuẩn hóa PNG
+    preprocessing.py Tiền xử lý ảnh
+  parsing/
+    dispatcher.py     Chọn parser; không tự sửa kết quả
+    legacy.py         Bố cục đơn thuốc ban đầu
+    numbered.py       Bố cục đánh số, lịch dùng
+    tables.py         Bảng theo cột số lượng
+    strength_table.py Bảng STT/hàm lượng
+    headerless.py     Danh sách không có tiêu đề bảng
+    receipt.py        Bảng kê nhà thuốc
+    products.py       Các quy tắc tách sản phẩm theo bố cục
+  rechecks/
+    products.py       Đọc lại vùng sản phẩm
+    schedules.py      Đọc lại vùng lịch dùng
+    receipts.py       Đọc lại vùng mặt hàng
+  node/               Tesseract.js và dữ liệu runtime hiện có
+```
+
+Luồng: route → service → imaging → Tesseract → parsing → selection/rechecks → mapping → response.
+
+Các file chuyển tiếp tên cũ đã được bỏ sau khi toàn bộ backend, script và test
+chuyển sang import theo package mới. `common/__init__.py`, `models/__init__.py`
+và `application/__init__.py` công khai các thành phần được phép dùng từ ngoài.
+
+Model API và model phân tích giữ riêng vì response theo ERD khác dữ liệu OCR
+mở rộng. Các quy tắc tách sản phẩm tập trung trong `parsing/products.py` nhưng
+vẫn giữ từng chính sách bố cục để không thay đổi hành vi trích xuất.
+
+Các bước retry vẫn có chính sách riêng và lời gọi subprocess riêng; chưa thay đổi cách chạy engine/timeout trong đợt sắp xếp này. Người dùng vẫn phải xác nhận dữ liệu trước khi sử dụng.

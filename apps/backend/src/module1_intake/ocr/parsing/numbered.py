@@ -3,7 +3,7 @@
 import re
 import statistics
 
-from .table_parser import center, plain, reading_lines
+from module1_intake.ocr.common.text_geometry import center, plain, reading_lines
 
 
 def parse_timing_labels(instructions):
@@ -24,6 +24,7 @@ def parse_timing_labels(instructions):
             dose = re.fullmatch(r'\d+(?:[.,]\d+)?(?:\s*(?:viên|vien|ml|gói|goi|ống|ong|giọt|giot))?', value, re.I)
             administrations.append({
                 'timing_raw': label[1],
+                'timing_normalized': {'sang': 'morning', 'trua': 'noon', 'chieu': 'afternoon', 'toi': 'evening'}[plain(label[1])],
                 'dose_raw': value if dose else None,
                 'source_text': (line[label.start():label.end()] + segment).strip(),
                 'issue': None if dose else 'unreadable_dose',
@@ -55,25 +56,7 @@ def numbered_starters(words):
     return max(runs, key=len, default=[])
 
 
-def product_fields(text):
-    """Recognize complete strength expressions, leaving unsupported suffixes raw."""
-    result = {'name_raw': None, 'strength_raw': None,
-              'ingredient_raw': None, 'package_size_raw': None}
-    flat = re.sub(r'\s+', ' ', text).strip()
-    ingredient = re.search(r'\(([^()]*)\)\s*$', flat)
-    if ingredient and not re.match(r'^\s*\d+(?:[.,]\d+)?\s*(?:mcg|mg|g|%)', ingredient[1], re.I):
-        result['ingredient_raw'] = ingredient[1]
-        flat = flat[:ingredient.start()].strip()
-    number = r'\d+(?:[.,]\d+)?'
-    component = rf'{number}\s*(?:mcg|mg|g|%)'
-    expression = rf'(?:\({component}(?:\s*\+\s*{component})*\)|{component}(?:\s*\+\s*{component})*)(?:\s*/\s*(?:{number}\s*)?(?:ml|g))?'
-    match = re.fullmatch(rf'(?P<name>.+?)\s+(?P<strength>{expression})(?:\s*-\s*(?P<package>{number}\s*ml))?', flat, re.I)
-    if match:
-        if re.search(component, match['name'], re.I) and not re.search(r'\[.*?\]\s*$', match['name']):
-            return result, ['product_structure', 'strength_raw']
-        result.update(name_raw=match['name'], strength_raw=match['strength'], package_size_raw=match['package'])
-        return result, (['ingredient_raw'] if ingredient else [])
-    return result, ['product_structure', 'strength_raw']
+from module1_intake.ocr.parsing.products import parse_numbered_product as product_fields
 
 
 def extract_numbered_prescription(words):
@@ -121,6 +104,7 @@ def extract_numbered_prescription(words):
         left_bottom = center(starters[index+1]) - height * .6 if index+1 < len(starters) else end
         left_words = [w for w in relevant if left_top <= center(w) < left_bottom
                       and w['bbox']['x0'] < boundary and w is not starter]
+        evidence_left = [starter, *left_words]
         attached_name = re.sub(r'^\d{1,2}[.)/]', '', starter['text'].strip())
         if attached_name:
             left_words.append({**starter, 'text': attached_name})
@@ -140,6 +124,20 @@ def extract_numbered_prescription(words):
                 instruction_index = i
                 break
         product = '\n'.join(lines[:instruction_index])
+        groups = []
+        for word in sorted(left_words, key=center):
+            if not groups or abs(center(word) - statistics.median(center(w) for w in groups[-1])) > height * .8:
+                groups.append([word])
+            else:
+                groups[-1].append(word)
+        product_words = [w for group in groups[:instruction_index] for w in group]
+        product_region = None
+        if product_words:
+            x0 = max(0, int(min(w['bbox']['x0'] for w in product_words) - 3))
+            y0 = max(0, int(min(w['bbox']['y0'] for w in product_words) - 3))
+            product_region = {'left': x0, 'top': y0,
+                              'width': int(min(boundary - 2, max(w['bbox']['x1'] for w in product_words) + 3) - x0),
+                              'height': int(max(w['bbox']['y1'] for w in product_words) + 3 - y0)}
         instructions = '\n'.join(lines[instruction_index:]) or None
         fields, flags = product_fields(product)
         if not quantity:
@@ -154,14 +152,18 @@ def extract_numbered_prescription(words):
             flags.append('instructions_raw')
         else:
             flags.append('instructions_raw')
-        if any(w.get('confidence', 0) < 85 for w in row):
+        evidence_words = evidence_left + right_words
+        if any(w.get('confidence', 0) < 85 for w in evidence_words):
             flags.append('ocr_low_confidence')
-        route = re.search(r'\b(Uống|Dùng ngoài)\b', instructions or '', re.I)
+        route = re.search(r'\b(Uống|Dùng ngoài|Xịt)\b', instructions or '', re.I)
+        frequency = re.search(r'\bngày\s+\d+\s+lần\b', instructions or '', re.I)
         # Coordinates belong to the same input image used by Tesseract.
         usage_words = [w for w in left_words
                        if plain(w['text']).startswith(('cach', '(cach'))]
         region = None
-        if usage_words:
+        # A spray instruction without time-of-day labels is not a lost oral schedule.
+        explicit_spray = route is not None and plain(route[0]) == 'xit' and not administrations
+        if usage_words and not explicit_spray:
             region_top = int(starter['bbox']['y1'] + 2)
             region_bottom = int(min(w['bbox']['y0'] for w in usage_words) - 2)
             region_left = max(0, int(min(w['bbox']['x0'] for w in left_words) - height * .4))
@@ -171,13 +173,15 @@ def extract_numbered_prescription(words):
                           'width': region_right - region_left,
                           'height': region_bottom - region_top}
         medications.append({'product_raw': product, **fields,
+                            'product_region': product_region,
                             'duration_raw': quantity[1] if quantity else None,
                             'quantity_raw': quantity[2] if quantity else None,
                             'instructions_raw': instructions,
                             'route_raw': route[0] if route else None,
+                            'frequency_raw': frequency[0] if frequency else None,
                             'administrations': administrations,
                             'schedule_region': region,
-                            'evidence_text': '\n'.join(reading_lines(row, height * .8)),
+                            'evidence_text': '\n'.join(reading_lines(evidence_words, height * .8)),
                             'uncertain_fields': list(dict.fromkeys(flags)),
                             'schedule_requires_review': True})
     if matched < 2:

@@ -1,9 +1,9 @@
-import json
+﻿import json
 import unittest
 from pathlib import Path
-from module1_intake.ocr.receipt_parser import extract_receipt
-from module1_intake.ocr.parser_models import Extraction
-from module1_intake.ocr.parser import extract_printed_prescription
+from module1_intake.ocr.parsing.receipt import extract_receipt
+from module1_intake.ocr.models.extraction import Extraction
+from module1_intake.ocr.parsing.dispatcher import extract_printed_prescription
 
 
 class ReceiptTests(unittest.TestCase):

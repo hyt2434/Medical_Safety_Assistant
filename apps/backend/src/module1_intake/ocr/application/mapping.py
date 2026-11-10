@@ -1,8 +1,8 @@
 """Map parser output into ERD drafts without inventing patient identity."""
 from datetime import datetime
 from uuid import UUID
-from .parser_models import Extraction
-from .schemas import ExtractionRun, MedicationEntry, OcrResponse
+from module1_intake.ocr.models.extraction import Extraction
+from module1_intake.ocr.models.api import ExtractionRun, MedicationEntry, OcrResponse
 
 
 def build_response(raw: dict, extraction: Extraction, run_id: UUID,

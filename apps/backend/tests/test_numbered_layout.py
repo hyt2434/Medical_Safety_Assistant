@@ -1,10 +1,10 @@
-import json
+﻿import json
 import unittest
 from pathlib import Path
 
-from module1_intake.ocr.numbered_parser import numbered_starters, product_fields, extract_numbered_prescription, parse_timing_labels
-from module1_intake.ocr.parser import extract_printed_prescription
-from module1_intake.ocr.parser_models import Extraction
+from module1_intake.ocr.parsing.numbered import numbered_starters, product_fields, extract_numbered_prescription, parse_timing_labels
+from module1_intake.ocr.parsing.dispatcher import extract_printed_prescription
+from module1_intake.ocr.models.extraction import Extraction
 
 
 def word(text, x, y):
@@ -17,6 +17,10 @@ class NumberedLayoutTests(unittest.TestCase):
         self.assertEqual(len(starters), 2)
         fields, flags = product_fields('Brand [CODE] 500mg ar 20mg (Alpha + Beta)')
         self.assertIsNone(fields['strength_raw'])
+        self.assertEqual(fields['name_raw'], 'Brand [CODE]')
+        self.assertIn('strength_structure', flags)
+        unclear, flags = product_fields('Brand 500mg ar 20mg (Alpha + Beta)')
+        self.assertIsNone(unclear['name_raw'])
         self.assertIn('product_structure', flags)
 
     def test_jpe_layout(self):
@@ -29,6 +33,15 @@ class NumberedLayoutTests(unittest.TestCase):
         self.assertTrue(meds[1]['product_raw'].startswith('Miderix'))
         self.assertIsNone(meds[0]['strength_raw'])
         self.assertIsNone(meds[1]['strength_raw'])
+        self.assertEqual(meds[0]['name_raw'], 'Neso [KDNT]')
+        self.assertEqual(meds[1]['name_raw'], 'Miderix [KDNT]')
+        self.assertEqual(meds[-1]['route_raw'], 'Xịt')
+        self.assertEqual(meds[-1]['frequency_raw'], 'ngày 2 lần')
+        self.assertEqual(meds[-1]['administrations'], [])
+        self.assertIsNone(meds[-1]['schedule_region'])
+        for index, medication in enumerate(meds, 1):
+            self.assertTrue(medication['evidence_text'].startswith(f'{index}.'))
+            self.assertIn(medication['instructions_raw'], medication['evidence_text'])
         self.assertEqual(meds[3]['strength_raw'], '120mg + 55mg + 2mcg + 8mcg')
         self.assertNotIn('Page', meds[-1]['instructions_raw'])
         self.assertTrue(all('sau ăn' in m['instructions_raw'] for m in meds[:4]))

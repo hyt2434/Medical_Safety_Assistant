@@ -4,29 +4,10 @@ import re
 import statistics
 import unicodedata
 
-from .product_fields import parse_table_product
+from module1_intake.ocr.parsing.products import parse_table_product, parse_quantity_product
 
 
-def plain(text):
-    return ''.join(c for c in unicodedata.normalize('NFD', text.lower())
-                   if unicodedata.category(c) != 'Mn').replace('đ', 'd')
-
-
-def center(word):
-    return (word['bbox']['y0'] + word['bbox']['y1']) / 2
-
-
-def reading_lines(words, tolerance):
-    """Cluster by vertical centers, then read left-to-right within each line."""
-    lines = []
-    for word in sorted(words, key=center):
-        if not lines or abs(center(word) - statistics.median(center(w) for w in lines[-1])) > tolerance:
-            lines.append([word])
-        else:
-            lines[-1].append(word)
-    return [' '.join(w['text'] for w in sorted(line, key=lambda w: w['bbox']['x0']))
-            for line in lines]
-
+from module1_intake.ocr.common.text_geometry import plain, center, reading_lines
 
 def extract_quantity_table(words):
     """Return None unless both table headings and aligned row markers exist.
@@ -45,7 +26,7 @@ def extract_quantity_table(words):
         quantity_header = next(w for w in heading if plain(w['text']).strip(':.') == 'so')
         break
     else:
-        return None
+        return extract_quantity_only_table(words)
 
     left = header['bbox']['x0'] - height * 5
     quantity_x = quantity_header['bbox']['x0']
@@ -125,3 +106,71 @@ def extract_quantity_table(words):
     return {'medications': medications, 'document_instructions_raw': [],
             'warnings': ['Bảng thuốc được tách theo cột số lượng; tên, hàm lượng và hướng dẫn cần xác nhận.'],
             'requires_user_review': True}
+
+
+def extract_quantity_only_table(words):
+    """Require slash ordinals plus an aligned X/quantity column on every row."""
+    markers = sorted([w for w in words if re.fullmatch(r'\d+/', w['text'])], key=center)
+    if len(markers) < 2:
+        return None
+    h = statistics.median(w['bbox']['y1']-w['bbox']['y0'] for w in markers)
+    if h <= 0 or max(w['bbox']['x0'] for w in markers)-min(w['bbox']['x0'] for w in markers) > h*2:
+        return None
+    heading = plain(' '.join(w['text'] for w in words if center(w) < center(markers[0])))
+    if not re.search(r'so\s+luong', heading):
+        return None
+    footer = [w['bbox']['y0'] for w in words if center(w) > center(markers[-1])
+              and plain(w['text']).strip(':') in ('loi','ghi')
+              and abs(w['bbox']['x0']-markers[0]['bbox']['x0']) < h*4]
+    if not footer:
+        return None
+    anchors = []
+    for marker in markers:
+        matches = [w for w in words if re.fullmatch(r'[xX]\d*', w['text'])
+                   and w['bbox']['x0'] > marker['bbox']['x1']+h*5
+                   and abs(center(w)-center(marker)) <= h*2]
+        if len(matches) != 1:
+            return None
+        anchors.append(matches[0])
+    if max(w['bbox']['x0'] for w in anchors)-min(w['bbox']['x0'] for w in anchors) > h*2:
+        return None
+    medications = []
+    for i, (marker, anchor) in enumerate(zip(markers, anchors)):
+        bottom = min(center(markers[i+1]),center(anchors[i+1]))-h if i+1 < len(markers) else min(footer)
+        top = min(center(marker),center(anchor))-h
+        row = [w for w in words if top <= center(w) < bottom]
+        quantity = sorted([w for w in row if w['bbox']['x0'] >= anchor['bbox']['x0']
+                           and abs(center(w)-center(anchor)) <= h], key=lambda w:w['bbox']['x0'])
+        q = re.sub(r'^[xX]\s*', '', ' '.join(w['text'] for w in quantity))
+        if not re.fullmatch(r'\d+\s+(?:vien|lo|goi|chai|ong|tuyp)', plain(q)):
+            return None
+        left = [w for w in row if marker['bbox']['x0']-h <= w['bbox']['x0'] < anchor['bbox']['x0'] and w is not marker]
+        lines = reading_lines(left, h*.7)
+        if not lines:
+            return None
+        product = lines.pop(0)
+        while lines and product.count('(') > product.count(')'):
+            if re.search(r'\b(?:uong|boi|ngay|sang|toi)\b', plain(lines[0])):
+                break
+            product += '\n'+lines.pop(0)
+        if not lines:
+            return None
+        fields, flags = parse_quantity_product(product)
+        # Bound the product above the first usage line, preserving wrapped description.
+        usage = [w for w in left if w['text'] in lines[0].split()]
+        cutoff = min((w['bbox']['y0'] for w in usage), default=bottom)
+        product_words = [w for w in left if center(w) < cutoff]
+        region = None
+        if product_words:
+            x0 = min(w['bbox']['x0'] for w in product_words)
+            y0 = min(w['bbox']['y0'] for w in product_words)
+            region = {'left': x0, 'top': y0,
+                      'width': max(w['bbox']['x1'] for w in product_words)-x0,
+                      'height': max(w['bbox']['y1'] for w in product_words)-y0}
+        medications.append({'product_raw': product, **fields, 'quantity_raw': q,
+            'product_region': region, 'product_parser': 'quantity_table',
+            'instructions_raw': '\n'.join(lines), 'evidence_text': '\n'.join(reading_lines(row,h*.7)),
+            'uncertain_fields': flags+['row_number_unverified','instructions_raw','ocr_low_confidence'],
+            'schedule_requires_review': True})
+    return {'medications':medications,'requires_user_review':True,
+            'warnings':['Tách theo cột số lượng và dấu thứ tự; ordinal là vị trí mục, số OCR trong evidence chưa được xác minh.']}
