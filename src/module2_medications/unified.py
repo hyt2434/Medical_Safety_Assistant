@@ -12,25 +12,15 @@ from shared.paths import ProjectPath as Path, PROJECT_ROOT
 import re
 import sqlite3
 from shared.dav_import.common import digest, dumps, file_hash
-from shared.dav_import.normalize import parse_strength
 from .curated import CuratedFactReference
-from .ingredients import parse_ingredients, _split
+from .ingredients import parse_ingredients
 from .research import ResearchSupplementReference
 from .terminology import DirectDDInter, load_ddinter
-from .text import clean, key, brand_key, registration, form_key
+from .text import clean, key, brand_key, registration, normalized_form, strength_signature
 from .audit import audit_dataset
 
 VERSION = 'module2.unified_research.v1'
 CONFIG_VERSION = 'module2.unified_config.v1'
-FORMS = {
-    'tablet, film coated': 'film_coated_tablet', 'tablet, coated': 'coated_tablet',
-    'tablet, extended release': 'extended_release_tablet',
-    'tablet, delayed release': 'delayed_release_tablet',
-    'capsule, delayed release': 'delayed_release_capsule',
-    'capsule, extended release': 'extended_release_capsule',
-    'injection, solution': 'injection_solution', 'solution for injection': 'injection_solution',
-    'injection, suspension': 'injection_suspension', 'solution for injection in pre-filled pen': 'injection_solution_in_pre_filled_pen',
-}
 SCHEMA = '''
 CREATE TABLE IF NOT EXISTS u_metadata(key TEXT PRIMARY KEY, value_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS u_observations(id TEXT PRIMARY KEY, path TEXT NOT NULL,
@@ -81,23 +71,9 @@ def discover_sources(project):
     if set(selected) != {1,2,3}: raise ValueError('Final Batch 1 and Batch 2 paths not resolved from Batch 3')
     return [selected[b].resolve() for b in (1,2,3)]
 
-def normalized_form(value):
-    value = key(value)
-    return FORMS.get(value, form_key(value))
-
-def strength_signature(value):
-    """Only explicit dose separators and the existing unit grammar are normalized."""
-    value = clean(value)
-    if not value: return ('raw', '')
-    try: parts = _split(value)
-    except ValueError: return ('raw', key(value))
-    strengths = [parse_strength(p) for p in parts]
-    if any(p['status'] != 'PARSED' for p in strengths): return ('raw', key(value))
-    return tuple(tuple(p[f] for f in ('amount','unit','denominator_amount','denominator_unit')) for p in strengths)
-
 def normalized_strength(value):
     signature = strength_signature(value)
-    if signature[0] == 'raw': return clean(value)
+    if signature[0] in {'raw', 'named'} or any('/' in part[0] for part in signature): return clean(value)
     pieces = []
     for amount, unit, denominator, denominator_unit in signature:
         text = amount+' '+unit

@@ -4,20 +4,28 @@ from module3_interactions.engine import assess
 from .ingredients import parse_ingredients
 
 
-def identify(medication, reference, terminology):
+def identify(medication, reference, terminology=None):
     lookup = reference.lookup(medication)
     result = {'schema_version': 'module2.medication_identity.v1', 'original_medication': deepcopy(medication),
         **lookup, 'identified_candidate': None, 'ingredients': [], 'verified_ddinter_ids': [],
         'mapping_status': 'UNRESOLVED', 'ready_for_identifier_handoff': False,
         'requires_hcp_review': True, 'interaction_assessment': 'NOT_PERFORMED'}
     if len(lookup['candidates']) != 1:
+        if lookup['candidates']:
+            result['mapping_status'] = 'REVIEW_REQUIRED'
         return result
     candidate = lookup['candidates'][0]
     result['identified_candidate'] = candidate
     raw = candidate['product']
-    parsed = parse_ingredients(raw.get('ingredients'), raw.get('strength'))
+    core_mappings = hasattr(reference, 'mapped_ingredients')
+    if core_mappings:
+        result['ingredients'], parsed = reference.mapped_ingredients(candidate)
+    else:
+        if terminology is None:
+            raise ValueError('Legacy reference identification requires terminology')
+        parsed = parse_ingredients(raw.get('ingredients'), raw.get('strength'))
     result['ingredient_extraction'] = parsed
-    for item in parsed['ingredients']:
+    for item in ([] if core_mappings else parsed['ingredients']):
         mapped = terminology.match(item['normalized_ingredient'])
         mapped.update(original_ingredient=item['original_ingredient'],
             normalized_ingredient=item['normalized_ingredient'], strength_raw=item['strength_raw'],
@@ -35,8 +43,10 @@ def identify(medication, reference, terminology):
     result['mapping_status'] = 'VERIFIED' if complete else 'REVIEW_REQUIRED' if result['ingredients'] else 'UNRESOLVED'
     result['verified_ddinter_ids'] = list(dict.fromkeys(x['ddinter_id'] for x in result['ingredients']
                                                        if x['mapping_status'] == 'VERIFIED'))
+    result['approved_ddinter_ids'] = sorted({identifier for x in result['ingredients']
+                                            for identifier in x.get('candidate_ddinter_ids', [])}) if core_mappings else list(result['verified_ddinter_ids'])
     confirmed = medication.get('transcription_status') in {'USER_CONFIRMED_TRANSCRIPTION', 'VERIFIED'}
-    if not confirmed:
+    if not confirmed or medication.get('uncertain_fields') or medication.get('uncertainty_issues') or medication.get('uncertainty_raw'):
         result['identification_status'] = 'REVIEW_REQUIRED'
         result['issues'].append('MODULE1_TRANSCRIPTION_REVIEW_REQUIRED')
     result['ready_for_identifier_handoff'] = complete and result['identification_status'] == 'VERIFIED'
@@ -53,16 +63,21 @@ def module3_input(result, medication_id, prescription_ids):
     return {'medication_id': medication_id, 'prescription_ids': deepcopy(prescription_ids),
         'brand_name': medication.get('brand_name') or medication.get('name_raw'),
         'identity_status': identity, 'identity_evidence': deepcopy(candidate['source_evidence']) if candidate else [],
-        'source_kind': 'synthetic_fixture' if medication.get('synthetic_fixture') else result.get('reference_kind', 'DAV_reference'),
+        'source_kind': 'synthetic_fixture' if medication.get('synthetic_fixture') or
+                       (candidate and candidate.get('synthetic_fixture')) else result.get('reference_kind', 'DAV_reference'),
+        'dataset_build': result.get('dataset_build'),
         'identity_verification_scope': result.get('identity_verification_scope', 'historical_product_identity_not_clinical'),
         'upstream_review_issues': deepcopy(result['issues']),
         'ingredients': [{'name': x['ddinter_generic_name'] or x['normalized_ingredient'],
             'original_ingredient_name': x['original_ingredient'], 'strength': x['strength_raw'],
             'ddinter_id': x['ddinter_id'], 'mapping_status': x['mapping_status'],
+            'candidate_ddinter_ids': deepcopy(x.get('candidate_ddinter_ids', [])),
+            'dataset_build': x.get('dataset_build'), 'component_id': x.get('component_id'),
+            'ddinter_mappings': deepcopy(x.get('ddinter_mappings', [])),
             'mapping_evidence': deepcopy(x['evidence'])} for x in result['ingredients']]}
 
 
-def from_module1(extraction, reference, terminology, *, prescription_id='module1-prescription', confirmed=False):
+def from_module1(extraction, reference, terminology=None, *, prescription_id='module1-prescription', confirmed=False):
     if not isinstance(extraction, dict):
         raise ValueError('Module 1 input must be an object')
     if isinstance(extraction.get('medications'), list):
