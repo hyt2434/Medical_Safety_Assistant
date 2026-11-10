@@ -1,0 +1,43 @@
+@startuml UC_12
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-12: Generate Patient Health Summary
+
+' Figure 12 / UC-12; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Generate Patient Health Summary" as Main
+  usecase "Review and Confirm Draft Summary" as Review
+  Main ..> Review : <<include>>
+  note top of Main
+    Gather permitted records, reported details
+    and available assessments into a dated draft;
+    missing information stays visibly marked.
+  end note
+  note bottom of Review
+    Store only the patient-confirmed summary
+    without sharing it automatically.
+    The summary is not a diagnosis.
+  end note
+}
+Actor1 -- Main
+@enduml

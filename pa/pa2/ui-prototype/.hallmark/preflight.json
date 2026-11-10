@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-01",
+  "source": "pa/pa1/ui-prototype/tokens.css",
+  "framework": "vanilla HTML, CSS, JavaScript",
+  "font": "Bricolage Grotesque / IBM Plex Sans families retained with offline system fallbacks",
+  "palette": "PA1 green, light paper, semantic warning and danger",
+  "motion": "no motion dependency",
+  "audience": "patient, HCP, reviewer, admin, technical support",
+  "purpose": "PA2 interactive use-case demonstration",
+  "tone": "calm, legible, task-oriented"
+}

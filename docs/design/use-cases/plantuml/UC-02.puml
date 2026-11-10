@@ -1,0 +1,43 @@
+@startuml UC_02
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ArrowColor #455A64
+skinparam packageStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam usecase {
+  BackgroundColor #FFF2B3
+  BorderColor #8A6D00
+  FontColor #202020
+}
+skinparam actor {
+  BorderColor #37474F
+  FontColor #202020
+}
+title UC-02: Enter and Confirm Medication Information
+
+' Figure 2 / UC-02; diagrams only.
+' Text source: pa/pa2/Use-Case-Specification/sections/02-use-case-specifications.tex
+' Alternative-flow processing belongs to the existing specification, not use-case dependencies.
+actor "Patient / General User" as Actor1
+rectangle "Medication Safety Assistant" {
+  usecase "Enter and Confirm\nMedication Information" as Main
+  usecase "Review and Confirm\nMedication Details" as Confirm
+  Main ..> Confirm : <<include>>
+  note top of Main
+    Alternative input methods: OCR image,
+    chatbot text, voice or manual entry.
+  end note
+  note bottom of Confirm
+    Confirmation means input matches its source,
+    not that medicine identity or safety is proven.
+    Missing fields stay marked; unconfirmed input
+    is not released for checks or activation.
+  end note
+}
+Actor1 -- Main
+@enduml

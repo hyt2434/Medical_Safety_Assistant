@@ -12,7 +12,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from module1_intake.ocr.local_ocr_rows import extract_printed_rows
+from module1_intake.ocr.local_ocr_rows import extract_printed_rows, find_numbered_row_starters
 from module2_medications.fixtures import fixture_db
 from module2_medications.reference import MedicationReference, review_product
 from module2_medications.service import assess_prescriptions
@@ -53,6 +53,36 @@ class OCRRowsTests(unittest.TestCase):
 
     def test_unrecognized_layout_defers_to_legacy(self):
         self.assertIsNone(extract_printed_rows({'words': []}))
+
+    def test_bare_row_numbers_require_aligned_consecutive_sequence(self):
+        def word(text, x, y):
+            return {'text': text, 'confidence': 99,
+                    'bbox': {'x0': x, 'x1': x+20, 'y0': y, 'y1': y+15}}
+        words = [word('1', 100, 100), word('DrugA', 150, 100), word('01', 350, 130),
+                 word('2', 102, 180), word('DrugB', 150, 180), word('01', 360, 210),
+                 word('3', 99, 260), word('DrugC', 150, 260)]
+        self.assertEqual([w['text'] for w in find_numbered_row_starters(words)], ['1', '2', '3'])
+
+    def test_hospital_layout_separates_strength_quantity_and_schedule(self):
+        def word(text, x, y, confidence=99):
+            return {'text': text, 'confidence': confidence,
+                    'bbox': {'x0': x, 'x1': x + max(20, len(text) * 9),
+                             'y0': y, 'y1': y + 18}}
+        raw = {'words': [word('Thuốc', 400, 20), word('điều', 470, 20), word('trị', 520, 20),
+                         word('1', 410, 100), word('Fixture', 450, 100), word('10mg', 540, 100),
+                         word('28', 800, 100), word('Viên', 840, 100),
+                         word('Uống,', 450, 135), word('Sáng:', 520, 135),
+                         word('01', 590, 135), word('viên', 620, 135),
+                         word('(14', 800, 135), word('ngày)', 840, 135),
+                         word('2', 412, 200), word('Other', 450, 200), word('5mg', 520, 200),
+                         word('10', 800, 200), word('Viên', 840, 200)]}
+        extraction = extract_printed_rows(raw)
+        medication = extraction['medications'][0]
+        self.assertEqual(medication['name_raw'], 'Fixture')
+        self.assertEqual(medication['strength_raw'], '10mg')
+        self.assertEqual(medication['quantity_raw'], '28 Viên')
+        self.assertEqual(medication['duration_raw'], '(14 ngày)')
+        self.assertEqual(medication['administrations'], [{'timing_raw': 'Sáng', 'dose_raw': '01 viên'}])
 
 
 class SyntheticPipelineTests(unittest.TestCase):
