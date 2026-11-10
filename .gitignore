@@ -36,6 +36,40 @@
 /src/frontend/artifacts/
 /src/frontend/*.tsbuildinfo
 
+# DB local runtime and Python caches; source remains trackable.
+/artifacts/
+__pycache__/
+*.py[cod]
+
+# DB local-only material; publication of the existing CSVs needs separate review.
+/data/datasets/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.ssh/
+credentials.json
+service-account*.json
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+**/pgdata/
+**/node_modules/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.tmp
+*.temp
+
 # Current frontend caches, browser profiles, and generated test output
 /apps/frontend/.npm-cache/
 /apps/frontend/artifacts/
