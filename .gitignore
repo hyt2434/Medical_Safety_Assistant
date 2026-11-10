@@ -1,26 +1,4 @@
-# Shared ignore rules for the repository (maintain this file only).
-/.vscode/
-
-# Local configuration; keep distributable examples
-.env
-.env.*
-!.env.example
-!.env.sample
-!.env.template
-
-# Python environments and caches
-.venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# JavaScript dependencies and caches, including archived prototypes
-node_modules/
-.npm-cache/
-.vite/
-*.tsbuildinfo
+.vscode/
 
 # LaTeX build artifacts
 *.aux
@@ -51,25 +29,61 @@ node_modules/
 # Keep generated PDFs under version control when needed for submission.
 
 # Frontend dependencies and generated output
-/apps/frontend/dist/
+/src/frontend/node_modules/
+/src/frontend/dist/
+/src/frontend/test-results/
+/src/frontend/playwright-report/
+/src/frontend/artifacts/
+/src/frontend/*.tsbuildinfo
+
+# Current frontend caches, browser profiles, and generated test output
+/apps/frontend/.npm-cache/
+/apps/frontend/artifacts/
 /apps/frontend/test-results/
 /apps/frontend/playwright-report/
-/apps/frontend/artifacts/
-/apps/frontend/coverage/
+/apps/frontend/dist/
+/apps/frontend/*.tsbuildinfo
 
-# Test output
-/tests/artifacts/
+# DB local runtime and Python caches; source remains trackable.
+/artifacts/
+__pycache__/
+*.py[cod]
 
-# Document-specific output (other report PDFs/images remain trackable)
-/pa/pa0/project-proposal/main.pdf
-/pa/pa0/project-proposal/**/*.acn
-/pa/pa0/project-proposal/**/*.acr
-/pa/pa0/project-proposal/**/*.alg
-/pa/pa0/project-proposal/**/*.dvi
-/pa/pa0/project-proposal/**/*.ps
-/pa/pa1/vision-document/**/preview-*.png
-/pa/pa1/project-plan/**/preview-*.png
-# Temporary files and local datasets
-/tmp/
-# Local Module 1 OCR inputs and outputs may contain personal/medical data.
+# DB local-only material; publication of the existing CSVs needs separate review.
+/data/datasets/
+
+# Local OCR inputs, evidence, run artifacts, and test output
 /data/local/
+
+# Tesseract language models are downloaded runtime dependencies
+/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/*.traineddata
+/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/*.traineddata.gz
+
+# Repository-local scratch and generated previews
+/tmp/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.aws/
+.ssh/
+credentials.json
+service-account*.json
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+**/pgdata/
+**/node_modules/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.tmp
+*.temp
