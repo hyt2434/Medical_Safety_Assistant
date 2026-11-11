@@ -79,6 +79,38 @@ respectively. `/identify`, `/assess`, and `/safety-answer` explicitly use those
 services after the required guards. Without the needed sources they report
 UNAVAILABLE; they never infer safety from a mapping ID or absent findings.
 
+The application now invokes `module2_medications.identify_confirmed` with the
+unchanged confirmed Module 1 DTO. A completed conversation can continue with:
+
+```text
+Nhận diện các thuốc đã xác nhận
+/json
+Kiểm tra tương tác các thuốc đã xác nhận
+/safety-answer
+```
+
+`/identify` and `/assess` provide the same explicit actions. Identification shows
+product candidates, components, mapping coverage and source/build evidence with
+`VERIFIED`, `REVIEW_REQUIRED` or `UNRESOLVED` statuses. Confirmation and
+identification never start safety automatically. Assessment creates the existing
+Core snapshot and invokes the existing Module 3 adapter only on explicit request.
+Partial coverage and multiple targets remain limitations, without a safety claim.
+
+For ambiguous or unmatched identities, provide the requested label detail or use
+`sửa thuốc 1 ...`; the existing revision/slot-filling workflow creates a corrected
+version and requires confirmation again. Results are retained on existing
+owner-scoped conversation messages; completed workflows remain immutable. Qwen
+understands requests and selects backend fact IDs for responses. Identities and
+findings are never taken from model knowledge.
+
+The confirmed medication DTOs are now owned by `shared.intake_contracts`, with
+unchanged NLP aliases/schemas. Chatbot, future OCR and manual adapters share
+`build_confirmed_handoff` and the same Core verification boundary; Module 2 no
+longer imports NLP's store/models. See the
+[three-source integration contract](../../module2_medications/README.md#source-independent-module-1-boundary)
+for source metadata, corrections, review requirements and team agreements still
+needed for the unfinished OCR/manual interfaces.
+
 The original development CLI remains available with `PYTHONPATH=./src`:
 `python -m module1_intake.nlp --provider mock --owner <existing-uuid>` and
 `python -m module1_intake.nlp --nlp-test`. Persisted mode also needs `CORE_DB_DSN`.
@@ -94,12 +126,15 @@ The mock grammar is intentionally limited; it is not an NLP accuracy benchmark.
 & .\src\module1_intake\nlp\test_ollama.ps1 -Model 'qwen3.5:9b' -TimeoutSeconds 120
 
 # Complete suite, using the already provisioned isolated NLP fixture database.
-$nlpTestDsn = 'host=127.0.0.1 port=55432 dbname=msa_core_test_v4nlpresumechecks user=core_fixture_admin'
+$nlpTestDsn = 'host=127.0.0.1 port=55432 dbname=msa_core_test_v4nlpe2e20261111checks user=core_fixture_admin connect_timeout=5'
 & .\src\module1_intake\nlp\test_mvp.ps1 `
     -Dsn $nlpTestDsn -RealOllama -Model 'qwen3.5:9b'
 ```
 
 The full suite requires the existing local PostgreSQL server and installed model.
+For the provisioned real-reference database, exact E2E commands and a verified
+real-Qwen manual conversation, see the
+[Module 1–3 real-data test guide](../../module3_interactions/README.md#reproduce-the-real-data-e2e-run).
 Only loopback, marked databases named `msa_core_test_v4nlp<suffix>checks` are
 accepted. The marker is `Medication Safety Assistant Core V4 isolated test`.
 `msa_core_test_v4checks` and all shared/production databases are excluded by the
@@ -117,7 +152,7 @@ changes. Reports go to ignored `artifacts/nlp_mvp_v2/junit.xml`:
 $nlpReport.testsuites.testsuite | Select-Object tests,failures,errors,skipped,time
 ```
 
-Current acceptance coverage: **142 offline**, **11 PostgreSQL with mock extraction**,
+Original V2 acceptance coverage: **142 offline**, **11 PostgreSQL with mock extraction**,
 **2 combined real-Qwen/PostgreSQL**, and **14 real-Qwen extraction** tests: **169**
 in total. Offline-only runs intentionally skip the other 27. Tests cover raw
 evidence, source timing, safe errors, owner/revision/digest gates, immutable
@@ -125,6 +160,43 @@ corrections, side questions, resume, idempotent confirmation, grounded Q&A and t
 existing explicit Module 2/3 adapters. Five architecture checks protect aliases,
 46 captured public schema exports, dependency boundaries and inactive RAG.
 Synthetic engineering tests do not establish clinical validity or model accuracy.
+
+Focused application/Module 2 tests (existing published four-product Core fixture;
+no database creation or reference import):
+
+```powershell
+$env:PYTHONPATH='src'
+$env:PYTHONDONTWRITEBYTECODE='1'
+$env:NLP_TEST_DSN='host=127.0.0.1 port=55432 dbname=<existing-marked-NLP-test-db> user=<test-user>'
+$env:NLP_RUN_REAL_OLLAMA='1'
+$env:NLP_OLLAMA_TIMEOUT='120'
+$env:NLP_SAVE_CLI_TRANSCRIPT='1' # Optional, synthetic acceptance artifact only.
+./.venv/Scripts/python.exe -X utf8 -m pytest tests/unit/test_nlp_module2_flow.py tests/integration/test_nlp_module2_flow_v4.py -q
+```
+
+The real-Qwen CLI test exercises extraction → clarification → confirmation →
+explicit identification → explicit assessment → grounded response through
+`run_application`, PostgreSQL and the existing Module 3 adapter. The optional
+transcript is `artifacts/nlp_module2/cli_conversation.txt`. Its invented products
+and interaction rows validate orchestration, not clinical truth. See
+[API.md](API.md#confirmed-identification-and-optional-assessment) for action DTOs,
+retry behavior, coverage and exact-target guards.
+
+The integration adds action/clarification/grounding regressions and preserves all
+original V2 schema properties; the application response gains additive result
+fields. A real-Qwen regression also exposed an omitted explicit duration. The
+existing source validator now preserves one unambiguous `trong N ngày`/`liên tục
+N ngày` span from that medication's evidence when omitted, while missing,
+alternative and ranged durations remain unknown. This is raw transcription, not
+a treatment recommendation.
+
+Verified on 2026-11-10: **166 offline NLP tests**, **15 PostgreSQL tests with mock
+extraction**, and **17 real-Qwen tests** passed. Together with **49 Module 2
+unit/approved-data/PostgreSQL checks**, the combined run passed **247 tests**.
+The real CLI transcript shows source-backed identities, both retained DDInter
+alternatives, an explicit assessment, original synthetic findings and partial
+coverage. Missing legacy `data/reference/` evidence still limits the separate
+historical research suites; the approved CSV projection checks remain independent.
 
 ## Diagnostics and limits
 

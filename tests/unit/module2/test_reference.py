@@ -80,12 +80,10 @@ class ReferenceTests(unittest.TestCase):
     def setUpClass(cls):
         cls.network = patch.object(socket, 'socket', side_effect=AssertionError('Network disabled'))
         cls.network.start()
+        # tearDownClass is skipped when a required local fixture is missing.
+        cls.addClassCleanup(cls.network.stop)
         cls.dataset = load_existing_dataset(ROOT)
         cls.terminology = DirectDDInter(cls.dataset)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.network.stop()
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

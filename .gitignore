@@ -77,6 +77,7 @@ node_modules/
 # Local runtime and evidence; keep canonical source and approved tracked data.
 /artifacts/
 /data/datasets/
+/data/DDInter/
 venv/
 env/
 ENV/

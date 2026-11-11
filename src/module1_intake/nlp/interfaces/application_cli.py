@@ -1,13 +1,17 @@
 """Development terminal client of application DTOs; no separate dialogue engine."""
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from .application import TurnRequest
+from .application import TurnRequest, WorkflowActionRequest
 
 
 def run_application(service, initial, *, dataset_build=None, dataset=None, read=input, write=print):
     current = initial
-    assessment_id = None
-    write('MODULE 1 APPLICATION MVP — persisted development dialogue, trusted development owner')
+    assessment_id = current.assessment_id
+    if dataset_build:
+        service.dataset_build = dataset_build
+    if dataset is not None:
+        service.dataset = dataset
+    write('NLP CHATBOT V2 — persisted development dialogue, trusted development owner')
     write('Confirmation verifies transcription only. Q&A uses attributed facts; missing coverage is not safety.')
     write('/exit /new /resume UUID /revise /handoff /identify /assess /safety-answer /json')
 
@@ -43,23 +47,10 @@ def run_application(service, initial, *, dataset_build=None, dataset=None, read=
                 elif text == '/handoff':
                     write(service.handoff(current.workflow_id).model_dump_json(indent=2))
                     continue
-                elif text == '/identify':
-                    if not dataset_build:
-                        write('UNAVAILABLE: configure a published Core reference build first.')
-                    else:
-                        results = service.identify(current.workflow_id, dataset_build=dataset_build)
-                        write(str([{'outcome': row['match_status'], 'entry_version_id': str(row['entry_version_id'])} for row, result in results]))
-                    continue
-                elif text == '/assess':
-                    if not dataset_build or dataset is None:
-                        write('UNAVAILABLE: published reference build and an existing verified Module 3 index are required.')
-                    else:
-                        from uuid import uuid4
-                        snapshot = service.prepare_safety_snapshot(current.workflow_id, dataset_build=dataset_build)
-                        assessment, result = service.assess_snapshot(current.workflow_id, snapshot['id'], dataset, request_key=uuid4())
-                        assessment_id = assessment['id']
-                        write(f"Module 3 execution={assessment['execution_status']}; assessment={assessment_id}; no general safety conclusion.")
-                    continue
+                elif text in {'/identify', '/assess'}:
+                    current = service.execute(WorkflowActionRequest(workflow_id=current.workflow_id,
+                        revision=current.revision, request_key=uuid4(), explicit_request=True,
+                        action='IDENTIFY' if text == '/identify' else 'ASSESS'))
                 elif text == '/safety-answer':
                     if assessment_id is None:
                         write('UNAVAILABLE: no authoritative assessment has been performed in this client.')
@@ -71,6 +62,7 @@ def run_application(service, initial, *, dataset_build=None, dataset=None, read=
                     continue
                 else:
                     current = service.send(TurnRequest(workflow_id=current.workflow_id, revision=current.revision, text=text))
+                assessment_id = current.assessment_id
                 display(current)
             except Exception as error:
                 # User/DB/model exception bodies may contain patient or connection data.

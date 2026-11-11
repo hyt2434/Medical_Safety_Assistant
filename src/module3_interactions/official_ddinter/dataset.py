@@ -3,11 +3,14 @@ from collections import defaultdict
 from contextlib import closing
 from copy import deepcopy
 import csv
+import hashlib
 import json
-from shared.paths import ProjectPath as Path, PROJECT_ROOT
+from pathlib import Path
+import os
+from shared.paths import PROJECT_ROOT
 import sqlite3
 from urllib.parse import urlparse
-from shared.dav_import.common import dumps, file_hash
+from shared.dav_import.common import dumps
 from ..engine import HEADERS, valid_id, text_key, pair_key
 
 SCHEMA = '''
@@ -21,6 +24,15 @@ CREATE INDEX source_pair ON source_rows(low_id,high_id);
 CREATE INDEX source_id_a ON source_rows(id_a);
 CREATE INDEX source_id_b ON source_rows(id_b);
 '''
+
+
+def file_hash(path):
+    """Hash the selected local bytes, without historical project-path aliases."""
+    h = hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            h.update(block)
+    return h.hexdigest()
 
 
 def build_index(collection, output, *, public_record=None):
@@ -174,15 +186,28 @@ def build_index(collection, output, *, public_record=None):
 
 class OfficialDataset:
     """Same identities/coverage/lookup contract consumed by engine.assess()."""
-    def __init__(self, path):
+    def __init__(self, path=None, *, collection_path=None):
+        # Keep sealed historical provenance unchanged; relocate filesystem access only.
+        legacy_default = PROJECT_ROOT / 'data/reference/ddinter2/official_20261013/official.sqlite'
+        if path is None or Path(path) == legacy_default:
+            path = os.environ.get('MSA_DDINTER_INDEX') or PROJECT_ROOT / 'data/DDInter/official.sqlite'
         self.path = Path(path).resolve()
         seal = json.loads(self.path.with_suffix('.manifest.json').read_text(encoding='utf-8'))
         if seal.get('schema_version') != 'ddinter.official_index.v1' or file_hash(self.path) != seal['index_sha256']:
             raise ValueError('Unified index schema/hash mismatch')
-        collection = Path(seal['collection'])
+        collection = Path(collection_path).resolve() if collection_path else self.path.parent
+        def dependency_path(original):
+            # Dependencies are independently hash-pinned in the retained snapshot.
+            # Flatten local copies without rewriting historical evidence locators.
+            return collection / str(original).replace('\\', '/').rsplit('/', 1)[-1]
         if file_hash(collection / 'manifest.json') != seal['collection_manifest_sha256']:
             raise ValueError('Collection manifest hash mismatch')
         manifest = json.loads((collection / 'manifest.json').read_text(encoding='utf-8'))
+        if manifest.get('schema_version') != 'ddinter.official_collection.v1':
+            raise ValueError('Unexpected collection schema')
+        if not manifest.get('synthetic_fixture') and {a['filename'] for a in manifest['artifacts']} != {
+                f'ddinter_downloads_code_{category}.csv' for category in 'ABDHLPRV'}:
+            raise ValueError('Real Module 3 source requires all eight offered CSVs')
         for artifact in manifest['artifacts']:
             if Path(artifact['filename']).name != artifact['filename'] or file_hash(collection / artifact['filename']) != artifact['sha256']:
                 raise ValueError('Original CSV hash mismatch: ' + artifact['filename'])
@@ -190,16 +215,26 @@ class OfficialDataset:
             if Path(page['filename']).name != page['filename'] or file_hash(collection / page['filename']) != page['sha256']:
                 raise ValueError('Official page snapshot hash mismatch: ' + name)
         snapshot = seal.get('synonym_snapshot')
-        if snapshot and file_hash(snapshot['path']) != snapshot['sha256']:
+        if snapshot and file_hash(dependency_path(snapshot['path'])) != snapshot['sha256']:
             raise ValueError('Official synonym snapshot hash mismatch')
         if snapshot:
-            public = json.loads(Path(snapshot['path']).read_text(encoding='utf-8'))
+            public = json.loads(dependency_path(snapshot['path']).read_text(encoding='utf-8'))
             for artifact in public.get('source_artifacts', []):
-                if file_hash(artifact['path']) != artifact['sha256']:
+                if file_hash(dependency_path(artifact['path'])) != artifact['sha256']:
                     raise ValueError('Official synonym source artifact hash mismatch')
         with closing(self._connect()) as db:
             self.coverage = json.loads(db.execute("SELECT value_json FROM metadata WHERE key='coverage'").fetchone()[0])
             self.identities = {identifier: json.loads(value) for identifier, value in db.execute('SELECT identifier,identity_json FROM identities')}
+            expected = sorted((a['filename'], a['source_url'], a['sha256']) for a in manifest['artifacts'])
+            if db.execute('SELECT filename,url,sha256 FROM artifacts ORDER BY filename').fetchall() != expected:
+                raise ValueError('Index source dependencies differ from collection manifest')
+        if self.coverage != seal['coverage']:
+            raise ValueError('Index coverage differs from sealed build')
+        self.coverage.update(index_sha256=seal['index_sha256'],
+            collection_manifest_sha256=seal['collection_manifest_sha256'],
+            index_manifest_sha256=file_hash(self.path.with_suffix('.manifest.json')),
+            source_artifacts=[{'filename': a['filename'], 'sha256': a['sha256'],
+                               'source_url': a['source_url']} for a in manifest['artifacts']])
 
     def _connect(self):
         return sqlite3.connect(self.path.as_uri() + '?mode=ro', uri=True)

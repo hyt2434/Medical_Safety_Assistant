@@ -45,6 +45,11 @@ writes synthetic records and requires a marked loopback database named
 `msa_core_test_v4<suffix>checks`. Never run it on a shared or production database.
 Migration and import retries are idempotent; the suite reports PASS/FAIL/BLOCKED.
 
+For the existing combined Module 1–3/NLP real-data fixture, use the
+[verified E2E guide](../src/module3_interactions/README.md#reproduce-the-real-data-e2e-run).
+A marked schema-only database or a published synthetic build alone is insufficient
+for `tests/integration/test_module3_real_e2e.py`; its tests never import references.
+
 For a new local test installation, `scripts/provision-postgres.ps1` accepts
 `-Archive <zip>` and `-RuntimeDirectory <directory>`; without an archive it
 downloads the pinned distribution. Only a deliberately new runtime should use

@@ -24,6 +24,7 @@ DAYPART = re.compile(r"\b(?:sang|trua|chieu|toi|dem)\b")
 CONJOINED_DAYPARTS = re.compile(r"(?:sang|trua|chieu|toi|dem)(?:\s+va\s+(?:sang|trua|chieu|toi|dem))+")
 GROUPED_DAYPARTS = re.compile(
     r"\b(?:sang|trua|chieu|toi|dem)\s+(?:va|hoac|den)\s+(?:sang|trua|chieu|toi|dem)\b")
+DURATION = re.compile(r'\b(?:trong|lien tuc)\s+\d+\s+(?:ngay|tuan|thang)\b')
 
 
 class EvidenceError(ValueError):
@@ -129,6 +130,14 @@ def validate_medication(med: Medication, source: str) -> Medication:
     if not set(med.uncertain_fields) <= allowed:
         raise EvidenceError("Unknown uncertain field")
     result = med.model_copy(deep=True)
+    # Preserve a single explicit raw duration if inference omitted it. Use only
+    # this medication's grounded clause, as for timing/negation projections;
+    # alternatives and ranges remain unknown instead of choosing one duration.
+    durations = list(DURATION.finditer(fold(med.evidence_text)))
+    if result.duration_raw is None and len(durations) == 1:
+        tail = fold(med.evidence_text)[durations[0].end():]
+        if not re.match(r'\s*(?:hoac\b|den\b|[-–])', tail):
+            result.duration_raw = raw_marker(med.evidence_text, DURATION)
     for admin in result.administrations:
         admin.timing_slots_raw = timing_slots(admin.timing_raw)
     for pattern, key in ((NEGATION, "negation_raw"), (UNCERTAINTY, "uncertainty_raw")):

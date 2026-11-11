@@ -132,7 +132,7 @@ def review_alert(kind,contexts,levels=None,evidence=None):
     levels=levels or []
     return {'kind':kind,'contexts':deepcopy(contexts),'original_source_levels':levels,
       'evidence':deepcopy(evidence or []),'display_timing':'IMMEDIATE','wait_for_hcp_before_display':False,
-      'hcp_review_required':True,'routing_priority':'PROMPT' if 'Major' in levels or kind in {'SOURCE_CONFLICT','UNRESOLVED_IDENTITY'} else 'REVIEW',
+      'hcp_review_required':True,'routing_priority':'PROMPT' if set(levels) & {'Major','Contraindicated'} or kind in {'SOURCE_CONFLICT','UNRESOLVED_IDENTITY'} else 'REVIEW',
       'priority_basis':'local workflow policy, not a clinical severity reinterpretation',
       'message':'Ask an HCP to review the source finding and medication identities.',
       'autonomous_medication_changes':False,'mechanism':None,'treatment_guidance':None}
@@ -144,6 +144,18 @@ def assess(medications,dataset):
         raise ValueError('Medication IDs must be nonempty and unique; do not silently merge prescriptions')
     for medication in medications:
         if not isinstance(medication.get('ingredients'),list):raise ValueError('Every medication needs an explicit ingredient array; an empty array is unresolved')
+    builds = {m['dataset_build'] for m in medications if m.get('dataset_build')}
+    if len(builds) > 1:
+        raise ValueError('One consistent reference dataset build is required')
+    for medication in medications:
+        for component in medication['ingredients']:
+            if not isinstance(component, dict):
+                continue
+            if component.get('dataset_build') and component['dataset_build'] != medication.get('dataset_build'):
+                raise ValueError('Component differs from medication reference build')
+            if any(m.get('dataset_build') != component.get('dataset_build') for m in component.get('ddinter_mappings', [])
+                   if isinstance(m, dict) and m.get('dataset_build')):
+                raise ValueError('Mapping differs from component reference build')
     inputs=deepcopy(medications)
     components=[];unresolved=[]
     for medication in sorted(inputs,key=lambda m:m['medication_id']):
@@ -217,6 +229,13 @@ def assess(medications,dataset):
       'safe_to_take':None,'no_interactions':None,'requires_hcp_review':True,
       'clinical_recommendations':None,'autonomous_prescribing':False,
       'automated_schedule_optimization':False,'network_requests':0,'external_ai_calls':0}
+    implicated = sorted({c[side]['medication_id'] for check in interactions + conflicts
+                         if set(check['original_levels']) & {'Major', 'Contraindicated'}
+                         for c in check['contexts'] for side in ('left', 'right')})
+    result['reminder_hold'] = {'required': bool(implicated), 'medication_ids': implicated,
+        'scope': 'NEW_IMPLICATED_ACTIVATIONS_ONLY', 'existing_reminders_modified': False,
+        'activation_policy_implemented': False}
+    result['inter_medication_check_applicability'] = 'NOT_APPLICABLE' if len(inputs) == 1 else 'APPLICABLE' if inputs else 'UNASSESSED'
     return result
 
 def module2_input(candidate,prescription_ids,medication_id='mypara500'):

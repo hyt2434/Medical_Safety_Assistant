@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from typing import Any, Protocol
 from uuid import UUID
 
-from shared.db.intake_adapter import medication_fields, persist_module1
+from shared.db.intake_adapter import medication_fields, persist_module1, entry_medication, assert_latest_entry
 
 from ..models import Medication
 
@@ -33,7 +33,7 @@ def fields(med: Medication) -> dict[str, Any]:
 
 
 def medication(row: dict) -> Medication:
-    return Medication.model_validate({k: v for k, v in row["medication_fields"].items() if k != "schema"})
+    return entry_medication(row)
 
 
 def extraction(meds: list[Medication]) -> dict:
@@ -66,10 +66,7 @@ class CoreStore:
         return [self.repo._owned("medication_entry_versions", identity) for identity in ids]
 
     def assert_latest(self, row: dict) -> None:
-        versions = self.repo._all("SELECT id FROM msa.medication_entry_versions WHERE item_id=%s AND user_id=%s ORDER BY version_no DESC LIMIT 1",
-                                  (row["item_id"], self.repo.owner))
-        if not versions or str(versions[0]["id"]) != str(row["id"]):
-            raise ValueError("Entry has a newer version; redisplay before confirmation")
+        assert_latest_entry(self.repo, row)
 
     def save(self, workflow: dict, text: str, message: dict, meds: list[Medication],
              updates: dict[int, Medication], provider: str) -> list[dict]:

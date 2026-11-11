@@ -92,6 +92,20 @@ def test_combined_timing_retains_parent_phrase_dose_and_duration():
     assert Medication.model_validate_json(med.model_dump_json()) == med
 
 
+def test_omitted_duration_preserves_only_an_explicit_grounded_source_span():
+    source = unicodedata.normalize('NFD', 'A 500mg, dùng trong 7 ngày.')
+    original = Medication(name_raw='A', evidence_text=source)
+    med = validate_medication(original, source)
+    assert med.duration_raw == unicodedata.normalize('NFD', 'trong 7 ngày')
+    assert original.duration_raw is None
+
+
+@pytest.mark.parametrize('source', ['A 500mg', 'A 500mg, ngày 2 lần', 'A 500mg, 7 ngày',
+    'A trong 7 đến 10 ngày', 'A trong 7 ngày hoặc 10 ngày', 'A trong 7 ngày, sau đó trong 3 ngày'])
+def test_duration_projection_does_not_invent_or_select_ambiguous_details(source):
+    assert validate_medication(Medication(name_raw='A', evidence_text=source), source).duration_raw is None
+
+
 @pytest.mark.parametrize('timing,slots', [('sáng và tối', ['sáng', 'tối']), ('Sáng và Tối', ['Sáng', 'Tối']),
                                        ('sáng hoặc tối', ['sáng hoặc tối']), ('sáng đến tối', ['sáng đến tối']),
                                        ('trước ăn sáng và tối', ['trước ăn sáng và tối']),

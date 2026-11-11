@@ -21,7 +21,8 @@ try {
     $env:NLP_OLLAMA_TIMEOUT = '120'
     $testPaths = @('tests/unit/test_nlp.py','tests/unit/test_nlp_diagnostics.py','tests/unit/test_nlp_interactive.py',
         'tests/unit/test_nlp_semantics.py','tests/unit/test_nlp_mvp.py','tests/unit/test_nlp_architecture.py','tests/integration/test_nlp_v4.py',
-        'tests/integration/test_nlp_mvp_v4.py','tests/integration/test_nlp_ollama.py') | ForEach-Object { Join-Path $repoRoot $_ }
+        'tests/integration/test_nlp_mvp_v4.py','tests/integration/test_nlp_ollama.py',
+        'tests/unit/test_nlp_module2_flow.py','tests/integration/test_nlp_module2_flow_v4.py') | ForEach-Object { Join-Path $repoRoot $_ }
     $report = Join-Path $repoRoot 'artifacts/nlp_mvp_v2/junit.xml'
     & $pythonPath -X utf8 -m pytest -q --tb=short "--junitxml=$report" @testPaths
     if($LASTEXITCODE -ne 0) { throw "NLP MVP tests failed (pytest exit $LASTEXITCODE)." }

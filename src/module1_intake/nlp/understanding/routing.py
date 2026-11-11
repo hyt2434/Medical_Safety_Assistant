@@ -8,7 +8,7 @@ from .validation import fold, record_request_marker
 CUES = {
     Intent.ADD_MEDICATION: r"\b(?:dang (?:uong|dung)|duoc ke|bac si ke|them thuoc|ghi (?:thuoc|nhan)|nhap thuoc)\b",
     Intent.CHECK_INTERACTION: r"\b(?:tuong tac|trung hoat chat|uong chung|dung chung|an toan|kiem tra (?:hai|2) thuoc)\b",
-    Intent.MEDICATION_QA: r"\b(?:hoat chat|thanh phan|ham luong|dang bao che|tra cuu)\b",
+    Intent.MEDICATION_QA: r"\b(?:hoat chat|thanh phan|ham luong|dang bao che|tra cuu|nhan dien|dinh danh|xac dinh thuoc)\b",
     Intent.APP_HELP: r"\b(?:cach (?:them|nhap|xac nhan)|lam sao|huong dan su dung (?:app|ung dung)|tro giup)\b",
     Intent.CREATE_REMINDER: r"\b(?:nhac (?:toi|uong)|nhac nho)\b",
     Intent.VIEW_MEDICATIONS: r"\b(?:(?:xem|danh sach) thuoc|(?:xem )?lich su (?:dung )?thuoc)\b",
@@ -66,6 +66,22 @@ def clarification_required(intents: list[Intent], understanding: Understanding) 
 def requested_workflows(intents: list[Intent]) -> list[str]:
     return [name for name in ("MEDICATION_INTAKE", "SAFETY_REQUEST", "Q_AND_A")
             if name in {WORKFLOWS.get(i) for i in intents}]
+
+
+def explicit_backend_action(text: str) -> str | None:
+    """Bounded user request for the confirmed list; an LLM intent is not authority.
+
+    Questions, negations, embedded commands and separately named drug targets do
+    not authorize execution. Other wordings can use the explicit action DTO/CLI.
+    """
+    value = fold(text.strip().rstrip('.!?'))
+    prefix = r'(?:(?:vui long|hay|toi muon|yeu cau|xin)\s+)?'
+    target = r'(?:\s+(?:cac thuoc|thuoc|danh sach thuoc|danh sach)(?:\s+(?:nay|da xac nhan))?)?'
+    if re.fullmatch(prefix + r'(?:nhan dien|dinh danh|xac dinh thuoc)' + target, value):
+        return 'IDENTIFY'
+    if re.fullmatch(prefix + r'(?:kiem tra tuong tac|danh gia tuong tac|danh gia an toan)' + target, value):
+        return 'ASSESS'
+    return None
 
 
 def dialogue_act(text: str, value: Understanding) -> DialogueAct:

@@ -41,6 +41,14 @@ class FakeCore:
         raise AssertionError(query)
 
     def _all(self, query, params=()):
+        if 'FROM msa.conversation_messages' in query:
+            rows = [r for r in self.tables.get('conversation_messages', {}).values()
+                    if r['conversation_id'] == params[0] and r['user_id'] == params[1]
+                    and r['role'] == 'ASSISTANT' and (r.get('metadata') or {}).get('workflow_id') == params[2]
+                    and 'application_response' in (r.get('metadata') or {})]
+            if len(params) > 3:
+                rows = [r for r in rows if r['metadata'].get('action_request_key') == params[3]]
+            return deepcopy(rows[-1:])
         assert 'ORDER BY version_no DESC LIMIT 1' in query
         rows = [r for r in self.tables.get('medication_entry_versions', {}).values()
                 if r['item_id'] == params[0] and r['user_id'] == self.owner]

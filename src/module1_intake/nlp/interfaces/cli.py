@@ -1,4 +1,4 @@
-"""Local development CLI; does not create identities, migrate, or call Modules 2/3."""
+"""Local development CLI; explicit guarded Module 2/3 actions in application mode."""
 import argparse
 import os
 from uuid import UUID
@@ -48,7 +48,7 @@ def main(argv=None):
     # Keep the persisted chatbot path separate from stateless extraction.
     import psycopg
     from shared.db import CoreRepository
-    from shared.db.identification_adapter import CoreMedicationReference
+    from module2_medications import CoreMedicationReference
     from ..dialogue_management.manager import Chatbot
 
     if args.application and args.provider != 'mock':
@@ -74,7 +74,8 @@ def main(argv=None):
                     from module3_interactions.official_ddinter.dataset import OfficialDataset
                     dataset = OfficialDataset(args.ddi_index)
                 service = ApplicationService(repo, provider, reference=reference,
-                    medication_retriever=Module2FactRetriever(module2) if module2 else None)
+                    medication_retriever=Module2FactRetriever(module2) if module2 else None,
+                    dataset_build=args.reference_build, dataset=dataset)
                 initial = service.resume(args.workflow) if args.workflow else service.start()
                 run_application(service, initial, dataset_build=args.reference_build, dataset=dataset)
             finally:

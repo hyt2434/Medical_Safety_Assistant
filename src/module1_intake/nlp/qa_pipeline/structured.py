@@ -131,7 +131,57 @@ class CoreAssessmentRetriever:
         complete = assessment['execution_status'] == 'COMPLETED' and all(
             checks.get(key, {}).get('coverage') in {'ASSESSED', 'NOT_APPLICABLE'} for key in ('ddi', 'duplicate_ingredient'))
         return RetrievalResult(status='WORKING' if complete else 'PARTIAL', coverage='ASSESSMENT_SCOPED', facts=facts,
-            limitations=['Missing findings or incomplete coverage never establish safety. Do not change treatment without qualified review.'])
+            limitations=list(dict.fromkeys([
+                'Missing findings or incomplete coverage never establish safety. Do not change treatment without qualified review.',
+                *[reason for key in ('ddi', 'duplicate_ingredient') for reason in checks.get(key, {}).get('limitations', [])]])))
+
+
+def identification_result(matches):
+    """Render Module 2 backend results as facts about identity, never clinical findings."""
+    facts, candidates, limitations = [], [], [
+        'Reference identity and DDInter mapping availability do not establish patient safety or loaded interaction coverage.']
+    for number, (match, result) in enumerate(matches, 1):
+        source = EvidenceRef(source_id=str(match['id']), locator='msa.entry_matches/' + str(match['id']),
+                             scope='Confirmed-entry Module 2 match; reference identity only')
+        facts.append(VerifiedFact(fact_id=f'identity:{number}', required=True, source=source,
+            text=f"Thuốc {number}: {result['original_medication'].get('name_raw')}; "
+                 f"identity={result['identification_status']}; mapping={result['mapping_status']}; "
+                 f"Core={match['match_status']}; candidates={len(result['candidates'])}; "
+                 f"build={result.get('dataset_build')}; ready={result['ready_for_identifier_handoff']}."))
+        for index, candidate in enumerate(result['candidates'], 1):
+            product = candidate.get('product', {})
+            view = {'candidate_key': candidate['candidate_key'], 'brand_name': product.get('brand_name'),
+                    'strength': product.get('strength'), 'dosage_form': product.get('dosage_form'),
+                    'dataset_build': candidate.get('dataset_build'),
+                    'source_evidence': candidate.get('source_evidence', [])}
+            candidates.append(view)
+            loc = candidate.get('source_locator') or {}
+            facts.append(VerifiedFact(fact_id=f'candidate:{number}:{index}', required=True,
+                text='Ứng viên tham chiếu (không tự chọn khi chưa rõ): ' + json.dumps(
+                    {k: v for k, v in view.items() if k != 'source_evidence'}, ensure_ascii=False),
+                source=EvidenceRef(source_id=candidate['candidate_key'],
+                    locator='msa_ref.medications/' + candidate['candidate_key'], sha256=loc.get('artifact_sha256'),
+                    scope='Source-backed reference candidate; selection status is given separately')))
+        for index, ingredient in enumerate(result['ingredients'], 1):
+            loc = ingredient.get('component_record', {}).get('source_locator', {})
+            facts.append(VerifiedFact(fact_id=f'ingredient:{number}:{index}', required=True,
+                text=f"Thành phần {number}.{index}: {ingredient['normalized_ingredient']}; "
+                     f"strength_raw={ingredient['strength_raw']}; mapping={ingredient['mapping_status']}; "
+                     f"DDInter targets={ingredient.get('candidate_ddinter_ids', [])}; "
+                     f"mapping_rows={len(ingredient.get('ddinter_mappings', []))}.",
+                source=EvidenceRef(source_id=ingredient.get('component_id') or str(match['id']),
+                    locator='msa_ref.medication_ingredients/' + str(ingredient.get('component_id')),
+                    sha256=loc.get('artifact_sha256'), scope='Retained component and approved mapping evidence; alternatives are not disambiguated')))
+        limitations.extend(f"Thuốc {number}: {issue}" for issue in [*result.get('issues', []),
+                           *result.get('ingredient_extraction', {}).get('issues', [])])
+        for ingredient in result['ingredients']:
+            if ingredient.get('unresolved_reason'):
+                limitations.append(f"Thuốc {number}: {ingredient['unresolved_reason']}")
+    if not matches:
+        limitations.append('No non-negated confirmed medication targets are available.')
+    complete = bool(matches) and all(result['ready_for_identifier_handoff'] for match, result in matches)
+    return RetrievalResult(status='WORKING' if complete else 'PARTIAL', coverage='MEDICATION_IDENTITY_ONLY',
+        facts=facts, candidates=candidates, limitations=list(dict.fromkeys(limitations)))
 
 
 def entry_view(row):

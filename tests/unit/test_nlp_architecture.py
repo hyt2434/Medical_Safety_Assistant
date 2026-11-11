@@ -48,7 +48,13 @@ def test_public_dto_schemas_match_the_working_v2_checkpoint():
     for qualified, expected in CHECKPOINT['schema_sha256'].items():
         module, symbol = qualified.rsplit('.', 1)
         model = getattr(importlib.import_module(PREFIX + module), symbol)
-        schema = json.dumps(model.model_json_schema(), sort_keys=True).encode()
+        current = model.model_json_schema()
+        if qualified == 'application.ApplicationResponse':
+            # Explicitly additive execution-result fields; all pre-existing V2
+            # properties and every other public DTO retain their captured schema.
+            for field in ('identification_results', 'assessment_id', 'snapshot_id', 'executed_action'):
+                current['properties'].pop(field)
+        schema = json.dumps(current, sort_keys=True).encode()
         assert hashlib.sha256(schema).hexdigest() == expected, qualified
 
 
