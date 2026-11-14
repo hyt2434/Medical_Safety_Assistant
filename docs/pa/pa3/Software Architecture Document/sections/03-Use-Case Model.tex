@@ -1,0 +1,154 @@
+
+\section{Use-Case Model}
+\label{sec:use-case-model}
+
+This section presents the 20 main use cases of the
+Medication Safety Assistant system. The diagrams illustrate
+the interactions between actors and the system's functional
+capabilities. Detailed descriptions, basic flows, alternative
+flows, and conditions are provided in the
+Use-Case Specification Document.
+
+
+% Reusable use-case figure
+\newcommand{\usecasefigure}[3]{%
+    \begin{figure}[!htbp]
+        \centering
+        \includegraphics[
+            width=0.95\linewidth,
+            height=0.37\textheight,
+            keepaspectratio
+        ]{images/UC-#1.png}
+        \caption[UC-#1: #2]{%
+            \textbf{UC-#1: #2.} #3%
+        }
+        \label{fig:uc-#1}
+    \end{figure}
+}
+
+
+% UC-01
+\usecasefigure{01}{Sign In}{
+    Allows registered users to securely access the system
+    according to their assigned roles.
+}
+
+% UC-02
+\usecasefigure{02}{Enter and Confirm Medication Information}{
+    Allows patients to enter, review, and confirm their
+    medication information before further processing.
+}
+
+% UC-03
+\usecasefigure{03}{Check Medication Safety}{
+    Allows patients to check potential medication risks,
+    including drug interactions and other safety concerns.
+}
+
+% UC-04
+\usecasefigure{04}{Arrange HCP Review}{
+    Supports authorized HCP review requests, case
+    assignment, and review status tracking.
+}
+
+% UC-05
+\usecasefigure{05}{Review Medication Safety Case}{
+    Allows healthcare professionals to review authorized
+    safety cases and communicate with patients.
+}
+
+% UC-06
+\usecasefigure{06}{Set Up Medication Reminders}{
+    Allows patients to set up and confirm medication reminders
+    based on verified schedules, with HCP review when required.
+}
+
+% UC-07
+\usecasefigure{07}{Manage Medication Reminders}{
+    Allows patients to adjust notification settings and
+    propose medication timing changes subject to HCP review.
+}
+
+% UC-08
+\usecasefigure{08}{Record Dose Status}{
+    Allows patients to record and confirm their
+    medication-taking status.
+}
+
+% UC-09
+\usecasefigure{09}{View Adherence History}{
+    Allows patients to view, filter, and summarize
+    their medication adherence history.
+}
+
+% UC-10
+\usecasefigure{10}{View Medication and Safety History}{
+    Allows patients to view medication records, examine past
+    safety assessments, and compare assessment results.
+}
+
+% UC-11
+\usecasefigure{11}{Ask a Medication Question}{
+    Allows patients to ask medication-related questions,
+    view chatbot conversation history, and access supporting references.
+}
+
+% UC-12
+\usecasefigure{12}{Generate Patient Health Summary}{
+    Allows patients to generate, review, and confirm
+    a structured summary of their health information.
+}
+
+% UC-13
+\usecasefigure{13}{Share Patient Health Summary with HCP}{
+    Allows patients to share health summaries with authorized HCPs,
+    confirm sharing permissions, and revoke access when needed.
+}
+
+% UC-14
+\usecasefigure{14}{Review Medication Reference Data}{
+    Allows dataset reviewers to verify reference data against
+    supporting evidence, record quality decisions, and review history.
+}
+
+% UC-15
+\usecasefigure{15}{Manage User Accounts and Roles}{
+    Allows administrators to create and deactivate accounts,
+    assign roles, reset passwords, and view account activity history.
+}
+
+% UC-16
+\usecasefigure{16}{Report Technical Issue}{
+    Allows registered users to report technical issues,
+    review attachments, reply to support tickets,
+    and track ticket status.
+}
+
+% UC-17
+\usecasefigure{17}{Handle Technical Support Request}{
+    Allows technical support staff to view assigned tickets,
+    investigate issues, request additional information,
+    and manage ticket resolution.
+}
+
+% UC-18
+\usecasefigure{18}{Manage Patient Health Profile}{
+    Allows patients to manage medical conditions, allergies,
+    medication and adverse reaction histories,
+    lifestyle information, and health measurements.
+}
+
+% UC-19
+\usecasefigure{19}{Manage Personal Medication Cabinet}{
+    Allows patients to add and update personal medicines,
+    track usage status, view medication details and known
+    side effects, and monitor expiration dates.
+}
+
+% UC-20
+\usecasefigure{20}{Manage Personal Account}{
+    Allows registered users to view and update their
+    personal account information and change passwords.
+}
+
+\clearpage
