@@ -1,0 +1,5 @@
+rapidfuzz>=3.0
+faster-whisper>=1.0   # chỉ cần cho hàm voice (WhisperASR)
+av>=11,<17            # faster-whisper 1.2.1 lỗi với av>=19 (metadata_errors); đã thử OK với av 15.1 và 16.1
+numpy
+pytest>=7.0           # chỉ cần để chạy test

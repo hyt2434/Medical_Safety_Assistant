@@ -1,0 +1,623 @@
+% ============================================================
+% SECTION 4 - LOGICAL VIEW (12 LOGICAL COMPONENTS)
+% Medication Safety Assistant - PA3 Software Architecture
+% Source basis: approved UC-01..UC-20 (UC-19 is future), Core DB V4,
+% and the agreed 3-tier layered modular-monolith architecture.
+%
+% Insert as: sections/04-Logical View.tex
+% Requires in main.tex: array, tabularx, longtable.
+% Requires column types L{width} and Y (defined by report main.tex).
+% No images are loaded. Figure insertions are marked as comments.
+% All operations and class/module names are PROPOSED logical contracts,
+% not claims that these symbols exist in the repository.
+% ============================================================
+
+\section{Logical View}
+\label{sec:logical-view}
+
+The Medication Safety Assistant uses a \textbf{layered modular monolith
+(three-tier architecture)}. Its presentation, application and data
+responsibilities are separated to support maintainability, security and
+safety. The five business modules remain logically independent but can run
+within one Python backend application. This is a research prototype, not a
+set of twelve microservices.
+
+\noindent\textbf{Architectural style and container boundaries.}\par\smallskip
+The three logical tiers and the corresponding runtime boundaries are:
+
+\begingroup\small\renewcommand{\arraystretch}{1.14}
+\begin{tabularx}{\textwidth}{|L{0.21\textwidth}|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Tier} & \textbf{Runtime boundary and technology} & \textbf{Responsibility} \\ \hline
+Presentation & Web Frontend (browser application); TypeScript, HTML and CSS
+& Render role-appropriate screens, capture user input, and display outcomes. \\ \hline
+Application & Python Backend Application (API and business components)
+& Validate commands; apply permissions, workflows, risk rules and supported operations. \\ \hline
+Data & Python repository layer plus PostgreSQL Core DB V4
+& Store and retrieve authorized records using the approved database contract. \\ \hline
+\end{tabularx}
+\endgroup
+
+The frontend's exact framework and the Python API framework must be
+confirmed from the repository before the implementation design is finalized.
+For the target architecture, the browser and API communicate using
+\textbf{HTTPS and JSON}; local development may use HTTP. Backend components
+communicate through \textbf{in-process Python calls} with explicit data
+transfer objects (DTOs) or domain types. Repository adapters use
+\textbf{parameterized SQL over a PostgreSQL connection}. These are
+architectural choices rather than claims about completed endpoints.
+
+A C4 distinction is important: the Web Frontend is inside the
+\emph{Web Application container}; the API and eleven backend logical
+components are inside the \emph{Backend Application container}.
+\emph{PostgreSQL Core DB V4} is a separate \emph{Database container}, not a
+business component or an OOP class. Thus, the twelve logical components
+listed below should be drawn within their respective container boundaries,
+not as twelve separate deployable services.
+
+\noindent\textbf{Overall component architecture.}\par\smallskip
+The API routes authorized requests to the appropriate business component.
+Medication Intake passes explicitly confirmed records to Medication
+Identification. Identification resolves supported ingredients using the
+Reference Data component. Safety Assessment combines those results with
+available Patient Health Profile data and preserves unassessed risks.
+An HCP review case is created only through the authorized review workflow;
+a warning by itself does not grant HCP access. Reminders check verified
+schedule information and the Safety Assessment gate before activation.
+Accounts, Technical Support and Data Persistence support these workflows
+through separate interfaces.
+
+% OVERALL COMPONENT DIAGRAM -- INSERT AFTER CONTENT APPROVAL.
+% Suggested: one C4 Container diagram (Web App, Backend App, PostgreSQL),
+% followed by one C4 Component diagram zooming into Backend Application.
+% Label all arrows with direction, service/interface and technology.
+% Example (when an image exists):
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.98\linewidth]{images/logical-overview.pdf}
+%   \caption{Layered architecture and logical component communication.}
+%   \label{fig:logical-components}
+% \end{figure}
+
+\noindent\textbf{Component responsibilities and provided services.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.10}
+\begin{longtable}{|L{0.30\textwidth}|L{0.48\textwidth}|L{0.13\textwidth}|}
+\hline
+\textbf{Logical component} & \textbf{Responsibilities and services} & \textbf{Related UCs} \\ \hline
+\endfirsthead
+\hline
+\textbf{Logical component} & \textbf{Responsibilities and services (continued)} & \textbf{Related UCs} \\ \hline
+\endhead
+Web Frontend & Collect inputs, render results, and show role-specific workflows. & 01--18, 20 \\ \hline
+API Controllers & Validate requests, authorize resources, and dispatch commands to backend services. & Active UCs \\ \hline
+Medication Intake and Chatbot (M1) & Collect, clarify and confirm medication data; bounded question answering. & 02, 11 \\ \hline
+Medication Identification (M2) & Match confirmed medicines and resolve ingredients; record ambiguity. & 02, 03 \\ \hline
+Safety Assessment and Decision Support (M3) & Check supported risks, record limitations, and return reminder-gate decisions. & 03, 06, 10 \\ \hline
+HCP Review and Patient Health Summary (M4) & Manage authorized simulated reviews; generate and share confirmed summaries. & 04, 05, 12, 13 \\ \hline
+Reminders and Adherence (M5) & Manage eligible reminders, notification choices, dose records and history. & 06--09 \\ \hline
+Patient Health Profile & Manage sourced health data and current/discontinued medication status. & 03, 12, 18 \\ \hline
+Reference Data and Dataset Review & Query reviewed medication/DDI references; record dataset-review decisions. & 03, 11, 14 \\ \hline
+Account and Access Management & Authenticate users, enforce RBAC, manage roles and personal accounts. & 01, 15, 20 \\ \hline
+Technical Support & Create and handle permission-limited technical support tickets. & 16, 17 \\ \hline
+Data Persistence and Audit & Provide domain repositories and permitted audit/history storage through Core DB V4. & Cross-cutting \\ \hline
+\end{longtable}
+\endgroup
+
+\noindent\textbf{Relationships and communication.}\par\smallskip
+The operations below define \emph{proposed logical interfaces}. Their exact
+names, parameters and endpoints will be refined with the class design and
+existing Python code; they are not new API or database contracts.
+
+\begingroup\footnotesize\renewcommand{\arraystretch}{1.08}
+\begin{longtable}{|L{0.16\textwidth}|L{0.16\textwidth}|L{0.23\textwidth}|L{0.34\textwidth}|}
+\hline
+\textbf{Source} & \textbf{Target} & \textbf{Means / interface} & \textbf{Purpose and information exchanged} \\ \hline
+\endfirsthead
+\hline
+\textbf{Source} & \textbf{Target} & \textbf{Means / interface} & \textbf{Purpose and information exchanged (continued)} \\ \hline
+\endhead
+Web Frontend & API Controllers & HTTPS/JSON; authenticated request/response & Submit user actions; return results, errors and permitted views. \\ \hline
+API Controllers & Account Management & Python; \texttt{authorize()} & Check role, ownership, consent scope and resource permissions. \\ \hline
+API Controllers & Business components & Python; command/query DTOs & Dispatch validated UC operations and return results. \\ \hline
+Intake (M1) & Identification (M2) & Python; \texttt{identifyConfirmedEntry()} & Confirmed medication fields, source text, uncertainty and provenance. \\ \hline
+Intake (M1) & OCR/local LLM adapter & Local library or loopback HTTP & Draft extraction or text assistance; never medical approval. \\ \hline
+Identification (M2) & Reference Data & Python; \texttt{findCandidates()} & Product matches, ingredients, reference versions and evidence. \\ \hline
+Identification (M2) & Safety (M3) & Python; identified-medication DTO & Resolved identities and explicit unresolved/ambiguous status. \\ \hline
+Safety (M3) & Patient Health Profile & Python; \texttt{getRiskContext()} & Available conditions, allergies, medication-use status and provenance. \\ \hline
+Safety (M3) & Reference Data & Python; \texttt{getInteractionEvidence()} & DDI, duplicate-ingredient and supported reference evidence. \\ \hline
+API Controllers & HCP Review (M4) & Python; \texttt{openReviewCase()} & User-requested saved safety case or pending schedule request; consent required before HCP access. \\ \hline
+Reminders (M5) & HCP Review (M4) & Python; schedule-review request DTO & Pending verification/change request; no schedule is applied. \\ \hline
+HCP Review (M4) & Reminders (M5) & Python; recorded outcome reference & Confirmed/unresolved review outcome used for a new eligibility check. \\ \hline
+Reminders (M5) & Safety (M3) & Python; \texttt{evaluateReminderGate()} & Return eligible, held or unassessed status for an affected new reminder. \\ \hline
+HCP Review (M4) & Patient Health Profile & Python; permitted profile query & Sourced patient context for a reviewed summary or permitted case. \\ \hline
+Reference Data & Data Persistence & Python repository interface & Read approved local medication, ingredient and mapping records; save review decisions. \\ \hline
+Accounts/Support & Data Persistence & Python repository interface & Account state, roles, tickets and permitted audit events. \\ \hline
+Other business components & Data Persistence & Python domain repositories & Persist confirmed intake, findings, review state, reminders and history. \\ \hline
+Data Persistence & PostgreSQL Core DB V4 & Parameterized SQL / TCP & Read and write approved schema objects with transactions and access control. \\ \hline
+Web Frontend & Browser notification API & Browser API, with permission & Display eligible notifications; fall back to in-app schedule views. \\ \hline
+\end{longtable}
+\endgroup
+
+\noindent\textbf{Architectural rules and boundaries.}\par\smallskip
+Medication input must be explicitly confirmed before identification and safety
+assessment. Unresolved product identities and unsupported checks remain
+\emph{Unassessed}; missing evidence is never treated as proof of safety.
+Medication records marked as discontinued are not automatically counted as
+currently used. A severe drug--drug interaction or another configured review
+condition holds the \emph{affected new reminder}; the system does not
+automatically stop existing reminders, stop medicines, prescribe, or change
+treatment. A proposed schedule cannot replace verified instructions without
+recorded verification and a fresh safety check.
+
+Simulated HCP access requires patient permission specific to a review case;
+sharing a confirmed health summary uses independent consent. Health-profile
+entries retain source, status, time and uncertainty. Technical Support sees
+only permitted diagnostics, not unrestricted clinical information. The
+existing \textbf{Core DB V4} remains the data contract; no database schema
+change follows automatically from this architectural proposal. UC-19
+(Manage Personal Medication Cabinet) is a \emph{future feature} and is not
+part of the current implementation architecture.
+
+
+
+% -------- Component 01 --------
+\subsection{Component: Web Frontend}
+\label{subsec:logical-frontend}
+
+The browser application presents workflows for Patients, HCPs, Administrators, Dataset Reviewers and Technical Support. It collects inputs, shows confirmations and limitations, and renders only data permitted for the signed-in role. It does not perform medication safety decisions or bypass server authorization.
+
+\noindent\textbf{Related use cases:} UC-01--UC-18 and UC-20 (role-dependent).
+
+\noindent\textbf{Provided services.} Provide medication-entry forms, chatbot UI, safety-results views, HCP case views, reminder/adherence screens, account pages and support-ticket screens.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{submitAction(action, payload)} & HTTPS/JSON request to API Controllers \\ \hline
+\texttt{showWorkflowResult(result)} & Render status, warnings and confirmed results \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{WebAppShell} & Own navigation and the active role-specific view. \\ \hline
+\texttt{ApiClient} & Send typed requests to the backend API. \\ \hline
+\texttt{MedicationEntryView} & Collect and confirm intake UI values. \\ \hline
+\texttt{SafetyAndReminderViews} & Display warnings, restrictions and reminder status. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} These are proposed TypeScript UI modules/components; they need not be OOP classes if a function-component framework is used.
+
+% CLASS DIAGRAM FOR WEB FRONTEND TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 02 --------
+\subsection{Component: API Controllers}
+\label{subsec:logical-api}
+
+The Python API boundary receives browser requests, validates request shape, obtains authenticated context, checks access rules and routes commands to the appropriate application service. It returns typed results or errors. It does not duplicate the business rules of the five modules.
+
+\noindent\textbf{Related use cases:} All active use cases through public API routes.
+
+\noindent\textbf{Provided services.} Expose request handlers for intake, safety checks, HCP review, reminders, profiles, dataset review, accounts and support. Enforce server-side identity and resource authorization.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{dispatch(command, context)} & Route a validated command/query to a business component \\ \hline
+\texttt{authorizeRequest(context, resource)} & Use Account Management to enforce RBAC and ownership \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{ApiController} & Adapt HTTP input/output to application calls. \\ \hline
+\texttt{RequestValidator} & Validate payloads and return structured errors. \\ \hline
+\texttt{AccessGuard} & Ask Account Management to authorize a scoped request. \\ \hline
+\texttt{RequestContext} & Carry identity and request metadata. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} HTTP endpoints and the concrete Python framework are not fixed by this Logical View.
+
+% CLASS DIAGRAM FOR API CONTROLLERS TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 03 --------
+\subsection{Component: Medication Intake and Chatbot (Module 1)}
+\label{subsec:logical-intake}
+
+Module 1 accepts manual entries, OCR text and chatbot messages. It preserves source spans, negation and uncertainty, asks clarifying questions and requires explicit confirmation before releasing medication entries. A drug mention only creates a draft until its purpose is clarified. Medication Q\&A is bounded by approved reference data.
+
+\noindent\textbf{Related use cases:} UC-02, UC-11.
+
+\noindent\textbf{Provided services.} Create a draft; clarify missing medication details; confirm or cancel intake; retrieve supported medication Q\&A; hand off confirmed entries.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{startIntake(input)} & Create a draft candidate without asserting safety \\ \hline
+\texttt{confirmEntry(draftId)} & Commit an explicitly confirmed entry and provenance \\ \hline
+\texttt{answerMedicationQuestion(query)} & Return supported information or a clear limitation \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{IntentRouter} & Classify intake, safety-request and Q\&A intent. \\ \hline
+\texttt{DialogueManager} & Manage clarification, confirmation and workflow state. \\ \hline
+\texttt{IntakeValidator} & Validate extracted spans, missing fields and uncertainty. \\ \hline
+\texttt{IntakeHandoff} & Build a confirmed intake DTO for Module 2. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} OCR and optional local LLM providers are adapters. Their output never confirms drug identity or clinical safety.
+
+% CLASS DIAGRAM FOR MEDICATION INTAKE AND CHATBOT (MODULE 1) TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 04 --------
+\subsection{Component: Medication Identification (Module 2)}
+\label{subsec:logical-identification}
+
+Module 2 resolves confirmed product descriptions to available source-scoped medication records and active ingredients. Candidate confidence and user confirmation are distinct. Ambiguous and unknown medicines remain unresolved; downstream safety checks must be told which identities could not be verified.
+
+\noindent\textbf{Related use cases:} UC-02, UC-03.
+
+\noindent\textbf{Provided services.} Return medication candidates, resolved active ingredients, identity status and source evidence.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{identifyConfirmedEntry(entry)} & Return identified/unresolved medication result \\ \hline
+\texttt{resolveIngredients(medicationId)} & Return supported ingredient references \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{IdentificationService} & Coordinate product and ingredient resolution. \\ \hline
+\texttt{MedicationMatcher} & Search candidate products with source evidence. \\ \hline
+\texttt{IngredientResolver} & Resolve linked active ingredients. \\ \hline
+\texttt{IdentificationResult} & Carry status, uncertainty, source IDs and version. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} Reference lookup uses reviewed local datasets; unresolved identities are not silently accepted.
+
+% CLASS DIAGRAM FOR MEDICATION IDENTIFICATION (MODULE 2) TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 05 --------
+\subsection{Component: Safety Assessment and Decision Support (Module 3)}
+\label{subsec:logical-safety}
+
+Module 3 performs supported risk checks on assessable currently used medicines: drug--drug interactions, duplicate ingredients, drug--disease risks, and contraindication/allergy evidence when available. It records warnings, source limitations and \emph{Unassessed} results. It does not diagnose or recommend autonomous treatment changes.
+
+\noindent\textbf{Related use cases:} UC-03, UC-06, UC-10 (history access).
+
+\noindent\textbf{Provided services.} Assess supported medication risks, save traceable results, retrieve prior findings and evaluate new-reminder restrictions.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{assessSafety(medications, profileContext)} & Return saved findings and unassessed limitations \\ \hline
+\texttt{evaluateReminderGate(medication, schedule)} & Return eligible/held/unassessed status \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{SafetyAssessmentService} & Orchestrate checks and saving of assessment results. \\ \hline
+\texttt{InteractionChecker} & Evaluate DDI and duplicate-ingredient evidence. \\ \hline
+\texttt{PatientRiskChecker} & Evaluate supported profile-dependent risks. \\ \hline
+\texttt{SafetyGate} & Apply defined eligibility and hold rules. \\ \hline
+\texttt{SafetyReport} & Carry findings, limits, source versions and time. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} A safety warning may offer UC-04; it does not automatically authorize HCP sharing.
+
+% CLASS DIAGRAM FOR SAFETY ASSESSMENT AND DECISION SUPPORT (MODULE 3) TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 06 --------
+\subsection{Component: HCP Review and Patient Health Summary (Module 4)}
+\label{subsec:logical-review}
+
+Module 4 handles simulated HCP review for saved safety cases and pending schedule verification or change requests. It manages case-specific permission, assignment, conversation and recorded outcomes. It also prepares patient-reviewed health summaries with a separate sharing and revocation permission. An HCP outcome is evidence for further checking, not an automatic prescription update.
+
+\noindent\textbf{Related use cases:} UC-04, UC-05, UC-12, UC-13.
+
+\noindent\textbf{Provided services.} Create or reuse authorized review cases, assign eligible simulated HCPs, store outcomes and messages, prepare summaries, grant or revoke summary sharing.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{openReviewCase(sourceRef)} & Create pending case; access only after valid case consent \\ \hline
+\texttt{recordReviewOutcome(caseId, outcome)} & Save a traceable simulated decision \\ \hline
+\texttt{generateHealthSummary(patientId)} & Prepare a source-aware summary draft \\ \hline
+\texttt{shareConfirmedSummary(summaryId, scope)} & Apply independent summary-sharing permission \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{ReviewCaseService} & Manage case lifecycle, assignment and status. \\ \hline
+\texttt{ReviewConversation} & Store permitted case messages. \\ \hline
+\texttt{ReviewOutcome} & Represent a traceable simulated review result. \\ \hline
+\texttt{HealthSummaryService} & Build and share patient-confirmed summaries. \\ \hline
+\texttt{SharingPermissionService} & Validate case and summary scopes separately. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} Schedule review outcomes trigger a new eligibility check; they never directly activate an ineligible reminder.
+
+% CLASS DIAGRAM FOR HCP REVIEW AND PATIENT HEALTH SUMMARY (MODULE 4) TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 07 --------
+\subsection{Component: Reminders and Adherence (Module 5)}
+\label{subsec:logical-reminders}
+
+Module 5 activates reminders only from existing verified instructions and when the safety gate allows it. It separates notification preferences from the medication schedule. New timing proposals are stored as pending review rather than applied. It records Taken, Missed and Skipped dose statuses and provides adherence history.
+
+\noindent\textbf{Related use cases:} UC-06--UC-09.
+
+\noindent\textbf{Provided services.} Set up eligible reminders, manage notifications, submit timing proposals, record dose status and return adherence records.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{setupReminder(verifiedSchedule)} & Check schedule verification and safety gate before activation \\ \hline
+\texttt{proposeScheduleChange(proposal)} & Store a pending review request without applying it \\ \hline
+\texttt{recordDoseStatus(doseEvent)} & Store a confirmed Taken/Missed/Skipped entry \\ \hline
+\texttt{getAdherenceHistory(filter)} & Return patient-scoped permitted records \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{ReminderService} & Manage eligible reminder settings and notifications. \\ \hline
+\texttt{ReminderEligibilityGate} & Combine verified-schedule and safety restrictions. \\ \hline
+\texttt{ScheduleChangeRequest} & Represent an unapplied timing proposal. \\ \hline
+\texttt{DoseStatusService} & Save confirmed dose-status changes. \\ \hline
+\texttt{AdherenceHistoryService} & Read permitted adherence history. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} If browser notifications are unavailable, eligible schedules remain visible in the application.
+
+% CLASS DIAGRAM FOR REMINDERS AND ADHERENCE (MODULE 5) TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 08 --------
+\subsection{Component: Patient Health Profile}
+\label{subsec:logical-profile}
+
+This supporting component manages medical conditions, allergies, medication history and status, previous ADRs, family/lifestyle information and health measurements. Data retain their reported source, time, uncertainty and current/discontinued status. Patient confirmation is not the same as clinical verification.
+
+\noindent\textbf{Related use cases:} UC-18; supports UC-03 and UC-12.
+
+\noindent\textbf{Provided services.} View and update permitted profile entries; return source-aware risk context and patient information for summaries.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{updateProfileEntry(entry)} & Validate and save a confirmed patient report \\ \hline
+\texttt{getRiskContext(patientId)} & Return relevant available conditions, allergies and medicine status \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{PatientProfileService} & Coordinate permitted profile reads and updates. \\ \hline
+\texttt{HealthProfileEntry} & Represent sourced health information. \\ \hline
+\texttt{MedicationUseEntry} & Represent active or discontinued medication status. \\ \hline
+\texttt{ProfileValidator} & Check completeness and source limitations. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} Reuse existing Patient Health Summary/Core DB V4 storage where supported; extending the schema requires separate review.
+
+% CLASS DIAGRAM FOR PATIENT HEALTH PROFILE TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 09 --------
+\subsection{Component: Reference Data and Dataset Review}
+\label{subsec:logical-reference}
+
+This component provides versioned local medication, ingredient and DDInter mapping references for runtime use. Dataset Reviewers compare records with sources and save Accept, Reject or Needs Correction decisions with audit history. Dataset acceptance is not independent clinical validation.
+
+\noindent\textbf{Related use cases:} UC-14; supports UC-02, UC-03 and UC-11.
+
+\noindent\textbf{Provided services.} Find product candidates, resolve ingredient mappings, retrieve available DDI evidence and record review decisions.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{findCandidates(text)} & Return source-linked candidate products \\ \hline
+\texttt{getInteractionEvidence(ingredientIds)} & Return available mapped interaction evidence \\ \hline
+\texttt{recordReviewDecision(recordId, decision)} & Save source-linked review status and rationale \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{ReferenceCatalog} & Provide versioned reference queries. \\ \hline
+\texttt{DDIReferenceReader} & Read locally available interaction evidence. \\ \hline
+\texttt{DatasetReviewService} & Validate and save reviewer decisions. \\ \hline
+\texttt{ReviewDecision} & Hold review status, reviewer, reason and evidence. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} Production-like real-time external drug APIs are not required for this research prototype.
+
+% CLASS DIAGRAM FOR REFERENCE DATA AND DATASET REVIEW TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 10 --------
+\subsection{Component: Account and Access Management}
+\label{subsec:logical-accounts}
+
+This component authenticates registered users and enforces permissions for the five supported roles. It handles authorized creation, role assignment, account deactivation, password management and updates to a user's own account. It returns role and resource access decisions to API Controllers and authorized business components.
+
+\noindent\textbf{Related use cases:} UC-01, UC-15, UC-20.
+
+\noindent\textbf{Provided services.} Authenticate sessions, check RBAC and ownership, apply confirmed account changes and record activity metadata.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{authenticate(credentials)} & Validate an account and create an authorized session \\ \hline
+\texttt{authorize(actor, action, resource)} & Check role, ownership and access scope \\ \hline
+\texttt{applyAccountChange(change)} & Save an administrator-confirmed allowed action \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{AccountService} & Coordinate sign-in and authorized account operations. \\ \hline
+\texttt{RBACPolicy} & Evaluate role and resource permissions. \\ \hline
+\texttt{SessionService} & Provide authenticated session context. \\ \hline
+\texttt{AccountChangeValidator} & Validate creation, deactivation and role-change rules. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} No patient data access follows solely from a user being Technical Support or Administrator.
+
+% CLASS DIAGRAM FOR ACCOUNT AND ACCESS MANAGEMENT TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 11 --------
+\subsection{Component: Technical Support}
+\label{subsec:logical-support}
+
+This component lets registered users report technical problems and track a ticket. Authorized Technical Support staff inspect assigned tickets, request additional details and record progress or resolution. Patient health content is masked or excluded except when a diagnostic detail is explicitly permitted.
+
+\noindent\textbf{Related use cases:} UC-16, UC-17.
+
+\noindent\textbf{Provided services.} Create tickets, list assigned tickets, request information, add permitted replies and update resolution status.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{createTicket(report)} & Create a validated support ticket \\ \hline
+\texttt{listAssignedTickets(staffId)} & Return authorized assigned tickets \\ \hline
+\texttt{updateTicketStatus(ticketId, status)} & Save progress and responsible staff metadata \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{SupportTicketService} & Manage ticket creation and lifecycle. \\ \hline
+\texttt{TicketAccessPolicy} & Restrict ticket and diagnostic visibility. \\ \hline
+\texttt{SupportConversation} & Record user and staff technical messages. \\ \hline
+\texttt{SupportTicket} & Represent ticket status, ownership and metadata. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} This component is separated from accounts and general database access to prevent privilege overlap.
+
+% CLASS DIAGRAM FOR TECHNICAL SUPPORT TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+
+% -------- Component 12 --------
+\subsection{Component: Data Persistence and Audit}
+\label{subsec:logical-persistence}
+
+This backend component exposes purpose-specific repositories that isolate other services from SQL statements and the Core DB V4 schema. It executes parameterized queries with transactions and records permitted workflow/audit history. It is not a second database or an alternative source of truth.
+
+\noindent\textbf{Related use cases:} Cross-cutting support for active use cases.
+
+\noindent\textbf{Provided services.} Read and write approved domain records, enforce transaction boundaries, preserve dataset versions and maintain traceability.
+
+\noindent\textbf{Proposed service interfaces.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.48\textwidth}|Y|}
+\hline
+\textbf{Operation / interface} & \textbf{Purpose} \\ \hline
+\texttt{saveDomainRecord(record)} & Use a domain-specific repository to persist an approved object \\ \hline
+\texttt{loadDomainRecord(id)} & Load a permission-scoped record using the approved schema \\ \hline
+\texttt{appendAuditEvent(event)} & Persist relevant actor/time/source details \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textbf{Candidate classes or modules for the class-design step.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.36\textwidth}|Y|}
+\hline
+\textbf{Name} & \textbf{Responsibility} \\ \hline
+\texttt{RepositoryInterface} & Define domain-specific read/write contracts. \\ \hline
+\texttt{PostgresRepositoryAdapter} & Execute approved parameterized PostgreSQL queries. \\ \hline
+\texttt{UnitOfWork} & Coordinate permitted transactional updates. \\ \hline
+\texttt{AuditRecorder} & Persist traceable events and changes. \\ \hline
+\end{tabularx}\endgroup
+
+\noindent\textit{Design note.} All names are illustrative. Concrete repositories must match existing db/ migrations, contract and implemented access patterns.
+
+% CLASS DIAGRAM FOR DATA PERSISTENCE AND AUDIT TO BE INSERTED HERE AFTER CLASS DESIGN.
+% Include principal attributes, operations, UML relationships and multiplicities.
+
+
+\noindent\textit{Design status.} This section fixes the logical component
+boundaries and proposed interfaces. The final class diagrams will show the
+important attributes, operations, UML relationships and multiplicities.
+Method signatures, implementation classes and framework-specific choices
+must be reconciled with the current source code and approved Core DB V4
+before they are treated as implementation contracts.
