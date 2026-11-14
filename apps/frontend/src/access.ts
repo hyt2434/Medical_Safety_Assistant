@@ -83,7 +83,7 @@ export type SupportTicket = {
 export const rolePermissions: Record<RoleCode, Permission[]> = {
   patient: ["patient.workspace"],
   hcp: ["clinical.case_review"],
-  medical_reviewer: ["clinical.case_review", "catalog.review", "catalog.edit"],
+  medical_reviewer: ["catalog.review", "catalog.edit"],
   admin: ["staff.directory", "admin.accounts", "admin.roles", "admin.audit"],
   technical_support: ["staff.directory", "operations.queue"],
 };
@@ -91,7 +91,7 @@ export const rolePermissions: Record<RoleCode, Permission[]> = {
 export const roleLabel: Record<RoleCode, string> = {
   patient: "Người dùng",
   hcp: "HCP",
-  medical_reviewer: "Phản biện dữ liệu",
+  medical_reviewer: "Chuyên viên dữ liệu",
   admin: "Quản trị",
   technical_support: "Hỗ trợ kỹ thuật",
 };
@@ -279,7 +279,8 @@ export function permissionsFor(grants: RoleGrant[], userId: string) {
 }
 
 export function workspaceFor(context: RoleCode | null) {
-  if (context === "hcp" || context === "medical_reviewer") return "/hcp";
+  if (context === "hcp") return "/hcp";
+  if (context === "medical_reviewer") return "/reviewer";
   if (context === "admin") return "/admin";
   if (context === "technical_support") return "/staff";
   if (context === "patient") return "/dashboard";

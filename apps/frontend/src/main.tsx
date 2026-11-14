@@ -12,6 +12,7 @@ import { App } from "./App";
 import { DemoProvider } from "./state";
 import "./styles.css";
 import "./figma.css";
+import "./ui-refinements.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

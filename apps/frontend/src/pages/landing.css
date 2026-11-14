@@ -1,6 +1,6 @@
 .lp {
-  --lp-teal: #087b70;
-  --lp-ink: #102f2d;
+  --lp-teal: var(--color-primary);
+  --lp-ink: var(--color-ink);
   max-width: 1440px;
   margin: auto;
   color: var(--lp-ink);
@@ -630,3 +630,4 @@
   font-family: "Bricolage Grotesque", sans-serif;
   font-weight: 700;
 }
+.lp{max-width:none}.lp section{padding-inline:max(6%,calc((100% - 1480px)/2));scroll-margin-top:100px}.lp .lp-scroll-header{position:fixed;inset:0 0 auto;z-index:50;background:#fff;min-height:80px;padding:12px max(5%,calc((100% - 1520px)/2));transform:translateY(-100%);visibility:hidden;transition:transform .25s ease,visibility .25s;pointer-events:none}.lp .lp-scroll-header.is-visible,.lp .lp-scroll-header:focus-within{transform:translateY(0);visibility:visible;pointer-events:auto}.lp .lp-hero{min-height:100svh;padding-block:clamp(32px,6vh,80px)}@media(min-width:1100px){.lp .lp-hero h1{font-size:clamp(60px,5.2vw,88px)}.lp .lp-hero-art{max-width:620px;width:100%;justify-self:center}}@media(min-width:701px) and (max-height:800px){.lp .lp-hero{padding-block:28px}.lp .lp-record-body{padding:18px 24px}.lp .lp-file{margin:12px 0;padding-bottom:12px}.lp .lp-record-body .lp-summary{margin-top:12px;padding:12px}.lp .lp-hero-art{padding:18px}.lp .lp-hero h1{font-size:clamp(44px,4.8vw,72px)}}@media(max-width:700px){.lp section{padding-inline:20px}.lp .lp-hero{padding-block:48px}.lp .lp-scroll-header{min-height:72px;padding:12px 20px}}@media(prefers-reduced-motion:reduce){.lp .lp-scroll-header{transition:none}}

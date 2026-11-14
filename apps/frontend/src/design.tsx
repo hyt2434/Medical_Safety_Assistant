@@ -56,7 +56,7 @@ export function PastelWave() {
     </div>
   );
 }
-export function PublicLayout({ children }: { children: ReactNode }) {
+export function PublicLayout({ children, compact = false }: { children: ReactNode; compact?: boolean }) {
   const { state, authStatus } = useDemo();
   const context = authStatus === "ready" ? state.activeContext : null;
   const continueLabel =
@@ -70,7 +70,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             ? "Về tổng quan"
             : "Đăng nhập";
   return (
-    <div className="figma-public">
+    <div className={`figma-public${compact ? " auth-focused" : ""}`}>
       <a className="skip-link" href="#main">
         Đến nội dung chính
       </a>
@@ -78,17 +78,17 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         <Brand />
         <nav aria-label="Điều hướng trang chủ">
           <Link to="/">Trang chủ</Link>
-          <Link to="/how-it-works">Cách hoạt động</Link>
-          <Link to="/policy">An toàn</Link>
+          <Link to="/#cach-hoat-dong">Cách hoạt động</Link>
+          <Link to="/#an-toan">An toàn</Link>
           <Link to={workspaceFor(context)}>{continueLabel}</Link>
         </nav>
       </header>
-      <div className="demo-strip">
+      {!compact && <div className="demo-strip">
         <DesignAsset name="shield" />
         <span>
           BẢN MẪU · Chỉ dùng dữ liệu minh họa, chưa kết nối dịch vụ y tế
         </span>
-      </div>
+      </div>}
       <main id="main" className="figma-public-main">
         {children}
       </main>
@@ -100,11 +100,14 @@ export function Metric({
   value,
   label,
   icon = "file",
+  to,
 }: {
   value: ReactNode;
   label: string;
   icon?: keyof typeof figmaAssets;
+  to?: string;
 }) {
+  if (to) return <Link className="metric-link" to={to}><Metric value={value} label={label} icon={icon} /></Link>;
   return (
     <Card className="metric">
       <span className="icon-tile">

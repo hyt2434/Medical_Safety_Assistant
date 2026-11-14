@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { Card, Field, Notice, PageHeading, CardHeading } from "../components";
-import { PublicLayout, DesignAsset } from "../design";
+import { Card, Field, PageHeading } from "../components";
+import { PublicLayout } from "../design";
 import { roleLabel, workspaceFor } from "../access";
 import type { RoleCode } from "../access";
 import { useDemo } from "../state";
-import { NavigationTrail } from "../NavigationTrail";
 
 export function Login() {
-  const { state, reset, login, chooseContext, authError } = useDemo();
+  const { state, login, chooseContext, authError } = useDemo();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -22,10 +21,12 @@ export function Login() {
   async function openContext(role: RoleCode, switchOnServer = true) {
     if (switchOnServer) await chooseContext(role);
     const from = location.state?.from;
-    const clinical = role === "hcp" || role === "medical_reviewer";
+    const clinical = role === "hcp";
     const allowed =
       from === "/chat"
         ? true
+        : role === "medical_reviewer"
+          ? typeof from === "string" && from.startsWith("/reviewer")
         : clinical
           ? typeof from === "string" &&
             from.startsWith("/hcp") &&
@@ -36,28 +37,19 @@ export function Login() {
               ? typeof from === "string" && from.startsWith("/staff")
               : typeof from === "string" &&
                 !from.startsWith("/hcp") &&
+                !from.startsWith("/reviewer") &&
                 !from.startsWith("/admin") &&
                 !from.startsWith("/staff");
     navigate(allowed ? from : workspaceFor(role));
   }
 
   return (
-    <PublicLayout>
-      <div>
-        <NavigationTrail />
-      </div>
+    <PublicLayout compact>
       <PageHeading
-        eyebrow="TIỂU BẠCH"
         title={choices ? "Chọn không gian làm việc" : "Đăng nhập Tiểu Bạch"}
-        description="Một tài khoản, nhiều vai trò — chọn không gian làm việc khi đăng nhập."
       />
       <div className="auth-columns">
         <Card className="auth-card">
-          <CardHeading
-            icon={<DesignAsset name="lock" />}
-            title="Thông tin đăng nhập"
-          />
-          <p>Nhập email và mật khẩu để mở không gian làm việc của bạn.</p>
           <form
             onSubmit={async (event) => {
               event.preventDefault();
@@ -147,73 +139,44 @@ export function Login() {
                 ))}
             </div>
           )}
-          <div className="auth-minor">
-            <button
-              className="text-button"
-              type="button"
-              onClick={() => reset()}
-            >
-              Xóa dữ liệu phiên
-            </button>
-          </div>
-          <Notice>
-            Chỉ các vai trò được cấp cho tài khoản mới xuất hiện sau khi đăng
-            nhập.
-          </Notice>
-        </Card>
-        <Card className="auth-role-guide">
-          <CardHeading
-            icon={<DesignAsset name="users" />}
-            title="Không gian dành cho bạn"
-          />
-          {[
-            ["Người dùng / Người thân", "Quản lý toa, lịch nhắc và hồ sơ."],
-            ["Bác sĩ / Dược sĩ (HCP)", "Xem ca, đối chiếu và phản hồi."],
-            [
-              "Các vai trò nghiệp vụ",
-              "Đối soát dữ liệu · Quản trị · Hỗ trợ kỹ thuật.",
-            ],
-          ].map(([title, text]) => (
-            <div className="choice-row" key={title}>
-              <strong>{title}</strong>
-              <p>{text}</p>
-            </div>
-          ))}
+
         </Card>
       </div>
-      {import.meta.env.DEV && <details className="demo-accounts">
-        <summary>Tài khoản dùng thử và mật khẩu</summary>
-        <div className="table-wrapper">
-          <table>
-            <caption>Tài khoản development</caption>
-            <thead>
-              <tr>
-                <th>Tên</th>
-                <th>Email</th>
-                <th>Mật khẩu development</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ["Trần Thị Mai", "mai.demo@example.com", "Mai-patient-2026"],
-                ["Lê Minh An", "an.demo@example.com", "An-hcp-2026"],
-                ["Phạm Quốc Huy", "huy.demo@example.com", "Huy-review-2026"],
-                ["Đỗ Văn Khoa", "khoa.demo@example.com", "Khoa-support-2026"],
-                ["Nguyễn Thu Hà", "ha.demo@example.com", "Ha-admin-2026"],
-                ["Ngô Gia Bảo", "multi.demo@example.com", "Multi-role-2026"],
-              ].map(([name, mail, secret]) => (
-                <tr key={mail}>
-                  <td>{name}</td>
-                  <td>{mail}</td>
-                  <td>
-                    <code>{secret}</code>
-                  </td>
+      {import.meta.env.DEV && (
+        <details className="demo-accounts">
+          <summary>Tài khoản dùng thử và mật khẩu</summary>
+          <div className="table-wrapper">
+            <table>
+              <caption>Tài khoản development</caption>
+              <thead>
+                <tr>
+                  <th>Tên</th>
+                  <th>Email</th>
+                  <th>Mật khẩu development</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>}
+              </thead>
+              <tbody>
+                {[
+                  ["Trần Thị Mai", "mai.demo@example.com", "Mai-patient-2026"],
+                  ["Lê Minh An", "an.demo@example.com", "An-hcp-2026"],
+                  ["Phạm Quốc Huy", "huy.demo@example.com", "Huy-review-2026"],
+                  ["Đỗ Văn Khoa", "khoa.demo@example.com", "Khoa-support-2026"],
+                  ["Nguyễn Thu Hà", "ha.demo@example.com", "Ha-admin-2026"],
+                  ["Ngô Gia Bảo", "multi.demo@example.com", "Multi-role-2026"],
+                ].map(([name, mail, secret]) => (
+                  <tr key={mail}>
+                    <td>{name}</td>
+                    <td>{mail}</td>
+                    <td>
+                      <code>{secret}</code>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
       <Link className="text-link" to="/">
         Về trang chủ <ArrowRight size={16} />
       </Link>

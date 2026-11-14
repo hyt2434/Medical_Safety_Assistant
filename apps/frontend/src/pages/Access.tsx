@@ -115,9 +115,7 @@ export function DataReview() {
   return (
     <>
       <PageHeading
-        eyebrow="HỒ SƠ CHUYÊN MÔN"
         title="Rà soát và sửa dữ liệu"
-        description="Medical reviewer dùng cùng nhóm chuyên môn với HCP, và có thêm quyền xem review dữ liệu cùng chỉnh sửa bản ghi mẫu."
       />
       {allowed ? (
         <Notice>
@@ -223,9 +221,7 @@ export function StaffHome() {
   return (
     <>
       <PageHeading
-        eyebrow="HỒ SƠ NHÂN SỰ"
         title="Không gian vận hành"
-        description="Hỗ trợ kỹ thuật là staff. Hồ sơ nằm chung bảng nhân sự với quản trị; quyền xử lý việc vận hành không bao gồm cấp role."
       />
       <div className="stack">
         {state.supportTickets.map((ticket) => (
@@ -265,9 +261,7 @@ export function StaffDirectoryPage({ editable }: { editable: boolean }) {
   return (
     <>
       <PageHeading
-        eyebrow="STAFF_PROFILES"
         title="Bảng nhân sự"
-        description="Admin và technical support dùng chung bảng này. Medical reviewer không nằm ở đây; người đó có hồ sơ chuyên môn như HCP."
       />
       <StaffTable editable={editable} />
       <Notice>
@@ -307,7 +301,10 @@ export function AdminAccounts() {
   const [saving, setSaving] = useState(false);
   const [expiresAt, setExpiresAt] = useState("");
 
+  const [reloadKey, setReloadKey] = useState(0);
   useEffect(() => {
+    setLoading(true);
+    setError("");
     let cancelled = false;
     api<{ accounts: DirectoryAccount[]; roleCatalog: RoleCatalogItem[] }>(
       "/api/admin/accounts",
@@ -332,7 +329,7 @@ export function AdminAccounts() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   const account = directory.find((item) => item.id === selected);
   const permissionHint = Object.fromEntries(
@@ -342,11 +339,19 @@ export function AdminAccounts() {
   return (
     <>
       <PageHeading
-        eyebrow="TÀI KHOẢN TÁCH KHỎI ROLE"
-        title="Tài khoản và role"
-        description="Một tài khoản có thể nhận nhiều role. Quyền được máy chủ suy ra từ role trong database. Hồ sơ chuyên môn hoặc nhân sự không tự cấp quyền."
+        title="Tài khoản và vai trò"
       />
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <div className="load-error" role="alert">
+          <p>{error}</p>
+          <button
+            className="button secondary"
+            onClick={() => setReloadKey((n) => n + 1)}
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
       {loading && <p role="status">Đang tải tài khoản…</p>}
       <div className="workflow-grid">
         <Card className="table-card">
@@ -356,20 +361,28 @@ export function AdminAccounts() {
                 <tr>
                   <th>Tài khoản</th>
                   <th>Email</th>
-                  <th>Role hiệu lực</th>
+                  <th>Vai trò hiệu lực</th>
                 </tr>
               </thead>
               <tbody>
                 {directory.map((item) => (
-                  <tr key={item.id}>
+                  <tr
+                    key={item.id}
+                    className={selected === item.id ? "selected-account" : ""}
+                  >
                     <td>
                       <button
                         className="text-button"
+                        aria-pressed={selected === item.id}
                         onClick={() => setSelected(item.id)}
                       >
                         <strong>{item.fullName}</strong>
                       </button>
-                      <small>{item.accountStatus}</small>
+                      <small>
+                        {item.accountStatus === "active"
+                          ? "Đang hoạt động"
+                          : "Đã khóa"}
+                      </small>
                     </td>
                     <td>{item.email}</td>
                     <td>
@@ -440,7 +453,7 @@ export function AdminAccounts() {
                           setError(
                             reason instanceof Error
                               ? reason.message
-                              : "Không lưu được role",
+                              : "Không lưu được vai trò",
                           );
                         } finally {
                           setSaving(false);
@@ -452,7 +465,7 @@ export function AdminAccounts() {
               })}
             </div>
             <p>
-              <strong>Permission đang có trên máy chủ: </strong>
+              <strong>Quyền truy cập hiện tại: </strong>
               {account.permissions.length
                 ? account.permissions.join(", ")
                 : "không có"}
@@ -477,7 +490,10 @@ export function AdminAudit() {
   const [events, setEvents] = useState<ServerAudit[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
   useEffect(() => {
+    setLoading(true);
+    setError("");
     let cancelled = false;
     api<{ events: ServerAudit[] }>("/api/admin/audit")
       .then((body) => {
@@ -496,21 +512,29 @@ export function AdminAudit() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
   return (
     <>
       <PageHeading
-        eyebrow="NHẬT KÝ MÁY CHỦ"
         title="Nhật ký bảo mật"
-        description="Mỗi lần cấp hoặc thu hồi role được ghi trong database của API. Quyền của phiên đăng nhập vẫn được kiểm tra lại trên từng API."
       />
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <div className="load-error" role="alert">
+          <p>{error}</p>
+          <button
+            className="button secondary"
+            onClick={() => setReloadKey((n) => n + 1)}
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
       {loading ? (
         <p role="status">Đang tải nhật ký…</p>
       ) : error ? null : !events.length ? (
         <Card>
           <CardHeading icon={<History />} title="Chưa có sự kiện" />
-          <p>Nhật ký xuất hiện sau khi quản trị viên đổi role.</p>
+          <p>Nhật ký xuất hiện sau khi quản trị viên đổi vai trò.</p>
         </Card>
       ) : (
         <Card className="table-card">

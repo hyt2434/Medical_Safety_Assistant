@@ -8,7 +8,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...init,
     credentials: "include",
-    headers: { ...(init.body ? { "Content-Type": "application/json" } : {}), ...init.headers },
+    headers: { ...(init.body && !(init.body instanceof FormData) ? { "Content-Type": "application/json" } : {}), ...init.headers },
   });
   const body = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {

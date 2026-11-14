@@ -5,7 +5,7 @@ from auth.models import Role, RolePermission
 PERMISSIONS_BY_ROLE = {
     "patient": ("patient.workspace", "intake.ocr"),
     "hcp": ("clinical.case_review", "intake.ocr"),
-    "medical_reviewer": ("clinical.case_review", "catalog.review", "catalog.edit", "intake.ocr"),
+    "medical_reviewer": ("catalog.review", "catalog.edit", "intake.ocr"),
     "admin": ("staff.directory", "admin.accounts", "admin.roles", "admin.audit"),
     "technical_support": ("staff.directory", "operations.queue"),
 }

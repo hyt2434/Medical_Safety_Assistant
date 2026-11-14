@@ -9,15 +9,16 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import { Bell, Menu, LogOut, X, ShieldCheck } from "lucide-react";
+import { Bell, Menu, LogOut, X } from "lucide-react";
 import { Brand, Modal, TextLink } from "./components";
+import { ProfileReminder } from "./ProfileReminder";
 import { NavigationTrail } from "./NavigationTrail";
 import { TieuBachLauncher } from "./TieuBach";
 import { PastelWave } from "./design";
 import { initials, roleLabel, workspaceFor } from "./access";
 import type { RoleCode } from "./access";
 import { useDemo } from "./state";
-import { Landing, Login, Policy, HowItWorks } from "./pages/Public";
+import { Landing, Login, Policy } from "./pages/Public";
 import {
   ReviewTracking,
   MedicineDetail,
@@ -69,7 +70,7 @@ function allows(context: RoleCode | null, allow?: GuardAllow) {
   if (!context) return false;
   if (!allow) return true;
   if (allow === "clinical")
-    return context === "hcp" || context === "medical_reviewer";
+    return context === "hcp";
   return context === allow;
 }
 type GuardAllow =
@@ -97,7 +98,7 @@ function Guard({ allow }: { allow?: GuardAllow }) {
   );
 }
 function Shell() {
-  const { state, update, storageAvailable, logout, chooseContext, authError } =
+  const { state, storageAvailable, logout, chooseContext, authError } =
     useDemo();
   const location = useLocation();
   const navigate = useNavigate();
@@ -123,10 +124,9 @@ function Shell() {
   const links = reviewer
     ? [
         ["/reviewer", "Đối soát"],
-        ["/hcp/data-review", "Rà soát dữ liệu"],
+        ["/reviewer/queue", "Rà soát dữ liệu"],
         ["/reviewer/sources", "Nguồn dữ liệu"],
         ["/reviewer/history", "Lịch sử duyệt"],
-        ["/hcp/queue", "Ca lâm sàng"],
       ]
     : hcp
       ? [
@@ -135,7 +135,6 @@ function Shell() {
           ["/hcp/assessment", "Tương tác"],
           ["/hcp/patients", "Bệnh nhân"],
           ["/hcp/database", "Dữ liệu dược"],
-          ...(reviewer ? [["/hcp/data-review", "Rà soát dữ liệu"]] : []),
         ]
       : state.activeContext === "technical_support"
         ? [
@@ -170,7 +169,7 @@ function Shell() {
     : admin
       ? (account?.fullName ?? "Nhân sự mẫu")
       : state.profile.name;
-  const profileTo = hcp
+  const profileTo = reviewer ? "/reviewer" : hcp
     ? "/hcp/profile"
     : state.activeContext === "admin"
       ? "/admin/staff"
@@ -194,6 +193,7 @@ function Shell() {
           <Brand hcp={hcp} reviewer={reviewer} />
           <nav
             className={`primary-nav ${menu ? "is-open" : ""}`}
+            id="workspace-navigation"
             aria-label="Điều hướng chính"
           >
             {links.map(([path, label]) => (
@@ -203,26 +203,6 @@ function Shell() {
             ))}
           </nav>
           <div className="header-controls">
-            {!hcp && !admin && (
-              <div className="font-controls" aria-label="Cỡ chữ">
-                <button
-                  aria-pressed={state.profile.font === "normal"}
-                  onClick={() =>
-                    update({ profile: { ...state.profile, font: "normal" } })
-                  }
-                >
-                  A
-                </button>
-                <button
-                  aria-pressed={state.profile.font !== "normal"}
-                  onClick={() =>
-                    update({ profile: { ...state.profile, font: "large" } })
-                  }
-                >
-                  A+
-                </button>
-              </div>
-            )}
             <button
               className="icon-button notification-button"
               aria-label="Thông báo"
@@ -279,6 +259,7 @@ function Shell() {
               className="icon-button menu-toggle"
               aria-label={menu ? "Đóng menu" : "Mở menu"}
               aria-expanded={menu}
+              aria-controls="workspace-navigation"
               onClick={() => setMenu(!menu)}
             >
               {menu ? <X /> : <Menu />}
@@ -286,13 +267,6 @@ function Shell() {
           </div>
         </div>
       </header>
-      <div className="demo-strip">
-        <ShieldCheck size={14} />
-        <span>
-          Bản mô phỏng học tập · Dữ liệu mẫu trong phiên trình duyệt · Chưa kết
-          nối dịch vụ y tế
-        </span>
-      </div>
       {!storageAvailable && (
         <div role="status" className="storage-banner">
           Trình duyệt không cho phép lưu phiên. Dữ liệu chỉ được giữ đến khi tải
@@ -304,6 +278,7 @@ function Shell() {
         <NavigationTrail />
         <FlowNavigation />
         <Outlet />
+        <ProfileReminder />
       </main>
       <Footer />
       {notifications && (
@@ -409,7 +384,7 @@ export function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/hcp/login" element={<Login />} />
         <Route path="/policy" element={<Policy />} />
-        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/how-it-works" element={<Navigate to="/#cach-hoat-dong" replace />} />
         <Route element={<Guard allow="patient" />}>
           <Route element={<Shell />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -447,7 +422,6 @@ export function App() {
             <Route path="/hcp/confirmation/:id" element={<HcpConfirmation />} />
             <Route path="/hcp/profile" element={<HcpProfile />} />
             <Route path="/hcp/database" element={<Database />} />
-            <Route path="/hcp/data-review" element={<DataReview />} />
           </Route>
         </Route>
         <Route element={<Guard allow="admin" />}>
@@ -483,6 +457,8 @@ export function App() {
         </Route>
         <Route element={<Guard allow="medical_reviewer" />}>
           <Route element={<Shell />}>
+            <Route path="/reviewer/queue" element={<DataReview />} />
+            <Route path="/hcp/data-review" element={<Navigate to="/reviewer/queue" replace />} />
             <Route path="/reviewer" element={<ReviewerHome />} />
             <Route path="/reviewer/records/:id" element={<ReviewRecord />} />
             <Route

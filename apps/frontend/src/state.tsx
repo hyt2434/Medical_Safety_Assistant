@@ -67,6 +67,7 @@ export type ReviewCase = {
   scheduleConfirmed?: boolean;
 };
 export type Profile = {
+  completedFor?: string;
   name: string;
   year: string;
   phone: string;
@@ -409,7 +410,7 @@ function withSession(
       : [...previous.accounts, account],
     profile:
       activeContext === "patient" && previous.accountId !== account.id
-        ? { ...previous.profile, name: account.fullName }
+        ? { ...previous.profile, name: account.fullName, completedFor: undefined }
         : previous.profile,
   };
 }

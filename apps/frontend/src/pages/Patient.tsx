@@ -31,123 +31,11 @@ import {
   TextLink,
 } from "../components";
 import { formatDate, today, useDemo, welcomeChatMessage } from "../state";
-import { DesignAsset, Metric } from "../design";
+import { DesignAsset } from "../design";
 import { TieuBachAvatar } from "../TieuBach";
 import type { Medicine } from "../state";
 
-export function Dashboard() {
-  const { state } = useDemo();
-  const doses = state.doses.filter((d) => d.date === today() && d.enabled);
-  const next = doses.find((d) => d.state === "upcoming");
-  const done = doses.filter((d) => d.state === "taken").length;
-  return (
-    <>
-      <section className="dashboard-welcome card">
-        <div>
-          <Badge>ĐỒNG HÀNH AN TOÀN THUỐC</Badge>
-          <h1>Chào {state.profile.name}</h1>
-        </div>
-        <Link to="/reminders" className="welcome-stamp">
-          <Clock3 size={25} />
-          <span>
-            <small>LẦN TIẾP THEO</small>
-            <strong>
-              {next ? `${next.time} · ${next.name}` : "Xem lịch thuốc"}
-            </strong>
-          </span>
-        </Link>
-      </section>
-      <div className="metrics-three patient-overview-metrics">
-        <Metric
-          icon="pill"
-          value={state.medicines.length.toString().padStart(2, "0")}
-          label="Thuốc trong tủ"
-        />
-        <Metric
-          icon="shield"
-          value={state.medicines
-            .filter((m) => !m.verified)
-            .length.toString()
-            .padStart(2, "0")}
-          label="Cần kiểm tra tên hoặc liều"
-        />
-      </div>
-      <div className="dashboard-grid">
-        <Card className="upload-feature">
-          <CardHeading
-            icon={<DesignAsset name="upload" />}
-            title="Thêm toa thuốc"
-          />
-          <p>Chụp toa, nhập tay hoặc dùng bản mẫu.</p>
-          <Link className="button" to="/intake">
-            Bắt đầu kiểm tra →
-          </Link>
-          <div className="illustration-panel">
-            <DesignAsset name="prescription" />
-          </div>
-        </Card>
-        <Card>
-          <CardHeading
-            icon={<DesignAsset name="pill" />}
-            title="Tủ thuốc của bạn"
-          />
-          <div className="medicine-list">
-            {state.medicines.slice(0, 3).map((m) => (
-              <Link
-                className="medicine-row"
-                to={`/medications/${m.id}`}
-                key={m.id}
-              >
-                <span className="icon-tile">
-                  <DesignAsset name="pill" />
-                </span>
-                <div className="grow">
-                  <strong>
-                    {m.name} {m.strength}
-                  </strong>
-                  <p>
-                    {m.time} ·{" "}
-                    {m.verified ? "Đã xác nhận mẫu" : "Cần đối chiếu"}
-                  </p>
-                </div>
-                <ArrowRight size={17} />
-              </Link>
-            ))}
-          </div>
-          <TextLink to="/medications">Xem tất cả thuốc</TextLink>
-        </Card>
-      </div>
-      <div className="two-grid dashboard-secondary">
-        <Card>
-          <CardHeading icon={<CalendarDays />} title="Tiến độ hôm nay" />
-          <div className="progress-number">
-            {doses.length ? Math.round((done / doses.length) * 100) : 0}%{" "}
-            <span>
-              {done}/{doses.length} lần đã ghi nhận
-            </span>
-          </div>
-          <progress
-            value={done}
-            max={doses.length || 1}
-            aria-label="Số cữ thuốc đã uống"
-          />
-          <TextLink to="/reminders">Xem lịch uống thuốc</TextLink>
-        </Card>
-        <Card>
-          <CardHeading
-            icon={<DesignAsset name="heart" />}
-            title="Hỏi Tiểu Bạch"
-          />
-          <p>Cần hiểu kết quả? Tiểu Bạch giúp bạn chuẩn bị câu hỏi.</p>
-          <TextLink to="/chat">Bắt đầu trò chuyện</TextLink>
-        </Card>
-      </div>
-      <Notice tone="warning">
-        Không tự thay đổi thuốc hoặc liều dùng dựa trên kết quả mô phỏng.
-      </Notice>
-    </>
-  );
-}
+export { PatientDashboard as Dashboard } from "./PatientDashboard";
 
 export function Medications() {
   const { state, update } = useDemo();
@@ -165,9 +53,7 @@ export function Medications() {
   return (
     <>
       <PageHeading
-        eyebrow="THÔNG TIN THUỐC CỦA GIA ĐÌNH"
         title="Thuốc của tôi"
-        description="Tên thuốc, cách dùng và những thông tin cần đối chiếu — ở cùng một nơi."
         action={
           <button className="button" onClick={() => setAdding(true)}>
             <Plus size={18} /> Thêm thuốc
@@ -378,9 +264,7 @@ export function Reminders() {
   return (
     <>
       <PageHeading
-        eyebrow="THEO DÕI TỪNG CỮ THUỐC"
         title="Lịch thuốc của bạn"
-        description="Ghi nhận việc dùng thuốc theo lịch đã xác nhận. Đây là lịch trong ứng dụng, chưa có thông báo nền."
         action={
           <Link className="button" to="/reminders/new">
             <Plus size={18} /> Thiết lập lịch mới
@@ -638,16 +522,19 @@ export function Profile() {
   return (
     <>
       <PageHeading
-        eyebrow="THÔNG TIN & TÙY CHỌN CỦA BẠN"
         title="Hồ sơ cá nhân"
-        description="Điều chỉnh thông tin và cách hiển thị để Tiểu Bạch dễ dùng hơn."
       />
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          if (!profile.name.trim() || !profile.year || !profile.allergy.trim() || !profile.conditions.trim()) {
+            setStatus("Vui lòng điền các mục bắt buộc. Nếu chưa biết thông tin sức khỏe, ghi Chưa rõ.");
+            return;
+          }
           update({
             profile: {
               ...profile,
+              completedFor: state.accountId || undefined,
               font: state.profile.font,
               contrast: state.profile.contrast,
             },
@@ -681,8 +568,9 @@ export function Profile() {
                     maxLength={70}
                   />
                 </Field>
-                <Field label="Năm sinh">
+                <Field label="Năm sinh *">
                   <input
+                    required
                     type="number"
                     min="1900"
                     max={new Date().getFullYear()}
@@ -710,8 +598,9 @@ export function Profile() {
                 title="Thông tin cần lưu ý"
                 detail="Thông tin hỗ trợ trình bày hồ sơ, không dùng để tự chẩn đoán"
               />
-              <Field label="Dị ứng hoặc phản ứng từng gặp">
+              <Field label="Dị ứng hoặc phản ứng từng gặp *">
                 <textarea
+                  required
                   value={profile.allergy}
                   onChange={(e) =>
                     setProfile({ ...profile, allergy: e.target.value })
@@ -719,8 +608,10 @@ export function Profile() {
                   placeholder="Chưa có thông tin — không có nghĩa là không dị ứng"
                 />
               </Field>
-              <Field label="Bệnh nền / ghi chú">
+              <Field label="Bệnh nền / ghi chú *">
                 <textarea
+                  required
+                  placeholder="Ghi thông tin đã biết, Không có hoặc Chưa rõ"
                   value={profile.conditions}
                   onChange={(e) =>
                     setProfile({ ...profile, conditions: e.target.value })
@@ -834,7 +725,7 @@ export function Profile() {
         <div className="form-footer">
           <p role="status">{status}</p>
           <button className="button" type="submit">
-            <Check size={18} /> Lưu hồ sơ mẫu
+            <Check size={18} /> Lưu thay đổi
           </button>
         </div>
       </form>
@@ -911,9 +802,7 @@ export function Chat() {
   return (
     <>
       <PageHeading
-        eyebrow="NGƯỜI BẠN ĐỒNG HÀNH"
         title="Trò chuyện cùng Tiểu Bạch"
-        description="Hiểu rõ thông tin, chuẩn bị câu hỏi và tìm đúng bước tiếp theo."
       />
       <div className="chat-layout">
         <aside className="chat-sidebar">
@@ -977,8 +866,8 @@ export function Chat() {
                     setSelectedQuestion(m.id);
                     const element = document.getElementById(`chat-${m.id}`);
                     if (element && scroll.current) {
-                      element.scrollIntoView({
-                        block: "center",
+                      scroll.current.scrollTo({
+                        top: scroll.current.scrollTop + element.getBoundingClientRect().top - scroll.current.getBoundingClientRect().top - scroll.current.clientHeight / 2 + element.clientHeight / 2,
                         behavior: window.matchMedia(
                           "(prefers-reduced-motion: reduce)",
                         ).matches
@@ -1003,9 +892,7 @@ export function Chat() {
                 <p className="history-empty">Không tìm thấy câu hỏi phù hợp.</p>
               )
             )}
-            <small className="history-storage-note">
-              Lịch sử được giữ khi chuyển trang hoặc tải lại trong phiên này.
-            </small>
+
           </Card>
           <Notice>
             Chưa kết nối AI. Trợ lý không chẩn đoán, kê đơn hoặc thay đổi thuốc.

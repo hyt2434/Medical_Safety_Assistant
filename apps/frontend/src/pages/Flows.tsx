@@ -30,13 +30,9 @@ export function SourceReview() {
   return (
     <>
       <PageHeading
-        title="Kiểm tra dữ liệu đầu vào"
-        description="Đối chiếu từng trường với toa trước khi xác nhận thuốc."
+        title="Đối chiếu thông tin toa thuốc"
       />
-      <Notice tone="warning">
-        Màn hình này hiển thị dữ liệu đã nhập hoặc bộ mẫu bạn đã chọn; chưa phải
-        kết quả OCR tự động từ ảnh.
-      </Notice>
+
       <div className="flow-split">
         <Card>
           <CardHeading title="Thuốc được ghi nhận" />
@@ -130,7 +126,6 @@ export function ReviewTracking() {
     <>
       <PageHeading
         title="Theo dõi yêu cầu chuyên gia"
-        description="Trạng thái minh bạch từ lúc gửi đến khi có phản hồi."
       />
       <div className="flow-split">
         <Card>
@@ -251,7 +246,6 @@ export function DoseHistory() {
     <>
       <PageHeading
         title="Lịch sử dùng thuốc"
-        description="Các lần ghi nhận trong bản mẫu, không phải xác nhận sử dụng đúng."
       />
       <Field label="Trạng thái">
         <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -302,7 +296,6 @@ export function MedicationHistory() {
     <>
       <PageHeading
         title="Lịch sử thuốc và kết quả"
-        description="Xem lại dữ liệu thuốc và kết quả gần nhất trong phiên."
       />
       <div className="flow-split">
         <Card>
@@ -344,7 +337,6 @@ export function HealthSummary() {
     <>
       <PageHeading
         title="Tóm tắt sức khỏe"
-        description="Tổng hợp thông tin thuốc và lịch sử do người dùng xác nhận."
       />
       <div className="flow-split">
         <Card>
@@ -401,7 +393,6 @@ export function ShareSummary() {
     <>
       <PageHeading
         title="Chia sẻ tóm tắt với HCP"
-        description="Chọn phạm vi, xem lại và thu hồi bản chia sẻ mẫu."
       />
       <LocalNotice />
       <div className="flow-split">
@@ -471,7 +462,6 @@ export function Caregivers() {
     <>
       <PageHeading
         title="Người thân đồng hành"
-        description="Mời, lựa chọn phạm vi hỗ trợ và thu hồi khi không cần."
       />
       <LocalNotice />
       <div className="flow-split">
@@ -563,7 +553,6 @@ export function ReminderEditor() {
     <>
       <PageHeading
         title={existing ? "Chỉnh sửa lời nhắc" : "Tạo lời nhắc uống thuốc"}
-        description="Chỉ tạo lịch cho thuốc đã xác nhận và theo hướng dẫn trên toa."
       />
       <div className="flow-split">
         <Card>
@@ -652,69 +641,8 @@ export function ReminderEditor() {
     </>
   );
 }
-export function ReviewerHome() {
-  const { state } = useDemo();
-  return (
-    <>
-      <PageHeading
-        eyebrow="KHÔNG GIAN ĐỐI SOÁT"
-        title="Tổng quan đối soát dữ liệu"
-        description="Chất lượng bản ghi và ánh xạ hoạt chất trước khi sử dụng trong tra cứu."
-      />
-      <div className="metrics-four">
-        <Metric
-          value={state.dataReviews.filter((r) => r.status === "pending").length}
-          label="Chờ xem lại"
-        />
-        <Metric
-          value={
-            state.dataReviews.filter((r) => r.status === "in-review").length
-          }
-          label="Đang đối soát"
-        />
-        <Metric
-          value={
-            state.dataReviews.filter((r) => r.status === "released").length
-          }
-          label="Đã ghi nhận mẫu"
-          icon="check"
-        />
-        <Metric value="00" label="Nguồn tích hợp" icon="database" />
-      </div>
-      <div className="flow-split">
-        <Card>
-          <CardHeading title="Bản ghi cần ưu tiên" />
-          <div className="flow-stack">
-            {state.dataReviews.map((r) => (
-              <ChoiceLink
-                key={r.id}
-                to={`/reviewer/records/${r.id}`}
-                title={`${r.id} · ${r.title}`}
-              >
-                {r.value} ·{" "}
-                {r.status === "released" ? "Đã ghi nhận mẫu" : "Cần đối chiếu"}
-              </ChoiceLink>
-            ))}
-          </div>
-          <TextLink to="/hcp/data-review">Mở hàng chờ</TextLink>
-        </Card>
-        <Card>
-          <CardHeading title="Nguyên tắc duyệt" />
-          {[
-            "Đối chiếu trường nguồn",
-            "Kiểm tra hoạt chất & mã ánh xạ",
-            "Ghi lý do trước khi phê duyệt",
-          ].map((s, i) => (
-            <div className="medicine-row" key={s}>
-              <Badge>{i + 1}</Badge>
-              <strong>{s}</strong>
-            </div>
-          ))}
-        </Card>
-      </div>
-    </>
-  );
-}
+export { ReviewerHome } from "./RoleDashboards";
+
 export function ReviewRecord({ decision = false }: { decision?: boolean }) {
   const { state, updateDataReview } = useDemo();
   const { id } = useParams();
@@ -729,7 +657,7 @@ export function ReviewRecord({ decision = false }: { decision?: boolean }) {
       <EmptyState
         title="Không tìm thấy bản ghi"
         description="Chọn bản ghi trong hàng chờ đối soát."
-        action={<Link to="/hcp/data-review">Mở hàng chờ</Link>}
+        action={<Link to="/reviewer/queue">Mở hàng chờ</Link>}
       />
     );
   return (
@@ -738,7 +666,6 @@ export function ReviewRecord({ decision = false }: { decision?: boolean }) {
         title={
           decision ? "Quyết định đối soát ánh xạ" : "Chi tiết bản ghi nguồn"
         }
-        description="Ghi bằng chứng và lý do duyệt hoặc yêu cầu bổ sung."
       />
       <LocalNotice />
       <div className="flow-split">
@@ -831,7 +758,6 @@ export function ReviewHistory() {
     <>
       <PageHeading
         title="Lịch sử duyệt dữ liệu"
-        description="Các quyết định đối soát mẫu trong phiên của tài khoản."
       />
       <Card>
         {records.length ? (
@@ -857,73 +783,8 @@ export function ReviewHistory() {
     </>
   );
 }
-export function SupportDashboard() {
-  const { state } = useDemo();
-  return (
-    <>
-      <PageHeading
-        eyebrow="KHÔNG GIAN HỖ TRỢ"
-        title="Tổng quan hỗ trợ"
-        description="Theo dõi ticket và các nhóm lỗi trong phiên mẫu."
-      />
-      <div className="metrics-three">
-        <Metric
-          value={state.supportTickets.filter((t) => t.status === "open").length}
-          label="Ticket mới"
-          icon="clock"
-        />
-        <Metric
-          value={
-            state.supportTickets.filter((t) => t.status === "doing").length
-          }
-          label="Đang xử lý"
-        />
-        <Metric
-          value={state.supportTickets.filter((t) => t.status === "done").length}
-          label="Đã đóng"
-          icon="check"
-        />
-      </div>
-      <div className="flow-split">
-        <Card>
-          <CardHeading title="Vấn đề cần tập trung" />
-          <div className="flow-stack">
-            {state.supportTickets.map((t) => (
-              <ChoiceLink
-                key={t.id}
-                to={`/staff/tickets/${t.id}`}
-                title={t.title}
-              >
-                {t.id} ·{" "}
-                {t.status === "done"
-                  ? "Đã xong"
-                  : t.status === "doing"
-                    ? "Đang xử lý"
-                    : "Mới"}
-              </ChoiceLink>
-            ))}
-          </div>
-          <TextLink to="/staff/tickets">Mở hàng đợi</TextLink>
-        </Card>
-        <Card>
-          <CardHeading title="Quy trình xử lý" />
-          {[
-            "Tiếp nhận & phân loại",
-            "Tái hiện / phân công",
-            "Phản hồi / xác minh",
-            "Đóng & lưu dấu vết",
-          ].map((s, i) => (
-            <div className="medicine-row" key={s}>
-              <Badge>{i + 1}</Badge>
-              {s}
-            </div>
-          ))}
-          <TextLink to="/staff/report">Báo cáo sự cố</TextLink>
-        </Card>
-      </div>
-    </>
-  );
-}
+export { SupportDashboard } from "./RoleDashboards";
+
 export function TicketQueue() {
   const { state } = useDemo();
   const [filter, setFilter] = useState("all");
@@ -939,7 +800,6 @@ export function TicketQueue() {
     <>
       <PageHeading
         title="Hàng đợi ticket hỗ trợ"
-        description="Tìm, phân loại và mở từng sự cố để xử lý."
       />
       <div className="two-grid">
         <Field label="Tìm ticket">
@@ -1018,7 +878,6 @@ export function TicketDetail() {
     <>
       <PageHeading
         title={`Chi tiết ticket ${ticket.id}`}
-        description="Chẩn đoán lỗi kỹ thuật theo trạng thái có thể truy vết."
       />
       <LocalNotice />
       <div className="flow-split">
@@ -1098,7 +957,6 @@ export function ReportIssue() {
     <>
       <PageHeading
         title="Báo cáo sự cố kỹ thuật"
-        description="Mô tả lỗi và bước tái hiện; không đưa dữ liệu bệnh nhân vào báo cáo."
       />
       <div className="flow-split">
         <Card>
@@ -1157,7 +1015,10 @@ export function AdminRoles() {
   >([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
   useEffect(() => {
+    setLoading(true);
+    setError("");
     let cancelled = false;
     api<{ roles: typeof roles }>("/api/admin/roles")
       .then((r) => {
@@ -1172,15 +1033,24 @@ export function AdminRoles() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
   return (
     <>
       <PageHeading
         title="Vai trò & phạm vi truy cập"
-        description="Tài khoản tách khỏi vai trò; quyền được kiểm tra phía máy chủ."
       />
       {loading && <p role="status">Đang tải vai trò…</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <div className="load-error" role="alert">
+          <p>{error}</p>
+          <button
+            className="button secondary"
+            onClick={() => setReloadKey((n) => n + 1)}
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
       <div className="flow-split">
         <Card>
           <CardHeading title="Định nghĩa vai trò" />
@@ -1188,7 +1058,13 @@ export function AdminRoles() {
             {roles.map((r) => (
               <div className="choice-row" key={r.code}>
                 <strong>{roleLabel[r.code]}</strong>
-                <p>{r.permissions.join(" · ")}</p>
+                <details>
+                  <summary>
+                    {r.permissions.length} quyền truy cập · Xem chi tiết kỹ
+                    thuật
+                  </summary>
+                  <p>{r.permissions.join(" · ")}</p>
+                </details>
                 <Badge>{r.code}</Badge>
               </div>
             ))}
@@ -1197,16 +1073,16 @@ export function AdminRoles() {
         <Card>
           <CardHeading title="Kiểm soát phân quyền" />
           {[
-            "Quyền đọc từ database",
-            "Ngữ cảnh lưu trong phiên máy chủ",
+            "Quyền truy cập được lưu trong cơ sở dữ liệu",
+            "Vai trò hiện tại được xác nhận khi đăng nhập",
             "Quan hệ chăm sóc được tách riêng",
-            "Thu hồi / hết hạn có hiệu lực trên API",
+            "Quyền đã thu hồi hoặc hết hạn không thể tiếp tục sử dụng",
           ].map((s) => (
             <div className="medicine-row" key={s}>
               {s}
             </div>
           ))}
-          <TextLink to="/admin/accounts">Gán / thu hồi role</TextLink>
+          <TextLink to="/admin/accounts">Cấp hoặc thu hồi vai trò</TextLink>
         </Card>
       </div>
     </>
@@ -1218,7 +1094,6 @@ export function Operations() {
     <>
       <PageHeading
         title="Trung tâm vận hành"
-        description="Tách quản lý truy cập khỏi các tác vụ dữ liệu và hỗ trợ."
       />
       <div className="metrics-three">
         <Metric
@@ -1249,78 +1124,4 @@ export function Operations() {
   );
 }
 
-export function HcpPatientSummary({ summary = false }: { summary?: boolean }) {
-  const { state } = useDemo();
-  const { id } = useParams();
-  const review = state.cases.find((c) => c.id === id);
-  if (!review)
-    return (
-      <EmptyState
-        title="Không tìm thấy hồ sơ"
-        description="Chọn hồ sơ có ca review trong hàng chờ mẫu."
-        action={<Link to="/hcp/patients">Về danh sách bệnh nhân</Link>}
-      />
-    );
-  return (
-    <>
-      <PageHeading
-        title={summary ? "Đọc tóm tắt sức khỏe" : "Hồ sơ bệnh nhân đang review"}
-        description={`${review.patient} · Mã ca ${review.id} · Hồ sơ mô phỏng`}
-      />
-      <div className="flow-split">
-        <Card>
-          <CardHeading
-            title={
-              summary ? "Nội dung được chia sẻ mẫu" : "Thông tin trong yêu cầu"
-            }
-          />
-          <dl className="flow-details">
-            <div>
-              <dt>Mã bệnh nhân</dt>
-              <dd>{review.patient}</dd>
-            </div>
-            <div>
-              <dt>Tuổi mẫu</dt>
-              <dd>{review.age}</dd>
-            </div>
-            <div>
-              <dt>Yêu cầu</dt>
-              <dd>{review.question}</dd>
-            </div>
-            <div>
-              <dt>Trạng thái</dt>
-              <dd>{caseStatus[review.status]}</dd>
-            </div>
-          </dl>
-          <h3>Thuốc trong ca</h3>
-          {review.medicines.map((m) => (
-            <div className="medicine-row" key={m.id}>
-              <span className="icon-tile">
-                <DesignAsset name="pill" />
-              </span>
-              <div>
-                <strong>
-                  {m.name} {m.strength}
-                </strong>
-                <p>{m.instruction}</p>
-              </div>
-            </div>
-          ))}
-        </Card>
-        <Card>
-          <CardHeading title="Phạm vi xem" />
-          <Notice>
-            Chỉ dữ liệu mẫu của ca đang mở. Chưa kết nối hồ sơ sức khỏe thật
-            hoặc quyền chia sẻ giữa tài khoản.
-          </Notice>
-          <TextLink to={`/hcp/case/${review.id}`}>Mở và đánh giá ca</TextLink>
-          {!summary && (
-            <TextLink to={`/hcp/patients/${review.id}/summary`}>
-              Đọc tóm tắt sức khỏe
-            </TextLink>
-          )}
-        </Card>
-      </div>
-    </>
-  );
-}
+export { HcpPatientWorkspace as HcpPatientSummary } from "./HcpPatientWorkspace";

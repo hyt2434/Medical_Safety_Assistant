@@ -9,6 +9,7 @@ import {
   FileImage,
   FileText,
   ImagePlus,
+  LoaderCircle,
   Mic,
   PencilLine,
   Plus,
@@ -38,6 +39,7 @@ import {
   useDemo,
 } from "../state";
 import type { Assessment, Medicine } from "../state";
+import { api } from "../api";
 
 const newMedicine = (): Medicine => ({
   id: crypto.randomUUID(),
@@ -73,6 +75,34 @@ export function Intake() {
   );
   const [image, setImage] = useState("");
   const [imageName, setImageName] = useState("");
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
+  const [ocrBusy, setOcrBusy] = useState(false);
+  const ocrController = useRef<AbortController | null>(null);
+  useEffect(() => () => ocrController.current?.abort(), []);
+  async function readPrescription() {
+    if (!sourceFile || ocrBusy) return;
+    const controller = new AbortController();
+    ocrController.current = controller;
+    setOcrBusy(true);
+    setStatus("Đang đọc toa thuốc…");
+    const body = new FormData();
+    body.append("file", sourceFile);
+    try {
+      const result = await api<{ medication_entries: { extracted_name: string | null; extracted_strength: string | null; dosage_instructions: string | null }[] }>("/api/v1/ocr/extractions", { method: "POST", body, signal: controller.signal });
+      if (controller.signal.aborted) return;
+      if (!result.medication_entries.length) {
+        setStatus("Chưa nhận diện được thuốc. Hãy chọn ảnh rõ hơn hoặc nhập bằng tay.");
+        return;
+      }
+      editDraft(result.medication_entries.map(entry => ({ ...newMedicine(), name: entry.extracted_name || "", strength: entry.extracted_strength || "", instruction: entry.dosage_instructions || "" })));
+      update({ source: `OCR: ${sourceFile.name}`, assessment: null, contextConfirmed: false });
+      setStatus("Đã đọc thông tin. Hãy đối chiếu tên thuốc, hàm lượng và cách dùng với ảnh gốc.");
+    } catch (error) {
+      if (!controller.signal.aborted) setStatus(error instanceof Error ? error.message : "Không đọc được ảnh. Vui lòng thử lại.");
+    } finally {
+      if (ocrController.current === controller) setOcrBusy(false);
+    }
+  }
   const [status, setStatus] = useState("");
   const [transcript, setTranscript] = useState("");
   const [recording, setRecording] = useState(false);
@@ -114,6 +144,9 @@ export function Intake() {
       return;
     }
     setImageError(false);
+    ocrController.current?.abort();
+    setOcrBusy(false);
+    setSourceFile(file);
     setImage(URL.createObjectURL(file));
     setImageName(file.name);
     update({
@@ -122,10 +155,13 @@ export function Intake() {
       contextConfirmed: false,
     });
     setStatus(
-      "Đã chọn ảnh để xem cục bộ. Chưa có OCR: hãy nhập thông tin từ ảnh bằng tay. Danh sách đang có sẽ không tự thay đổi.",
+      "Ảnh đã sẵn sàng. Bấm đọc thông tin để tạo bản nháp từ toa thuốc.",
     );
   }
   function loadSample() {
+    ocrController.current?.abort();
+    setOcrBusy(false);
+    setSourceFile(null);
     editDraft(sampleMedicines.map((m) => ({ ...m })));
     update({ source: "Bộ dữ liệu mẫu Clopidogrel / Omeprazole" });
     setImage("/assets/prescription-sample.png");
@@ -188,9 +224,7 @@ export function Intake() {
   return (
     <>
       <PageHeading
-        eyebrow="TỪ TOA THUỐC ĐẾN THÔNG TIN RÕ RÀNG"
         title="Nhập toa thuốc"
-        description="Đưa thông tin vào theo cách thuận tiện nhất. Bạn luôn được kiểm tra lại trước khi tiếp tục."
       />
       <Stepper step={1} />
       <div className="input-mode-tabs">
@@ -263,6 +297,10 @@ export function Intake() {
                       className="icon-button"
                       aria-label="Bỏ ảnh đã chọn"
                       onClick={() => {
+                        ocrController.current?.abort();
+                        setOcrBusy(false);
+                        setSourceFile(null);
+                        setStatus("");
                         setImage("");
                         setImageName("");
                         update({
@@ -292,7 +330,8 @@ export function Intake() {
                     <span>JPG, PNG, WebP · Tối đa 10 MB</span>
                   </button>
                 )}
-                <div className="actions">
+                <div className="prescription-image-actions">
+                <div className="prescription-image-choices">
                   <button
                     className="button secondary grow"
                     onClick={() => cameraInput.current?.click()}
@@ -300,16 +339,17 @@ export function Intake() {
                     <CameraIcon /> Chụp toa
                   </button>
                   <button
-                    className="button soft grow"
+                    className="button secondary grow"
                     onClick={() => fileInput.current?.click()}
                   >
                     <ImagePlus size={18} /> Chọn ảnh
                   </button>
                 </div>
-                <Notice>
-                  Chưa kết nối OCR. Bạn cần nhập thủ công thông tin từ ảnh. Chỉ
-                  hỗ trợ minh họa toa in hoặc toa điện tử.
-                </Notice>
+                <button className={`button full-width prescription-read${ocrBusy ? " is-reading" : ""}`} disabled={!sourceFile || ocrBusy} onClick={readPrescription} aria-busy={ocrBusy}>
+                  {ocrBusy && <LoaderCircle className="ocr-spinner" size={18} aria-hidden="true" />}
+                  {ocrBusy ? "Đang đọc toa thuốc…" : "Đọc thông tin từ ảnh"}
+                </button>
+                </div>
               </>
             )}
             {mode === "voice" && (
@@ -456,11 +496,11 @@ export function Intake() {
               </Link>
             )}
             <Link className="text-link" to="/dashboard">
-              <ArrowLeft size={17} /> Lưu nháp và về
+              <ArrowLeft size={17} /> Lưu nháp
             </Link>
             <button
               className="button"
-              disabled={!state.draft.length}
+              disabled={!state.draft.length || ocrBusy}
               onClick={() => navigate("/verify")}
             >
               Kiểm tra lại <ArrowRight size={17} />
@@ -543,12 +583,10 @@ export function Verify() {
   return (
     <>
       <PageHeading
-        eyebrow="ĐỐI CHIẾU VỚI TOA GỐC"
         title="Xác nhận thông tin thuốc"
-        description="Bạn xác nhận thông tin khớp với toa, không phải xác nhận thuốc an toàn hay phù hợp điều trị."
       />
       <Stepper step={2} />
-      <Notice tone="warning">
+      <Notice tone="warning" title="Lưu ý trước khi xác nhận">
         Nếu bạn sửa toa sau bước này, kết quả cũ sẽ mất hiệu lực. Hoạt chất chưa
         rõ phải giữ trạng thái chưa đánh giá.
       </Notice>
@@ -714,7 +752,6 @@ export function Results() {
   return (
     <>
       <PageHeading
-        eyebrow="THÔNG TIN ĐÃ XÁC NHẬN · KẾT QUẢ MÔ PHỎNG"
         title="Kết quả kiểm tra toa thuốc"
         description={`Ghi nhận ${formatDate(result.createdAt)} · Không phải kết luận y khoa`}
         action={
@@ -820,9 +857,7 @@ export function Results() {
                     hãy liên hệ bác sĩ hoặc dược sĩ ngoài ứng dụng.
                   </p>
                 )}
-                <Link className="text-link" to="/hcp/login">
-                  Mở vai trò HCP để thử review <ArrowRight size={16} />
-                </Link>
+
               </>
             ) : (
               <>
@@ -940,9 +975,7 @@ export function RequestReview() {
   return (
     <>
       <PageHeading
-        eyebrow="PHỐI HỢP CÙNG CHUYÊN GIA"
         title="Yêu cầu xem lại thông tin"
-        description="Bạn kiểm soát nội dung được đưa vào yêu cầu mẫu."
       />
       <div className="workflow-grid">
         <Card>

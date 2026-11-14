@@ -505,13 +505,6 @@ td {
 .auth-columns .auth-card .button {
   width: auto;
 }
-.auth-role-guide {
-  display: grid;
-  gap: 15px;
-}
-.auth-role-guide h2 {
-  margin: 0;
-}
 .demo-accounts {
   margin-top: 24px;
 }

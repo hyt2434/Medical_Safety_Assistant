@@ -15,6 +15,7 @@ from api.body_limit import BodyLimitMiddleware
 from api.routes.admin import router as admin_router
 from api.routes.auth import router as auth_router
 from api.routes.ocr import router as ocr_router
+from api.routes.reference import router as reference_router
 from auth.seed import seed
 
 
@@ -36,6 +37,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(ocr_router)
+app.include_router(reference_router)
 
 
 @app.exception_handler(HTTPException)

@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { DesignAsset } from "./design";
-import { ArrowRight, Check, Info, ShieldCheck, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Check, Info, ShieldCheck, TriangleAlert, X } from "lucide-react";
 
 export function Brand({
   hcp = false,
@@ -52,14 +51,16 @@ export function Badge({
 export function Notice({
   children,
   tone = "info",
+  title,
 }: {
   children: ReactNode;
   tone?: "info" | "warning" | "danger" | "success";
+  title?: string;
 }) {
   return (
     <div className={`notice notice--${tone}`}>
-      <Info size={20} aria-hidden="true" />
-      <div>{children}</div>
+      {tone === "warning" ? <TriangleAlert size={24} aria-hidden="true" /> : <Info size={20} aria-hidden="true" />}
+      <div>{title && <strong className="notice-title">{title}</strong>}{children}</div>
     </div>
   );
 }
@@ -74,21 +75,6 @@ export function PageHeading({
   description?: string;
   action?: ReactNode;
 }) {
-  const { pathname } = useLocation();
-  const symbol =
-    pathname === "/" || pathname === "/health-summary"
-      ? "heart"
-      : /login|share/.test(pathname)
-        ? "lock"
-        : /medication|intake|verify/.test(pathname)
-          ? "pill"
-          : /reminder|history/.test(pathname)
-            ? "clock"
-            : /reviewer|database/.test(pathname)
-              ? "database"
-              : /profile|patient|accounts|caregiver/.test(pathname)
-                ? "users"
-                : "shield";
   return (
     <div className="page-heading">
       <div>
@@ -97,11 +83,7 @@ export function PageHeading({
         {description && <p>{description}</p>}
       </div>
       {action && <div className="heading-actions">{action}</div>}
-      {!action && (
-        <div className="hero-symbol">
-          <DesignAsset name={symbol} />
-        </div>
-      )}
+
     </div>
   );
 }
@@ -172,6 +154,7 @@ export function Stepper({
         >
           <span>{i + 1 < step ? <Check size={17} /> : i + 1}</span>
           <div>{label}</div>
+          {!hcp && <Link className="stepper-link" to={["/intake", "/verify", "/results"][i]} aria-label={label} aria-current={i + 1 === step ? "step" : undefined} />}
         </li>
       ))}
     </ol>

@@ -59,6 +59,8 @@ def test_context_is_server_owned_and_persisted(client):
     assert len(client.get("/api/auth/contexts").json()["contexts"]) == 2
     assert client.post("/api/auth/switch-context", json={"context": "admin"}).status_code == 403
     switched = client.post("/api/auth/switch-context", json={"context": "medical_reviewer"})
+    assert "clinical.case_review" not in switched.json()["contextPermissions"]
+    assert "catalog.review" in switched.json()["contextPermissions"]
     assert "catalog.edit" in switched.json()["contextPermissions"]
     reset_connection()
     assert client.get("/api/auth/me").json()["activeContext"] == "medical_reviewer"

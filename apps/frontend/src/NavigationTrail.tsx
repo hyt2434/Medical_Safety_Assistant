@@ -23,7 +23,7 @@ const pages: Record<string, string> = {
   "/staff/report": "Báo cáo sự cố",
   "/dashboard": "Tổng quan",
   "/intake": "Nhập toa thuốc",
-  "/intake/review": "Kiểm tra dữ liệu đầu vào",
+  "/intake/review": "Đối chiếu toa thuốc",
   "/verify": "Xác nhận thông tin",
   "/results": "Kết quả kiểm tra",
   "/review-request": "Yêu cầu chuyên gia",
@@ -36,7 +36,7 @@ const pages: Record<string, string> = {
   "/hcp/patients": "Bệnh nhân",
   "/hcp/profile": "Hồ sơ chuyên môn",
   "/hcp/database": "Dữ liệu dược",
-  "/hcp/data-review": "Rà soát dữ liệu",
+  "/reviewer/queue": "Rà soát dữ liệu",
   "/hcp/assessment": "Đánh giá tương tác",
   "/admin": "Quản trị",
   "/admin/staff": "Nhân sự",
@@ -94,6 +94,14 @@ export function NavigationTrail() {
       to: pathname,
     });
   } else {
+    if (/^\/reviewer\/(records|mapping)\//.test(pathname))
+      crumbs.push({ label: "Rà soát dữ liệu", to: "/reviewer/queue" });
+    if (pathname.startsWith("/staff/tickets/"))
+      crumbs.push({ label: "Yêu cầu hỗ trợ", to: "/staff/tickets" });
+    if (pathname.startsWith("/hcp/patients/"))
+      crumbs.push({ label: "Bệnh nhân", to: "/hcp/patients" });
+    if (pathname.startsWith("/medications/"))
+      crumbs.push({ label: "Thuốc của tôi", to: "/medications" });
     if (["/verify", "/results"].includes(pathname))
       crumbs.push({ label: "Nhập toa thuốc", to: "/intake" });
     if (pathname === "/review-request")
@@ -117,7 +125,11 @@ export function NavigationTrail() {
   const parent = crumbs.at(-2)?.to || (state.activeContext ? workspace : "/");
   const canBack = pathname !== "/";
   return (
-    <div className="navigation-trail">
+    <div className={`navigation-trail${pathname === workspace || pathname === "/" ? " trail-at-root" : ""}`}>
+      {canBack && <Link className="trail-mobile-parent" to={parent}>
+        <ArrowLeft size={18} aria-hidden="true" />
+        <span>{crumbs.at(-2)?.label || workspaceLabel}</span>
+      </Link>}
       {canBack && (
         <button
           className="trail-back"

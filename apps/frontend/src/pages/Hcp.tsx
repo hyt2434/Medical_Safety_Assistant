@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
   Check,
   Database as DatabaseIcon,
   Download,
-  FileCheck2,
   FileImage,
   FileText,
   History,
@@ -15,7 +14,6 @@ import {
   Search,
   Send,
   ShieldAlert,
-  ShieldCheck,
   Stethoscope,
   Users,
 } from "lucide-react";
@@ -29,9 +27,7 @@ import {
   Notice,
   PageHeading,
   Stepper,
-  TextLink,
 } from "../components";
-import { DesignAsset, Metric } from "../design";
 import { caseStatus, formatDate, useDemo } from "../state";
 import type { Medicine, ReviewCase } from "../state";
 
@@ -46,7 +42,11 @@ function RiskBadge({ severity }: { severity: ReviewCase["severity"] }) {
             : "neutral"
       }
     >
-      {severity}
+      {severity === "Major"
+        ? "Mức độ cao"
+        : severity === "Moderate"
+          ? "Mức độ trung bình"
+          : severity}
     </Badge>
   );
 }
@@ -65,132 +65,20 @@ function StatusBadge({ status }: { status: ReviewCase["status"] }) {
     </Badge>
   );
 }
-export function HcpDashboard() {
-  const { state } = useDemo();
-  const pending = state.cases.filter((c) => c.status !== "responded");
-  const [selectedId, setSelectedId] = useState(
-    pending[0]?.id || state.cases[0]?.id,
-  );
-  const [query, setQuery] = useState("");
-  const selected = state.cases.find((c) => c.id === selectedId);
-  const visible = state.cases.filter((c) =>
-    `${c.id} ${c.patient} ${c.medicines.map((m) => m.name).join(" ")}`
-      .toLocaleLowerCase("vi")
-      .includes(query.toLocaleLowerCase("vi")),
-  );
-  return (
-    <>
-      <PageHeading
-        title="Ưu tiên ca cần đánh giá"
-        description="Theo dõi, đánh giá và phản hồi từ một không gian."
-        action={
-          <Link className="button secondary" to="/hcp/queue">
-            Bộ lọc ca bệnh →
-          </Link>
-        }
-      />
-      <div className="metrics-four">
-        <Metric icon="clock" value={pending.length} label="Đang chờ" />
-        <Metric
-          icon="shield"
-          value={pending.filter((c) => c.severity === "Major").length}
-          label="Cảnh báo Major"
-        />
-        <Metric
-          icon="file"
-          value={state.cases.filter((c) => c.status === "needs-info").length}
-          label="Cần bổ sung"
-        />
-        <Metric
-          icon="check"
-          value={state.cases.filter((c) => c.status === "responded").length}
-          label="Đã phản hồi mẫu"
-        />
-      </div>
-      <div className="flow-split">
-        <Card>
-          <CardHeading
-            icon={<DesignAsset name="users" />}
-            title="Hàng chờ đánh giá"
-          />
-          <Field label="Tìm ca bệnh">
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Mã ca, thuốc hoặc bệnh nhân"
-            />
-          </Field>
-          {visible.map((c) => (
-            <button
-              key={c.id}
-              className={`case-selector compact-case ${selectedId === c.id ? "selected" : ""}`}
-              onClick={() => setSelectedId(c.id)}
-              aria-pressed={selectedId === c.id}
-            >
-              <Badge>{c.id}</Badge>
-              <div className="grow">
-                <strong>{c.medicines.map((m) => m.name).join(" + ")}</strong>
-                <p>
-                  {c.patient} · {caseStatus[c.status]}
-                </p>
-              </div>
-              <RiskBadge severity={c.severity} />
-            </button>
-          ))}
-          {!visible.length && <p>Không có ca phù hợp. Thử từ khóa khác.</p>}
-          <TextLink to="/hcp/queue">Mở tất cả</TextLink>
-        </Card>
-        {selected ? (
-          <Card>
-            <Badge>ĐANG CHỌN · {selected.id}</Badge>
-            <h2 className="case-title">
-              {selected.medicines.map((m) => m.name).join(" + ")}
-            </h2>
-            <Notice tone={selected.severity === "Major" ? "danger" : "warning"}>
-              <strong>Cảnh báo tương tác · {selected.severity}</strong>
-              <p>Cần chuyên gia đánh giá; đây là tình huống mẫu.</p>
-            </Notice>
-            <div className="source-provenance">
-              <small>NGUỒN & TRUY VẾT</small>
-              <strong>DAV → Ánh xạ hoạt chất → DDInter</strong>
-              <p>Chưa kết nối nguồn trực tiếp</p>
-            </div>
-            <h3>Tiến trình đánh giá</h3>
-            <ol className="review-steps">
-              <li>Kiểm tra dữ liệu thuốc</li>
-              <li>Đánh giá tương tác</li>
-              <li>Soạn phản hồi</li>
-            </ol>
-            <Link className="button full-width" to={`/hcp/case/${selected.id}`}>
-              Mở ca và đánh giá →
-            </Link>
-          </Card>
-        ) : (
-          <EmptyState
-            title="Không có ca được chọn"
-            description="Chọn một hồ sơ trong hàng chờ."
-          />
-        )}
-      </div>
-      <Notice tone="warning">
-        Kết quả tra cứu là dữ liệu tham khảo; phản hồi chuyên môn cần ghi người
-        thực hiện và nguồn.
-      </Notice>
-    </>
-  );
-}
+export { HcpDashboard } from "./RoleDashboards";
 
 export function HcpQueue({ assessment = false }: { assessment?: boolean }) {
   const { state } = useDemo();
-  const [filter, setFilter] = useState("all");
+  const [params, setParams] = useSearchParams();
+  const filter = params.get("filter") || "all";
+  const setFilter = (value: string) => setParams({ filter: value });
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("priority");
   const filtered = state.cases
     .filter(
       (c) =>
         (filter === "all" ||
-          (filter === "Major"
+          (filter === "waiting" ? c.status !== "responded" : filter === "Major"
             ? c.severity === "Major"
             : c.status === filter)) &&
         `${c.id} ${c.patient} ${c.medicines.map((m) => m.name).join(" ")}`
@@ -236,7 +124,6 @@ export function HcpQueue({ assessment = false }: { assessment?: boolean }) {
   return (
     <>
       <PageHeading
-        eyebrow="QUẢN LÝ YÊU CẦU REVIEW"
         title={assessment ? "Đánh giá tương tác" : "Hàng chờ duyệt ca"}
         description={
           assessment
@@ -254,7 +141,7 @@ export function HcpQueue({ assessment = false }: { assessment?: boolean }) {
           ["all", "Tất cả", state.cases.length],
           [
             "Major",
-            "Major",
+            "Mức độ cao",
             state.cases.filter((c) => c.severity === "Major").length,
           ],
           [
@@ -303,7 +190,7 @@ export function HcpQueue({ assessment = false }: { assessment?: boolean }) {
           </select>
         </label>
       </div>
-      <Card className="table-card">
+      <Card className="table-card case-queue-table">
         <div className="table-wrapper">
           <table>
             <thead>
@@ -366,90 +253,12 @@ export function HcpQueue({ assessment = false }: { assessment?: boolean }) {
           <span>Chưa đồng bộ hệ thống bệnh viện</span>
         </div>
       </Card>
-      <div className="three-grid hcp-info">
-        <Card>
-          <CardHeading icon={<DatabaseIcon />} title="Nguồn đối chiếu" />
-          <p>DAV và DDInter chưa kết nối. Mức cảnh báo là dữ liệu mẫu.</p>
-        </Card>
-        <Card>
-          <CardHeading
-            icon={<FileCheck2 />}
-            title="Xác nhận trước khi đánh giá"
-          />
-          <p>Kiểm tra tên, hàm lượng, hoạt chất và cách dùng từng thuốc.</p>
-        </Card>
-        <Card>
-          <CardHeading icon={<History />} title="Phản hồi có trạng thái" />
-          <p>Ca chưa có phản hồi vẫn giữ trạng thái chờ hoặc cần bổ sung.</p>
-        </Card>
-      </div>
+
     </>
   );
 }
 
-export function HcpPatients() {
-  const { state } = useDemo();
-  const [query, setQuery] = useState("");
-  const patients = [...new Set(state.cases.map((c) => c.patient))].filter((p) =>
-    p.toLowerCase().includes(query.toLowerCase()),
-  );
-  return (
-    <>
-      <PageHeading
-        eyebrow="HỒ SƠ CÓ YÊU CẦU REVIEW"
-        title="Danh sách bệnh nhân"
-        description="Chỉ liệt kê mã hồ sơ mẫu có ca trong phiên. Đây không phải bệnh án điện tử."
-      />
-      <div className="toolbar">
-        <div className="search-input">
-          <Search size={19} />
-          <input
-            aria-label="Tìm bệnh nhân"
-            placeholder="Tìm theo mã bệnh nhân..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <Badge>{patients.length} hồ sơ mẫu</Badge>
-      </div>
-      <div className="two-grid">
-        {patients.map((p) => {
-          const cases = state.cases.filter((c) => c.patient === p);
-          const latest = cases.at(-1)!;
-          return (
-            <Card key={p}>
-              <CardHeading
-                icon={<Users />}
-                title={p}
-                detail={`Tuổi mẫu: ${latest.age} · ${cases.length} ca review`}
-                action={<StatusBadge status={latest.status} />}
-              />
-              <h3>Thuốc trong yêu cầu gần nhất</h3>
-              <ul className="plain-list">
-                {latest.medicines.map((m) => (
-                  <li key={m.id}>
-                    {m.name} {m.strength}
-                    <small>{m.ingredient || "Chưa xác định hoạt chất"}</small>
-                  </li>
-                ))}
-              </ul>
-              <div className="card-bottom">
-                <span className="muted">Không chứa hồ sơ bệnh nhân thật</span>
-                <TextLink to={`/hcp/patients/${latest.id}`}>Mở hồ sơ</TextLink>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-      {!patients.length && (
-        <EmptyState
-          title="Không tìm thấy hồ sơ"
-          description="Thử tìm một mã khác."
-        />
-      )}
-    </>
-  );
-}
+export { HcpPatientWorkspace as HcpPatients } from "./HcpPatientWorkspace";
 
 function CaseNotFound() {
   return (
@@ -507,7 +316,6 @@ function CaseEditor({
     <>
       <PageHeading
         title="Review & chỉnh sửa thông tin thuốc"
-        description="Đối chiếu nguồn nhập và các trường thuốc trước khi chuyển sang bước đánh giá."
         action={<StatusBadge status={record.status} />}
       />
       <Stepper step={1} hcp />
@@ -708,7 +516,6 @@ export function HcpAssessment() {
     <>
       <PageHeading
         title="Đánh giá tương tác thuốc"
-        description="Phân biệt dữ liệu hệ thống với nhận định chuyên môn. Nguồn thuốc thực tế chưa được kết nối."
       />
       <Stepper step={2} hcp />
       <Notice tone="warning">
@@ -807,7 +614,6 @@ export function HcpConfirmation() {
     <>
       <PageHeading
         title="Xác nhận và phản hồi"
-        description="Soạn nội dung dễ hiểu, ghi rõ giới hạn và bước tiếp theo cho người dùng."
       />
       <Stepper step={3} hcp />
       <div className="workflow-grid">
@@ -958,7 +764,6 @@ export function HcpProfile() {
     <>
       <PageHeading
         title="Hồ sơ chuyên môn"
-        description="Hồ sơ nghề nghiệp không cấp role. Medical reviewer và HCP đều có hồ sơ này; quyền sửa dữ liệu chỉ có khi role medical reviewer còn hiệu lực."
       />
       <Card className="narrow-card">
         <CardHeading
@@ -1038,127 +843,5 @@ export function HcpProfile() {
     </>
   );
 }
-export function Database() {
-  return (
-    <>
-      <PageHeading
-        eyebrow="TÍCH HỢP DỰ KIẾN"
-        title="Cơ sở dữ liệu dược"
-        description="Trạng thái nguồn dữ liệu được trình bày minh bạch, không giả lập kết nối trực tuyến."
-      />
-      <div className="two-grid">
-        <Card>
-          <CardHeading
-            icon={<DatabaseIcon />}
-            title="Cục Quản lý Dược (DAV)"
-            action={<Badge tone="warning">Chưa kết nối</Badge>}
-          />
-          <p>
-            Dự kiến phục vụ nhận dạng thuốc lưu hành ở Việt Nam, hoạt chất và
-            thông tin đăng ký.
-          </p>
-          <dl className="detail-list">
-            <dt>Phiên bản / ngày cập nhật</dt>
-            <dd>Chưa có dữ liệu được nạp</dd>
-            <dt>Đối soát ánh xạ</dt>
-            <dd>Chưa triển khai</dd>
-          </dl>
-        </Card>
-        <Card>
-          <CardHeading
-            icon={<ShieldCheck />}
-            title="DDInter"
-            action={<Badge tone="warning">Chưa kết nối</Badge>}
-          />
-          <p>
-            Dự kiến phục vụ đối chiếu tương tác sau khi ánh xạ hoạt chất được
-            xác minh.
-          </p>
-          <dl className="detail-list">
-            <dt>Độ bao phủ</dt>
-            <dd>Chưa có dữ liệu đánh giá</dd>
-            <dt>Giấy phép / truy cập</dt>
-            <dd>Cần xác minh trước tích hợp</dd>
-          </dl>
-        </Card>
-      </div>
-      <Notice tone="warning">
-        Các cặp thuốc và mức cảnh báo trong giao diện là tình huống cố định.
-        Không phải kết quả truy vấn nguồn y khoa.
-      </Notice>
-    </>
-  );
-}
-export function Admin() {
-  const { state } = useDemo();
-  return (
-    <>
-      <PageHeading
-        eyebrow="QUẢN TRỊ"
-        title="Không gian quản trị"
-        description="Kiểm soát dữ liệu và vận hành. Nguồn, chất lượng và quyền truy cập trong một màn hình."
-      />
-      <div className="stat-grid">
-        {[
-          ["05", "Vai trò thiết kế"],
-          [String(state.cases.length), "Ca mô phỏng"],
-          [
-            String(
-              state.dataReviews.filter((i) => i.status !== "released").length,
-            ),
-            "Cần đối soát",
-          ],
-          ["00", "Nguồn y tế kết nối"],
-        ].map(([value, label]) => (
-          <Card key={label}>
-            <strong className="stat-number">{value}</strong>
-            <p>{label}</p>
-          </Card>
-        ))}
-      </div>
-      <div className="flow-split">
-        <Card>
-          <CardHeading icon={<DatabaseIcon />} title="Nguồn dữ liệu" />
-          <div className="flow-stack">
-            {[
-              [
-                "Cục Quản lý Dược (DAV)",
-                "Đăng ký thuốc · Hoạt chất · Thông tin sản phẩm",
-              ],
-              ["DDInter", "Tra cứu tương tác dựa trên hoạt chất"],
-            ].map(([title, description]) => (
-              <div className="choice-row" key={title}>
-                <strong>{title}</strong>
-                <p>{description}</p>
-                <Badge tone="warning">Chưa kết nối</Badge>
-              </div>
-            ))}
-          </div>
-          <TextLink to="/admin/database">Xem nguồn dữ liệu</TextLink>
-        </Card>
-        <div className="flow-stack">
-          <Card>
-            <CardHeading icon={<ShieldAlert />} title="Ưu tiên xử lý" />
-            <Notice tone="warning">
-              {state.dataReviews.filter((i) => i.status !== "released").length}{" "}
-              bản ghi mẫu cần đối soát.
-            </Notice>
-            <TextLink to="/admin/operations">Trung tâm vận hành</TextLink>
-          </Card>
-          <Card>
-            <CardHeading icon={<Users />} title="Vai trò & quyền" />
-            <p>Patient · HCP · Reviewer · Admin · Support</p>
-            <TextLink to="/admin/roles">Xem cấu trúc phân quyền</TextLink>
-          </Card>
-        </div>
-      </div>
-      <Card>
-        <CardHeading icon={<History />} title="Nhật ký thay đổi" />
-        <p>
-          Đăng nhập, đổi ngữ cảnh, cấp và thu hồi role được ghi bởi máy chủ.
-        </p>
-        <TextLink to="/admin/audit">Xem nhật ký quản trị</TextLink>
-      </Card>
-    </>
-  );
-}
+export { ReferenceDatabase as Database } from "./ReferenceDatabase";
+export { Admin } from "./RoleDashboards";

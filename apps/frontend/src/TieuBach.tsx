@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 
 /** Medical companion, shared at launcher and chat sizes. */
 export function TieuBachAvatar({
@@ -91,16 +92,27 @@ export function TieuBachAvatar({
 
 export function TieuBachLauncher() {
   const { pathname } = useLocation();
-  if (pathname === "/chat") return null;
+  const [dismissed, setDismissed] = useState(false);
+  if (pathname === "/chat" || pathname.endsWith("/login") || dismissed)
+    return null;
   return (
-    <Link
-      className="tieu-bach-launcher"
-      to="/chat"
-      aria-label="Mở chat Tiểu Bạch"
-      title="Trò chuyện cùng Tiểu Bạch"
-    >
-      <span className="mascot-caption">Hỏi Tiểu Bạch</span>
-      <TieuBachAvatar />
-    </Link>
+    <div className="assistant-dock">
+      <button
+        className="assistant-dismiss"
+        aria-label="Ẩn trợ lý nổi"
+        onClick={() => setDismissed(true)}
+      >
+        ×
+      </button>
+      <Link
+        className="tieu-bach-launcher"
+        to="/chat"
+        aria-label="Mở chat Tiểu Bạch"
+        title="Trò chuyện cùng Tiểu Bạch"
+      >
+        <span className="mascot-caption">Hỏi Tiểu Bạch</span>
+        <TieuBachAvatar />
+      </Link>
+    </div>
   );
 }

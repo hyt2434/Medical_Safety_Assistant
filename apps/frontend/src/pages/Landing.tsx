@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ShieldCheck,
   FileCheck2,
@@ -225,7 +225,32 @@ function PrescriptionPreview({
 export function Landing() {
   const { state } = useDemo();
   const [step, setStep] = useState(0);
+  const [headerVisible, setHeaderVisible] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let previous = Math.max(0, window.scrollY);
+    let distance = 0;
+    const onScroll = () => {
+      const position = Math.max(0, window.scrollY);
+      const delta = position - previous;
+      previous = position;
+      if (!delta) return;
+      if (Math.sign(delta) !== Math.sign(distance)) distance = 0;
+      distance += delta;
+      if (distance < -8) setHeaderVisible(true);
+      else if (distance > 12) setHeaderVisible(false);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [hash]);
   const to = state.activeContext ? workspaceFor(state.activeContext) : "/login";
   useEffect(() => {
     const media = matchMedia("(prefers-reduced-motion: reduce)");
@@ -253,7 +278,7 @@ export function Landing() {
   }, []);
   return (
     <div className="lp" ref={root}>
-      <header className="lp-header">
+      <header className={`lp-header lp-scroll-header${headerVisible ? " is-visible" : ""}`}>
         <Link to="/" className="lp-brand">
           <ShieldCheck aria-hidden="true" />
           Tiểu Bạch
