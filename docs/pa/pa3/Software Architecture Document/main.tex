@@ -1,0 +1,244 @@
+% !TeX program = xelatex
+% !TeX encoding = UTF-8
+% Software Architecture Document -- adapted from the lecturer's
+% simplified RUP Software Architecture Document Word template.
+%
+% Folder layout (keep main.tex and metadata.tex together):
+%   main.tex
+%   metadata.tex
+%   sections/
+%     01-Introduction.tex
+%     02-Architectural Goals and Constraints.tex
+%     03-Use-Case Model.tex
+%     04-Logical View.tex
+%     05-Deployment.tex
+%     06-Implementation View.tex
+%
+% Section files own their headings and fillable content.
+% Build from this directory, repeating until the TOC/references stabilize:
+%   xelatex -interaction=nonstopmode -halt-on-error -output-directory=build main.tex
+% Create build/ first; keep all generated files there.
+
+\documentclass[10pt,letterpaper]{article}
+\input{metadata}
+
+% -------------------- Fonts and layout -------------------------
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\IfFontExistsTF{Times New Roman}{%
+  \setmainfont{Times New Roman}
+}{%
+  \IfFontExistsTF{Tinos}{%
+    \setmainfont{Tinos}
+  }{%
+    \setmainfont{Liberation Serif}
+  }%
+}
+\IfFontExistsTF{Arial}{\setsansfont{Arial}}{%
+  \IfFontExistsTF{TeX Gyre Heros}{\setsansfont{TeX Gyre Heros}}{\setsansfont{Liberation Sans}}
+}
+% The instructor's RUP document uses US Letter; typography follows the PA2 Vision style.
+\usepackage[letterpaper,margin=1in,headheight=34pt,headsep=16pt,
+            footskip=28pt]{geometry}
+\usepackage{setspace}
+\setstretch{1.08}
+\usepackage{microtype}
+\usepackage{array,tabularx,longtable,booktabs}
+\usepackage{graphicx}
+\graphicspath{{images/}{figures/}}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{xcolor}
+\usepackage{needspace}
+\usepackage{tocloft}
+\usepackage[unicode,hidelinks]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.23}
+\emergencystretch=2em
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\setlist[itemize]{topsep=3pt,itemsep=2pt,parsep=0pt}
+\renewcommand{\contentsname}{Table of Contents}
+\titleformat{\section}{\normalfont\bfseries\fontsize{12}{15}\selectfont}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalfont\itshape\normalsize}{\thesubsubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{6pt}{3pt}
+\titlespacing*{\subsection}{0pt}{6pt}{3pt}
+\renewcommand{\cfttoctitlefont}{\hfill\normalfont\bfseries\fontsize{17}{21}\selectfont}
+\renewcommand{\cftaftertoctitle}{\hfill\mbox{}}
+\setlength{\cftbeforetoctitleskip}{0pt}
+\setlength{\cftaftertoctitleskip}{16pt}
+\renewcommand{\cftsecfont}{\normalfont}
+\renewcommand{\cftsecpagefont}{\normalfont}
+\renewcommand{\cftsecaftersnum}{.}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsubsecleader}{\cftdotfill{\cftdotsep}}
+\setlength{\cftbeforesecskip}{7pt}
+\setlength{\cftsecnumwidth}{1.7em}
+\setlength{\cftsubsecindent}{1.7em}
+\setlength{\cftsubsecnumwidth}{3em}
+\tocloftpagestyle{fancy}
+
+% Compatible with section files containing figures, tables, diagrams.
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\sourcefile}[1]{\nolinkurl{#1}}
+\newcommand{\db}[1]{\nolinkurl{#1}}
+\newcommand{\status}[1]{\textsc{#1}}
+% Blue italic instructions follow the instructor's InfoBlue guidance style.
+% Replace each TODO with authored content and remove the instruction wrapper.
+\DeclareRobustCommand{\TODO}[1]{{\color{blue}\itshape TODO: #1}}
+\newcommand{\diagramplaceholder}[4][3cm]{%
+  \begin{figure}[H]
+    \centering
+    \fbox{\begin{minipage}[c][#1][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+      \centering\TODO{#2}
+    \end{minipage}}
+    \caption{\TODO{#3}}\label{#4}
+  \end{figure}%
+}
+\newcommand{\frontmattertitle}[1]{%
+  \begin{center}{\normalfont\bfseries\fontsize{16}{20}\selectfont #1\par}\end{center}%
+}
+\newcommand{\portraitdiagram}[3]{%
+  \begin{figure}[p]
+    \centering
+    \includegraphics[width=\textwidth,height=.78\textheight,
+                     keepaspectratio]{#1}
+    \caption{#2}\label{#3}
+  \end{figure}
+  \clearpage
+}
+\newcommand{\landscapediagram}[3]{%
+  \clearpage
+  \begin{landscape}
+    \begin{figure}[p]
+      \centering
+      \includegraphics[width=\linewidth,height=.82\textheight,
+                       keepaspectratio]{#1}
+      \caption{#2}\label{#3}
+    \end{figure}
+  \end{landscape}
+  \clearpage
+}
+
+% --------- Clean Vision-style running header/footer ----------
+% Do not use a tabular/table here: this is a running header, not a data table.
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{%
+  \begin{minipage}[b]{.73\textwidth}
+    \raggedright\fontsize{9}{11}\selectfont
+    \ProjectName\\[-1pt]
+    {\fontsize{8}{10}\selectfont\DocumentTitle\enspace(\DocumentIdentifier)}
+  \end{minipage}%
+}
+\fancyhead[R]{%
+  \begin{minipage}[b]{.24\textwidth}
+    \raggedleft\fontsize{9}{11}\selectfont
+    Version \DocumentVersion\\[-1pt]
+    {\fontsize{8}{10}\selectfont\DocumentDate}
+  \end{minipage}%
+}
+\fancyfoot[L]{\fontsize{8.5}{10}\selectfont\OrganizationName{} -- Course Project}
+\fancyfoot[C]{\fontsize{8}{10}\selectfont\ConfidentialityText}
+\fancyfoot[R]{\fontsize{8.5}{10}\selectfont Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.45pt}
+\renewcommand{\footrulewidth}{0.45pt}
+% Like the PA2 Vision cover, the title page has no running header/footer.
+\fancypagestyle{sadcover}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}
+
+\hypersetup{
+  pdftitle={\DocumentTitle\ - \ProjectName},
+  pdfauthor={\DocumentAuthors},
+  pdfsubject={\DocumentPhase\ Software Architecture}
+}
+
+\begin{document}
+
+% ------------------ PAGE 1: Vision-style cover ------------------
+\thispagestyle{sadcover}
+\begin{center}
+  \vspace*{.35in}
+  {\bfseries\fontsize{13}{17}\selectfont \ProjectName\par}
+  \vspace*{1.50in}
+  {\bfseries\fontsize{22}{27}\selectfont \DocumentTitle\par}
+  \vspace{8pt}
+  {\fontsize{12}{16}\selectfont (Small Project)\par}
+  \vspace{.92in}
+  {\fontsize{12}{15}\selectfont Version \DocumentVersion\par}
+  \vfill
+  {\fontsize{10}{14}\selectfont
+    \begin{tabular}{@{}r@{\quad}l@{}}
+      \textbf{Document identifier:} & \DocumentIdentifier\\
+      \textbf{Prepared by:} & \GroupNumber{} -- \GroupName\\
+      \textbf{Authors:} & \DocumentAuthors\\
+      \textbf{Organization:} & \OrganizationName\\
+      \textbf{Date:} & \DocumentDate
+    \end{tabular}\par}
+  \vspace*{1.05in}
+\end{center}
+\clearpage
+
+% ---------------- PAGE 2: Revision History ---------------------
+\frontmattertitle{Revision History}
+\vspace{7pt}
+{\renewcommand{\arraystretch}{1.28}%
+\begin{tabularx}{\textwidth}{|L{2.10cm}|L{1.30cm}|Y|L{2.60cm}|}
+  \hline
+  \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author}\\
+  \hline
+  \RevisionDate & \RevisionVersion & \RevisionDescription & \RevisionAuthor\\
+  \hline
+\end{tabularx}}
+\clearpage
+
+
+% ---------------- Table of Contents --------------------
+\tableofcontents
+\clearpage
+
+% ---------------- List of Figures --------------------
+\phantomsection
+\addcontentsline{toc}{section}{List of Figures}
+\listoffigures
+\clearpage
+
+% ---------------- List of Tables --------------------
+\phantomsection
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
+\clearpage
+
+% ---------------- MAIN BODY: lecturer's exact sections ---------
+\frontmattertitle{\DocumentTitle}
+
+% 1. Overview, purpose, scope, terminology, references.
+\input{sections/01-Introduction.tex}
+
+% 2. Key non-functional requirements and constraints from Vision.
+\input{sections/02-Architectural Goals and Constraints.tex}
+
+% 3. Use-case diagram(s) from the Use-Case Specification document.
+\input{sections/03-Use-Case Model.tex}
+
+% 4. Architecture diagrams; component responsibilities, services,
+%    communications (HTTP/HTTPS/etc.); class diagrams for components.
+%    Add \subsection{Component: <name>} for each component.
+\input{sections/04-Logical View.tex}
+
+% 5-6. The lecturer allows these sections to remain empty for PA3.
+% Their headings are always shown so the document matches the template.
+\input{sections/05-Deployment.tex}
+\input{sections/06-Implementation View.tex}
+
+\end{document}
