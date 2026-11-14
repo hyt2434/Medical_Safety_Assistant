@@ -1,0 +1,16 @@
+[
+  {
+    "date": "2026-11-10",
+    "macrostructure": "Directory desk",
+    "theme": "Stitch Clinical Clarity / Serene Care & Safety",
+    "enrichment": "none",
+    "brief": "Login page regrouped into family, clinical, and operations accounts."
+  },
+  {
+    "date": "2026-10-18",
+    "macrostructure": "Workbench with horizontal role navigation; split public introduction",
+    "theme": "Stitch Clinical Clarity / Serene Care & Safety",
+    "enrichment": "none",
+    "brief": "React TypeScript frontend matching the supplied Tiểu Bạch Stitch references, with missing workflow screens added."
+  }
+]

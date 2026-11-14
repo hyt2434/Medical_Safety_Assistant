@@ -150,7 +150,13 @@ class ApiTest(unittest.TestCase):
         self.assertEqual(response.json(), {"status": "ok"})
 
     def test_rejects_non_image_upload(self) -> None:
-        response = TestClient(app).post(
+        client = TestClient(app, headers={"origin": "http://127.0.0.1:5173"})
+        login = client.post(
+            "/api/auth/login",
+            json={"email": "mai.demo@example.com", "password": "Mai-patient-2026"},
+        )
+        self.assertEqual(login.status_code, 200)
+        response = client.post(
             "/api/v1/ocr/extractions",
             files={"file": ("prescription.txt", b"not an image", "text/plain")},
         )

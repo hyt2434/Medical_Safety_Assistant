@@ -1,3 +1,0 @@
-# Optional local image preprocessing experiment.
-opencv-python-headless>=4.12,<5
-numpy>=2,<3

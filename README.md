@@ -4,7 +4,7 @@
 
 | Folder | Purpose |
 | --- | --- |
-| `apps/frontend/` | Current TypeScript frontend; PA1 entry retained for comparison. |
+| `apps/frontend/` | Frontend React hiện tại, cổng 5173. Bản PA1/PA2 cũ nằm trong `legacy/`. |
 | `apps/backend/` | Backend source. |
 | `data/` | Data documentation; local datasets in ignored `data/local/`. |
 | `docs/design/` | Canonical ERD and PlantUML sources and diagram images. |
@@ -18,7 +18,7 @@
 ## Main entry points
 
 - Backend OCR: [setup, API testing, and code structure](apps/backend/src/module1_intake/ocr/README.md).
-- Frontend: [instructions](apps/frontend/README-PA2.md), [design system](apps/frontend/design.md).
+- Frontend: [hướng dẫn chạy](apps/frontend/README.md). Bản PA2 cũ: [legacy](apps/frontend/legacy/README-PA2.md).
 - Use-case diagrams: [PlantUML](<docs/design/use-cases/plantuml>).
 - Use-case report: [main.tex](pa/pa2/use-case-report/main.tex).
 - UI report: [main.tex](pa/pa2/ui-report/main.tex).
@@ -54,7 +54,7 @@ pa/
 
 The 35-table schema is a draft with unified, module and domain views. The legacy database LaTeX report still describes the 64-table version. Do not treat them as interchangeable.
 
-Compile reports from their own directories using `xelatex main.tex`. The database report requires `enumitem`. For use-case SVG conversion, first install `requirements.txt`, then run `build.ps1`. Report-specific README files are retained only where they contain build or usage instructions; diagram links and alternative-flow guidance remain in `docs/design/use-cases/plantuml/README.md`.
+Compile reports from their own directories using `xelatex main.tex`. The database report requires `enumitem`. For use-case SVG conversion, first install the root `requirements.txt`, then run `build.ps1`. Report-specific README files are retained only where they contain build or usage instructions; diagram links and alternative-flow guidance remain in `docs/design/use-cases/plantuml/README.md`.
 
 ## File ownership
 

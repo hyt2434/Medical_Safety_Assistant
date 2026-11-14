@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icon / pill" clip-path="url(#clip0_0_27)">
+<path id="Vector" d="M11.375 22.2083L22.2083 11.375C23.5013 10.0821 24.2276 8.32848 24.2276 6.5C24.2276 4.67152 23.5013 2.91793 22.2083 1.625C20.9154 0.33207 19.1618 -0.394291 17.3333 -0.394291C15.5049 -0.394291 13.7513 0.33207 12.4583 1.625L1.625 12.4583C0.33207 13.7513 -0.394291 15.5049 -0.394291 17.3333C-0.394291 19.1618 0.33207 20.9154 1.625 22.2083C2.91793 23.5013 4.67152 24.2276 6.5 24.2276C8.32848 24.2276 10.0821 23.5013 11.375 22.2083Z" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" stroke="#006D66"/>
+<path id="Vector_2" d="M9.20833 9.20833L16.7917 16.7917" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" stroke="#006D66"/>
+</g>
+<defs>
+<clipPath id="clip0_0_27">
+<rect width="26" height="26" fill="white"/>
+</clipPath>
+</defs>
+</svg>

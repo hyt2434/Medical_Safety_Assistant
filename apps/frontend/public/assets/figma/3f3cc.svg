@@ -1,0 +1,13 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="1440" height="85" viewBox="0 0 1440 85" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Decoration / Gentle pastel wave" clip-path="url(#clip0_0_4)">
+<path id="Vector" d="M1440 0H0V85H1440V0Z" fill="#F8FAFC"/>
+<path id="Vector_2" d="M0 43C180 0 280 85 475 42C680 -9 790 87 995 43C1200 -10 1320 37 1440 14V85H0V43Z" fill="#E6F4F2"/>
+<path id="Vector_3" opacity="0.47" d="M0 68C200 42 300 84 475 65C710 41 875 76 1080 57C1225 40 1350 69 1440 53V85H0V68Z" fill="#CBF0E5"/>
+<path id="Vector_4" opacity="0.52" d="M455 80C600 60 675 80 770 75C860 69 875 82 955 85H455V80Z" fill="#FFF5C9"/>
+</g>
+<defs>
+<clipPath id="clip0_0_4">
+<rect width="1440" height="85" fill="white"/>
+</clipPath>
+</defs>
+</svg>

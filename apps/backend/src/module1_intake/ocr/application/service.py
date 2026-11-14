@@ -76,8 +76,7 @@ class LocalOcrService:
             except subprocess.TimeoutExpired as error:
                 raise OcrError("OCR quá thời gian xử lý cho phép") from error
             if process.returncode != 0:
-                detail = process.stderr.strip().splitlines()[-1] if process.stderr.strip() else "unknown error"
-                raise OcrError(f"Tesseract không xử lý được ảnh: {detail}")
+                raise OcrError("Tesseract không xử lý được ảnh. Hãy thử ảnh rõ hơn hoặc nhập thủ công.")
             baseline = json.loads(evidence_path.read_text(encoding='utf-8'))
             results = []
             errors = []

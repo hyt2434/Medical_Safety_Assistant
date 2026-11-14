@@ -7,7 +7,7 @@ nhận; hệ thống không tự suy đoán thông tin thuốc bị thiếu.
 ## Cài đặt
 
 ```powershell
-python -m pip install -r apps/backend/requirements.txt
+python -m pip install -r requirements.txt
 npm --prefix apps/backend/src/module1_intake/ocr/node/ocr install
 ```
 
@@ -101,7 +101,7 @@ giữ nguyên `timing_raw`, không suy giờ uống hoặc tự xác nhận dữ
 
 Ảnh đầu vào: JPG/JPEG/JPE, PNG, WebP, BMP, TIFF/TIF và GIF một khung hình.
 File `.jpe` dùng MIME `image/jpeg`, cùng bộ giải mã với JPG/JPEG.
-Cài dependency bằng `python -m pip install -r requirements.txt` trong backend.
+Cài dependency bằng `python -m pip install -r requirements.txt` từ thư mục gốc repository.
 Ảnh được kiểm tra nội dung, xoay theo EXIF và chuyển RGB PNG (nền trắng với
 ảnh trong suốt) trước khi OCR. Giới hạn upload 10 MB và 25 triệu pixel.
 Ảnh động/TIFF nhiều trang bị từ chối rõ ràng; chưa hỗ trợ HEIC/HEIF, SVG, PDF.
@@ -154,7 +154,7 @@ parser này trích đầy đủ thành trường. Không coi nhận đủ dòng 
 Chạy từ thư mục gốc project:
 
 ```powershell
-python -m pip install -r apps/backend/requirements-cv.txt
+python -m pip install -r requirements.txt
 python apps/backend/scripts/compare_cv_ocr.py "duong-dan-anh.jpg" data/local/module1/cv-experiment
 ```
 

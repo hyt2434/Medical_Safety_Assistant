@@ -1,0 +1,24 @@
+{
+  "name": "tieu-bach-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node tests/pa2-smoke.mjs",
+    "capture:report": "node tests/pa2-smoke.mjs --report"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "puppeteer-core": "^25.16.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2"
+  },
+  "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/ibm-plex-sans": "^5.3.0"
+  }
+}

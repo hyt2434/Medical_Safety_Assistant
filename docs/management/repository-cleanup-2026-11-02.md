@@ -29,5 +29,5 @@ Reports now depend on shared repository assets. Build from each report directory
 - `git diff --check` passes; external image references resolve.
 - UI report rebuilt (38 pages); original PA1 image rendering checked.
 - Selected Use Case report rebuilt using the supplied vector PDFs (27 pages). Its existing table layout produces overfull-box/glue warnings; the cleanup does not redesign those tables.
-- SVG regeneration needs the packages in `pa/pa2/use-case-report/requirements.txt`; this environment currently lacks `reportlab`.
+- SVG regeneration needs the packages in `requirements.txt (repository root)`; this environment currently lacks `reportlab`.
 - Database report rebuild is blocked by missing LaTeX package `enumitem`; existing PDF retained.

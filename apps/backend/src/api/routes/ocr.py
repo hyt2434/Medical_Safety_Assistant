@@ -6,8 +6,9 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
+from api.deps import require_permission
 from module1_intake.ocr.models.api import OcrResponse
 from module1_intake.ocr.application.service import LocalOcrService, OcrError
 from module1_intake.ocr.imaging.input import CONTENT_TYPES, DESCRIPTION
@@ -19,7 +20,10 @@ ALLOWED_CONTENT_TYPES = CONTENT_TYPES
 
 
 @router.post("/extractions", response_model=OcrResponse)
-def create_extraction(file: UploadFile = File(...)) -> OcrResponse:
+def create_extraction(
+    file: UploadFile = File(...),
+    _session: dict = Depends(require_permission("intake.ocr")),
+) -> OcrResponse:
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Chỉ hỗ trợ {DESCRIPTION}")
 
