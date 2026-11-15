@@ -20,6 +20,7 @@ from module1_intake.ocr.rechecks.receipts import retry_receipt
 from module1_intake.ocr.rechecks.products import retry_products
 from module1_intake.ocr.imaging.input import SUFFIXES, DESCRIPTION, prepare_image
 from module1_intake.ocr.imaging.preprocessing import preprocess_document
+from module1_intake.ocr.imaging.regions import ImageRegion, crop_region
 from module1_intake.ocr.application.selection import extraction_quality, cv_selection_blockers
 
 
@@ -33,8 +34,9 @@ class LocalOcrService:
     def __init__(self, timeout_seconds: int = 180) -> None:
         self.timeout_seconds = timeout_seconds
         self.script = Path(__file__).parent.parent / "node" / "local_ocr.cjs"
+        self.artifact_root = Path(__file__).resolve().parents[6] / 'data/local/module1/runs'
 
-    def extract(self, image_path: str | Path) -> OcrResponse:
+    def extract(self, image_path: str | Path, *, region: ImageRegion | None = None) -> OcrResponse:
         started_at = datetime.now(timezone.utc)
         deadline = time.monotonic() + self.timeout_seconds
         run_id = uuid.uuid4()
@@ -53,11 +55,15 @@ class LocalOcrService:
             normalized = Path(temporary_directory) / 'normalized.png'
             try:
                 input_metadata = prepare_image(image, normalized)
+                if region is not None:
+                    cropped = Path(temporary_directory) / 'region.png'
+                    input_metadata.update(crop_region(normalized, cropped, region))
+                    normalized = cropped
             except ValueError as error:
                 raise OcrError(str(error)) from error
             processed = Path(temporary_directory) / 'preprocessed.png'
             cv_metadata = preprocess_document(normalized, processed)
-            artifact_dir = Path(__file__).resolve().parents[6] / 'data/local/module1/runs' / str(run_id)
+            artifact_dir = self.artifact_root / str(run_id)
             artifact_dir.mkdir(parents=True, exist_ok=False)
             shutil.copyfile(image, artifact_dir / ('original' + image.suffix.lower()))
             shutil.copyfile(normalized, artifact_dir / 'normalized.png')
@@ -70,7 +76,7 @@ class LocalOcrService:
                     capture_output=True,
                     text=True,
                     encoding="utf-8",
-                    timeout=self.timeout_seconds,
+                    timeout=max(0.01, deadline - time.monotonic()),
                     check=False,
                 )
             except subprocess.TimeoutExpired as error:
@@ -80,6 +86,7 @@ class LocalOcrService:
             baseline = json.loads(evidence_path.read_text(encoding='utf-8'))
             results = []
             errors = []
+            ocr_variants = []
             for label, candidate_image, candidate_raw in [('normalized', normalized, baseline), ('preprocessed', processed, None)]:
                 try:
                     if candidate_raw is None:
@@ -93,16 +100,21 @@ class LocalOcrService:
                             raise ValueError('CV OCR failed')
                         candidate_raw = json.loads(output.read_text(encoding='utf-8'))
                     (artifact_dir / f'{label}-ocr.json').write_text(json.dumps(candidate_raw, ensure_ascii=False), encoding='utf-8')
+                    ocr_variants.append({'variant': label, 'text': candidate_raw.get('text', ''),
+                                         'confidence': candidate_raw.get('confidence')})
                     parsed = Extraction.model_validate(extract_printed_prescription(candidate_raw))
                     results.append((label, candidate_image, candidate_raw, parsed))
                 except (OSError, ValueError, subprocess.TimeoutExpired) as error:
                     errors.append({'variant': label, 'error': str(error)})
             if not results:
                 # OCR succeeded, but structure is unsupported or unreadable. Preserve evidence.
+                text_detected = any(v['text'].strip() for v in ocr_variants)
                 results.append(('normalized', normalized, baseline, Extraction(
                     review_guidance={'action': 'REUPLOAD_OR_MANUAL_REVIEW',
-                        'reason': 'STRUCTURE_NOT_RECOGNIZED',
-                        'message': 'Chưa tách được danh sách thuốc. Hãy chụp gần, đủ sáng, thẳng trang và rõ chữ; hoặc kiểm tra thủ công. Chưa thể kết luận ảnh mờ hay bố cục chưa hỗ trợ.'},
+                        'reason': 'STRUCTURE_NOT_RECOGNIZED' if text_detected else 'NO_TEXT_DETECTED',
+                        'message': ('Đã đọc được chữ nhưng chưa tách được danh sách thuốc. Nếu ảnh có nhiều toa hoặc nhiều cột, hãy chọn riêng một vùng gồm tên thuốc, số lượng và cách dùng rồi đọc lại.'
+                                    if text_detected else
+                                    'Chưa đọc được chữ. Hãy chọn ảnh rõ hơn, đủ sáng và chụp gần toa thuốc.')},
                     warnings=list(dict.fromkeys(e['error'] for e in errors)))))
             # On ties keep baseline. More detected rows alone is not enough to switch:
             # differing counts or document types require review.
@@ -124,9 +136,15 @@ class LocalOcrService:
             raw['image_input'] = {**input_metadata, 'selected_variant': label,
                 'coordinate_space': 'preprocessed_image' if label == 'preprocessed' else 'normalized_image',
                 'ocr_size': cv_metadata['output_size'] if label == 'preprocessed' else input_metadata['ocr_size']}
+            # OCR/retry coordinates stay local to the selected variant. Expose an
+            # explicit inverse transform for drawing evidence on the full preview.
+            crop = input_metadata.get('selected_region', {'left': 0, 'top': 0})
+            sx, sy = (cv_metadata['source_to_output'][0][0], cv_metadata['source_to_output'][1][1]) if label == 'preprocessed' else (1, 1)
+            raw['image_input']['ocr_to_full_normalized'] = [[1/sx, 0, crop['left']], [0, 1/sy, crop['top']], [0, 0, 1]]
             raw['preprocessing'] = {**cv_metadata, 'selected_variant': label,
                 'selection_policy': 'preserve_existing_fields_and_schedules_before_quality_gain',
                 'selection_blockers': selection_blockers,
+                'ocr_variants': ocr_variants,
                 'artifacts': f'data/local/module1/runs/{run_id}', 'errors': errors,
                 'comparisons': [{'variant': r[0], 'quality': extraction_quality(r[3]),
                                  'parsed': r[3].model_dump()} for r in results]}
@@ -146,5 +164,12 @@ class LocalOcrService:
                     'message': 'Đối chiếu tên, hàm lượng và liều với ảnh. Nếu chữ không rõ, tải ảnh rõ hơn; không tự chọn ứng viên OCR.'}
             if extraction.document_type == 'PHARMACY_RECEIPT':
                 retry_receipt(image, self.script, Path(temporary_directory), extraction, deadline)
+            if region is not None:
+                extraction.warnings.append('Chỉ đọc vùng đã chọn; phần còn lại của ảnh chưa được xử lý. Kiểm tra đủ thuốc trước khi xác nhận.')
+            raw['diagnostics'] = {'text_detected': any(v['text'].strip() for v in ocr_variants),
+                                  'structure_recognized': bool(extraction.medications or extraction.receipt_items),
+                                  'region_selected': region is not None}
 
-        return build_response(raw, extraction, run_id, started_at, datetime.now(timezone.utc))
+        response = build_response(raw, extraction, run_id, started_at, datetime.now(timezone.utc))
+        (artifact_dir / 'result.json').write_text(response.model_dump_json(indent=2), encoding='utf-8')
+        return response

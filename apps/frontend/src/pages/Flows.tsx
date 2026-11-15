@@ -426,7 +426,7 @@ export function ShareSummary() {
               </label>
             ))}
             <button className="button" disabled={!scopes.length}>
-              Tạo quyền chia sẻ mẫu
+              Tạo quyền chia sẻ
             </button>
           </form>
           {error && <p role="alert">{error}</p>}
@@ -436,7 +436,7 @@ export function ShareSummary() {
               <p>{r.detail}</p>
               <small>{formatDate(r.at)}</small>
               <button className="button danger" onClick={() => remove(r.id)}>
-                Thu hồi bản chia sẻ mẫu
+                Thu hồi bản chia sẻ
               </button>
             </div>
           ))}
@@ -505,7 +505,7 @@ export function Caregivers() {
                 onChange={(e) => setRemind(e.target.checked)}
               />
             </label>
-            <button className="button">Lưu lời mời mẫu</button>
+            <button className="button">Lưu lời mời</button>
           </form>
           {error && <p role="alert">{error}</p>}
           {records.map((r) => (
@@ -727,7 +727,7 @@ export function ReviewRecord({ decision = false }: { decision?: boolean }) {
               className="button"
               disabled={!state.serverPermissions.includes("catalog.edit")}
             >
-              Lưu quyết định mẫu
+              Lưu quyết định
             </button>
             {saved && <p role="status">Đã lưu quyết định trong phiên.</p>}
             {error && <p role="alert">{error}</p>}
@@ -939,7 +939,7 @@ export function TicketDetail() {
                 }}
               />
             </Field>
-            <button className="button">Lưu phản hồi mẫu</button>
+            <button className="button">Lưu phản hồi</button>
             {saved && <p role="status">Đã lưu phản hồi mẫu.</p>}
             {error && <p role="alert">{error}</p>}
           </form>
@@ -994,7 +994,7 @@ export function ReportIssue() {
                 onChange={(e) => setDetail(e.target.value)}
               />
             </Field>
-            <button className="button">Tạo ticket mẫu</button>
+            <button className="button">Tạo ticket</button>
           </form>
         </Card>
         <Card>

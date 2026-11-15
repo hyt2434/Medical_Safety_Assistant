@@ -25,6 +25,8 @@ google-genai>=2.29.0
 # Tests
 pytest>=9.0.3,<10
 httpx>=0.27,<1
+# Starlette 1.x TestClient uses httpx2; httpx is still used by existing clients.
+httpx2>=2.16,<3
 
 # PDF and SVG report tooling
 PyMuPDF>=1.24,<2

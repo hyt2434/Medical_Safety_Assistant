@@ -40,6 +40,11 @@ import {
 } from "../state";
 import type { Assessment, Medicine } from "../state";
 import { api } from "../api";
+import { RegionPicker } from "../OcrReview";
+import { MedicineSpelling, missingMedicineFields } from "../MedicineSpelling";
+import { InstructionReview } from "../InstructionReview";
+import { StrengthReview } from "../StrengthReview";
+import type { ImageRegion, OcrResult } from "../OcrReview";
 
 const newMedicine = (): Medicine => ({
   id: crypto.randomUUID(),
@@ -77,6 +82,8 @@ export function Intake() {
   const [imageName, setImageName] = useState("");
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [ocrBusy, setOcrBusy] = useState(false);
+  const [ocrError, setOcrError] = useState(false);
+  const [ocrRegion, setOcrRegion] = useState<ImageRegion | null>(null);
   const ocrController = useRef<AbortController | null>(null);
   useEffect(() => () => ocrController.current?.abort(), []);
   async function readPrescription() {
@@ -84,21 +91,33 @@ export function Intake() {
     const controller = new AbortController();
     ocrController.current = controller;
     setOcrBusy(true);
+    setOcrError(false);
+    editDraft([]);
+    update({ source: `Ảnh cục bộ: ${sourceFile.name}`, assessment: null, contextConfirmed: false });
     setStatus("Đang đọc toa thuốc…");
     const body = new FormData();
     body.append("file", sourceFile);
+    if (ocrRegion) body.append("region", JSON.stringify(ocrRegion));
     try {
-      const result = await api<{ medication_entries: { extracted_name: string | null; extracted_strength: string | null; dosage_instructions: string | null }[] }>("/api/v1/ocr/extractions", { method: "POST", body, signal: controller.signal });
+      const result = await api<OcrResult>("/api/v1/ocr/extractions", { method: "POST", body, signal: controller.signal });
       if (controller.signal.aborted) return;
-      if (!result.medication_entries.length) {
-        setStatus("Chưa nhận diện được thuốc. Hãy chọn ảnh rõ hơn hoặc nhập bằng tay.");
+      const entries = result.medication_entries.filter(entry => entry.extracted_name?.trim());
+      if (!entries.length) {
+        setOcrError(true);
+        const raw = result.extraction_run?.raw_output;
+        setStatus(raw?.parsed?.review_guidance?.message || (raw?.ocr?.text?.trim()
+          ? "Đã đọc được chữ nhưng chưa tách được thông tin thuốc. Hãy chọn vùng gồm tên thuốc, hàm lượng và cách dùng hoặc nhập thuốc bằng tay."
+          : "Chưa đọc được chữ từ ảnh này. Hãy chọn ảnh rõ hơn, đủ sáng hoặc nhập thuốc bằng tay."));
         return;
       }
-      editDraft(result.medication_entries.map(entry => ({ ...newMedicine(), name: entry.extracted_name || "", strength: entry.extracted_strength || "", instruction: entry.dosage_instructions || "" })));
+      editDraft(entries.map(entry => ({ ...newMedicine(), name: entry.extracted_name || "", ocrOriginalName: entry.extracted_name || "", strength: entry.extracted_strength || "", ocrOriginalStrength: entry.extracted_strength || "", instruction: entry.dosage_instructions || "", ocrOriginalInstruction: entry.dosage_instructions || "" })));
       update({ source: `OCR: ${sourceFile.name}`, assessment: null, contextConfirmed: false });
       setStatus("Đã đọc thông tin. Hãy đối chiếu tên thuốc, hàm lượng và cách dùng với ảnh gốc.");
     } catch (error) {
-      if (!controller.signal.aborted) setStatus(error instanceof Error ? error.message : "Không đọc được ảnh. Vui lòng thử lại.");
+      if (!controller.signal.aborted) {
+        setOcrError(true);
+        setStatus(error instanceof Error ? error.message : "Không đọc được ảnh. Vui lòng thử lại.");
+      }
     } finally {
       if (ocrController.current === controller) setOcrBusy(false);
     }
@@ -144,6 +163,9 @@ export function Intake() {
       return;
     }
     setImageError(false);
+    setOcrError(false);
+    editDraft([]);
+    setOcrRegion(null);
     ocrController.current?.abort();
     setOcrBusy(false);
     setSourceFile(file);
@@ -159,6 +181,8 @@ export function Intake() {
     );
   }
   function loadSample() {
+    setOcrError(false);
+    setOcrRegion(null);
     ocrController.current?.abort();
     setOcrBusy(false);
     setSourceFile(null);
@@ -300,6 +324,7 @@ export function Intake() {
                         ocrController.current?.abort();
                         setOcrBusy(false);
                         setSourceFile(null);
+                        setOcrRegion(null);
                         setStatus("");
                         setImage("");
                         setImageName("");
@@ -330,6 +355,8 @@ export function Intake() {
                     <span>JPG, PNG, WebP · Tối đa 10 MB</span>
                   </button>
                 )}
+                {sourceFile && image && !imageError && <RegionPicker key={image} image={image} value={ocrRegion} disabled={ocrBusy}
+                  onChange={region => { setOcrRegion(region); setStatus("Vùng đọc đã thay đổi. Bấm đọc thông tin để cập nhật bản nháp."); }} />}
                 <div className="prescription-image-actions">
                 <div className="prescription-image-choices">
                   <button
@@ -403,7 +430,7 @@ export function Intake() {
               className="button secondary full-width"
               onClick={loadSample}
             >
-              Dùng bộ dữ liệu mẫu
+              Dùng dữ liệu minh họa
             </button>
             <small>Thao tác này thay danh sách thuốc đang nhập.</small>
           </Card>
@@ -415,13 +442,22 @@ export function Intake() {
             detail={`${state.draft.length} thuốc · Chưa xác nhận`}
             action={<Badge tone="warning">Bản nháp</Badge>}
           />
-          <p className="live-status" role="status">
+          {ocrError ? <div role="alert"><Notice tone="danger" title="Không thể đọc toa thuốc">{status}</Notice></div> : <p className="live-status" role="status">
             {status}
-          </p>
+          </p>}
+          {state.source.startsWith("OCR:") && state.draft.length > 0 && (
+            <div className="ocr-review-warning" role="note" aria-label="Nhắc kiểm tra toa thuốc">
+              <Notice tone="warning" title="Dò lại toa thuốc trước khi xác nhận">
+                <p>Kết quả đọc ảnh có thể sai hoặc thiếu. Hãy kiểm tra từng <strong>tên thuốc, hàm lượng và cách dùng</strong> với toa gốc, đồng thời bổ sung thuốc còn thiếu.</p>
+              </Notice>
+            </div>
+          )}
           {state.draft.length ? (
             <div className="stack">
-              {state.draft.map((m, index) => (
-                <section className="medicine-editor" key={m.id}>
+              {state.draft.map((m, index) => {
+                const missing = missingMedicineFields(m);
+                return (
+                <section className={`medicine-editor${missing.length ? " medicine-editor-incomplete" : ""}`} key={m.id}>
                   <div className="editor-header">
                     <span className="index-number">
                       {String(index + 1).padStart(2, "0")}
@@ -437,10 +473,15 @@ export function Intake() {
                       <Trash2 size={17} />
                     </button>
                   </div>
+                  {missing.length > 0 && <p className="medicine-missing" id={`missing-${m.id}`}>
+                    <ShieldAlert size={17} aria-hidden="true" /> Cần bổ sung: {missing.map(item => item.label).join(", ")}.
+                  </p>}
                   <div className="two-grid">
                     <Field label="Tên trên toa *">
                       <input
                         value={m.name}
+                        aria-invalid={missing.some(item => item.key === "name")}
+                        aria-describedby={missing.some(item => item.key === "name") ? `missing-${m.id}` : undefined}
                         onChange={(e) =>
                           changeMedicine(m.id, "name", e.target.value)
                         }
@@ -450,6 +491,8 @@ export function Intake() {
                     <Field label="Hàm lượng *">
                       <input
                         value={m.strength}
+                        aria-invalid={missing.some(item => item.key === "strength")}
+                        aria-describedby={missing.some(item => item.key === "strength") ? `missing-${m.id}` : undefined}
                         onChange={(e) =>
                           changeMedicine(m.id, "strength", e.target.value)
                         }
@@ -457,14 +500,22 @@ export function Intake() {
                       />
                     </Field>
                   </div>
+                  <MedicineSpelling medicine={m}
+                    onChange={medicine => editDraft(state.draft.map(item => item.id === m.id ? medicine : item))} />
+                  <StrengthReview medicine={m}
+                    onChange={medicine => editDraft(state.draft.map(item => item.id === m.id ? medicine : item))} />
                   <Field label="Cách dùng trên toa *">
                     <input
                       value={m.instruction}
+                      aria-invalid={missing.some(item => item.key === "instruction")}
+                      aria-describedby={missing.some(item => item.key === "instruction") ? `missing-${m.id}` : undefined}
                       onChange={(e) =>
                         changeMedicine(m.id, "instruction", e.target.value)
                       }
                     />
                   </Field>
+                  <InstructionReview medicine={m}
+                    onChange={medicine => editDraft(state.draft.map(item => item.id === m.id ? medicine : item))} />
                   <Field label="Hoạt chất (nếu đã biết)">
                     <input
                       value={m.ingredient}
@@ -475,14 +526,14 @@ export function Intake() {
                     />
                   </Field>
                 </section>
-              ))}
+              ); })}
             </div>
-          ) : (
+          ) : !ocrError && !ocrBusy ? (
             <EmptyState
               title="Chưa có thuốc được nhập"
               description="Thêm thuốc bằng tay hoặc chọn bộ dữ liệu mẫu để bắt đầu."
             />
-          )}
+          ) : null}
           <button
             className="button secondary dashed full-width"
             onClick={() => editDraft([...state.draft, newMedicine()])}
@@ -518,7 +569,9 @@ function CameraIcon() {
 export function Verify() {
   const { state, editDraft, update } = useDemo();
   const navigate = useNavigate();
-  const [context, setContext] = useState(state.contextConfirmed);
+  const context = Boolean(state.accountId && state.profile.completedFor === state.accountId &&
+    [state.profile.allergy, state.profile.conditions].every(value =>
+      value.trim() && !/^(chưa rõ|không rõ|unknown)$/iu.test(value.trim())));
   const [status, setStatus] = useState("");
   if (!state.draft.length)
     return (
@@ -535,7 +588,7 @@ export function Verify() {
   function assess() {
     if (
       state.draft.some(
-        (m) => !m.name.trim() || !m.strength.trim() || !m.instruction.trim(),
+        (m) => missingMedicineFields(m).length > 0,
       )
     ) {
       setStatus(
@@ -590,61 +643,43 @@ export function Verify() {
         Nếu bạn sửa toa sau bước này, kết quả cũ sẽ mất hiệu lực. Hoạt chất chưa
         rõ phải giữ trạng thái chưa đánh giá.
       </Notice>
-      <div className="verification-grid">
-        {state.draft.map((m, i) => (
-          <Card key={m.id}>
-            <div className="inline spread">
-              <CardHeading
-                icon={<PillIcon />}
-                title={`${i + 1}. ${m.name || "Thiếu tên thuốc"} ${m.strength}`}
-                detail={`Hoạt chất: ${m.ingredient || "Chưa xác định"}`}
-              />
-              <Badge tone={m.ingredient ? "neutral" : "warning"}>
-                {m.ingredient ? "Chưa đối chiếu DAV" : "Thiếu hoạt chất"}
-              </Badge>
-            </div>
-            <p>{m.instruction || "Thiếu cách dùng"}</p>
-            <label className="check-label">
-              <input
-                type="checkbox"
-                checked={m.verified}
-                onChange={(e) => {
-                  const draft = state.draft.map((x) =>
-                    x.id === m.id ? { ...x, verified: e.target.checked } : x,
-                  );
-                  editDraft(draft);
-                }}
-              />
-              <span>
-                Tôi đã đối chiếu tên thuốc, hàm lượng và cách dùng của thuốc này
-                với nguồn nhập.
-              </span>
-            </label>
-          </Card>
-        ))}
-        <Card>
-          <CardHeading
-            icon={<ShieldCheck />}
-            title="Bối cảnh cần kiểm tra"
-            detail="Danh sách đầy đủ, dị ứng, bệnh nền và thông tin liên quan"
-          />
-          <p>
-            Phiên mẫu chưa đánh giá bối cảnh sức khỏe thực tế. Hãy xác nhận rằng
-            bạn đang dùng tình huống giả để xem luồng kết quả. Nếu chưa đủ thông
-            tin, bạn vẫn có thể xem trạng thái thiếu dữ liệu.
-          </p>
-          <label className="check-label">
-            <input
-              type="checkbox"
-              checked={context}
-              onChange={(e) => setContext(e.target.checked)}
-            />
-            <span>
-              Tôi đang dùng dữ liệu giả và đã kiểm tra bối cảnh của tình huống
-              mẫu.
-            </span>
-          </label>
-        </Card>
+      <div className="verification-content">
+        <section className="medicine-confirmation" aria-label="Đối chiếu thuốc">
+          <div className="confirmation-summary">
+            <h2>Danh sách thuốc</h2>
+            <span role="status">Đã xác nhận {state.draft.filter(m => m.verified).length}/{state.draft.length} thuốc</span>
+            <button type="button" className="button secondary"
+              disabled={state.draft.some(m => missingMedicineFields(m).length > 0) || state.draft.every(m => m.verified)}
+              onClick={() => editDraft(state.draft.map(m => ({ ...m, verified: true })))}>
+              Xác nhận tất cả
+            </button>
+          </div>
+          <p className="confirmation-help">Đối chiếu từng dòng với toa gốc rồi bấm xác nhận.</p>
+          <div className="confirmation-scroll" tabIndex={0} role="region" aria-label="Bảng xác nhận thuốc, cuộn ngang để xem đầy đủ">
+            <table className="confirmation-table">
+              <caption className="sr-only">Thông tin thuốc cần đối chiếu với toa gốc</caption>
+              <thead><tr><th scope="col">Thuốc</th><th scope="col">Hàm lượng</th><th scope="col">Cách dùng</th><th scope="col">Xác nhận</th></tr></thead>
+              <tbody>{state.draft.map((m, i) => {
+                const missing = missingMedicineFields(m);
+                return <tr key={m.id} className={m.verified ? "is-confirmed" : undefined}>
+                  <th scope="row"><strong>{i + 1}. {m.name || "Thiếu tên thuốc"}</strong><small>Hoạt chất: {m.ingredient || "Chưa xác định"}</small></th>
+                  <td>{m.strength || "Chưa có"}</td>
+                  <td className="confirmation-instruction">{m.instruction || "Chưa có"}</td>
+                  <td><div className="confirmation-action">
+                    <Badge tone={m.verified ? "success" : "warning"}>{m.verified ? "Đã xác nhận" : "Chưa xác nhận"}</Badge>
+                    <button type="button" className="button secondary" disabled={missing.length > 0}
+                      aria-label={`${m.verified ? "Bỏ xác nhận" : "Xác nhận"} thuốc ${m.name || i + 1}`}
+                      onClick={() => editDraft(state.draft.map(x => x.id === m.id ? { ...x, verified: !m.verified } : x))}>
+                      {m.verified ? "Bỏ xác nhận" : "Xác nhận thuốc"}
+                    </button>
+                    {missing.length > 0 && <small>Cần bổ sung {missing.map(field => field.label).join(", ")}.</small>}
+                  </div></td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+        </section>
+        {!context && <p>Hồ sơ còn thiếu hoặc chưa rõ thông tin dị ứng, bệnh nền. <Link to="/profile">Cập nhật hồ sơ</Link></p>}
       </div>
       <div className="form-footer">
         <Link className="button secondary" to="/intake">
@@ -654,14 +689,11 @@ export function Verify() {
           {status}
         </p>
         <button className="button" onClick={assess}>
-          Xem kết quả mẫu <ArrowRight size={17} />
+          Xem kết quả <ArrowRight size={17} />
         </button>
       </div>
     </>
   );
-}
-function PillIcon() {
-  return <FileCheck2 size={23} />;
 }
 
 export function Results() {
@@ -866,7 +898,7 @@ export function Results() {
                   trình review.
                 </p>
                 <Link className="button" to="/review-request">
-                  Soạn yêu cầu mẫu <ArrowRight size={17} />
+                  Soạn yêu cầu <ArrowRight size={17} />
                 </Link>
               </>
             )}
@@ -887,7 +919,7 @@ export function Results() {
                   : "Không có dữ liệu đánh giá"}
               </dd>
             </dl>
-            <TextLink to="/policy">Đọc giới hạn bản mẫu</TextLink>
+            <TextLink to="/policy">Xem phạm vi hỗ trợ</TextLink>
           </Card>
           <Card>
             <CardHeading
@@ -942,7 +974,7 @@ export function Results() {
               onClick={activateReminders}
             >
               {state.remindersOptIn
-                ? "Đã tạo lịch mẫu"
+                ? "Đã tạo lịch"
                 : "Kiểm tra điều kiện tạo lịch"}
             </button>
             <p role="status" className="live-status">
@@ -1039,7 +1071,7 @@ export function RequestReview() {
                 <ArrowLeft size={17} /> Quay lại
               </Link>
               <button className="button" type="submit" disabled={!consent}>
-                Tạo yêu cầu mẫu <ArrowRight size={17} />
+                Tạo yêu cầu <ArrowRight size={17} />
               </button>
             </div>
           </form>

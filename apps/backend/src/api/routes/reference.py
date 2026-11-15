@@ -6,6 +6,18 @@ from auth.db import engine
 
 router = APIRouter(prefix="/api/reference", tags=["Reference data"])
 
+@router.get("/medication-spelling")
+def medication_spelling(q: str = Query(min_length=1, max_length=120),
+                        strength: str = Query(default="", max_length=120),
+                        _session=Depends(current_session)):
+    from api.medication_spelling import catalog_rows, suggestions
+    try:
+        rows = catalog_rows()
+    except (OSError, ValueError, KeyError):
+        raise HTTPException(503, "Chưa tải được danh mục gợi ý tên thuốc")
+    return {"suggestions": suggestions(q, strength, rows),
+            "source": "Danh mục cục bộ · chưa thay thế đối chiếu toa gốc"}
+
 @router.get("/medications")
 def medications(q: str = Query(default="", max_length=120), _session=Depends(current_session)):
     db = engine()

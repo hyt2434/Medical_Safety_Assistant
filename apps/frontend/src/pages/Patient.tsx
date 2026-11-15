@@ -506,7 +506,7 @@ export function Reminders() {
               </select>
             </Field>
             <button type="submit" className="button full-width">
-              Lưu ghi nhận mẫu
+              Lưu ghi nhận
             </button>
           </form>
         </Modal>
@@ -813,7 +813,7 @@ export function Chat() {
             <h2>Tiểu Bạch</h2>
             <Badge tone="neutral">Trợ lý mô phỏng</Badge>
             <p>
-              Những câu trả lời đơn giản, dựa trên nội dung mẫu đã chuẩn bị.
+              Những hỏi thường gặp
             </p>
             <div className="chat-topics">
               {[
@@ -905,7 +905,6 @@ export function Chat() {
             </span>
             <div>
               <strong>Tiểu Bạch · Trợ lý thuốc</strong>
-              <small>Sẵn sàng hướng dẫn bản mẫu</small>
             </div>
             <ShieldCheck size={22} />
           </div>

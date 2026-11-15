@@ -713,7 +713,7 @@ export function HcpConfirmation() {
                 Quay lại
               </Link>
               <button className="button" type="submit" disabled={!ack}>
-                <Send size={17} /> Ghi nhận phản hồi mẫu
+                <Send size={17} /> Ghi nhận phản hồi
               </button>
             </div>
             <p role="status" className="live-status">
@@ -835,7 +835,7 @@ export function HcpProfile() {
             xác thực và phân quyền phía máy chủ.
           </Notice>
           <button type="submit" className="button">
-            <Check size={17} /> Lưu thông tin mẫu
+            <Check size={17} /> Lưu thông tin
           </button>
           <p role="status">{status}</p>
         </form>
