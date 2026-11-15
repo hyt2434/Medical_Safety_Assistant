@@ -1,261 +1,152 @@
 % !TeX program = xelatex
-% PA3 - Section f: Project Execution and Tracking (20 points)
-% Black-and-white report style, matching the supplied UI Design reference.
-% Paper: A4 landscape. Compiler: XeLaTeX (compile twice for correct page count).
-%
-% Screenshots are intentionally left IN THEIR ORIGINAL COLORS as documentary
-% evidence; all document typography, borders and links are black on white.
-% To add evidence, place screenshots in images/ with the filenames at the end.
-% Missing screenshots appear as black-outline placeholders, not compilation errors.
-
-\documentclass[11pt,a4paper,landscape]{article}
-\usepackage[left=17mm,right=17mm,top=18mm,bottom=16mm,headheight=32pt,headsep=5mm,footskip=10mm]{geometry}
+% Compile twice: xelatex -interaction=nonstopmode -halt-on-error main.tex
+% Original evidence is preserved in images/. Crops are display-only LaTeX trims.
+\documentclass[14pt,a4paper,landscape]{extarticle}
+\usepackage[left=17mm,right=17mm,top=22mm,bottom=17mm,headheight=34pt,headsep=8pt,footskip=23pt]{geometry}
 \usepackage{fontspec}
-\setmainfont{Tinos}
-\usepackage{graphicx}
-\usepackage{tabularx,array,booktabs}
-\usepackage{enumitem}
-\usepackage{fancyhdr}
-\usepackage{lastpage}
-\usepackage[hidelinks]{hyperref}
-\usepackage{ragged2e}
-\usepackage{needspace}
-
-\hypersetup{
-  pdftitle={Project Execution and Tracking - PA3 - Group 02},
-  pdfsubject={Section f - Project Execution and Tracking (20 points)},
-  pdfauthor={Group 02 - Cao Hoang Long, Hoang Yen Trang, Lo Chi Thanh}
-}
+\setmainfont{Times New Roman}
+\usepackage{graphicx,tabularx,array,booktabs,fancyhdr,lastpage}
+\usepackage[unicode,hidelinks]{hyperref}
+\hypersetup{pdftitle={Project Execution and Tracking - PA3},pdfauthor={Group 02}}
 \graphicspath{{images/}}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{3pt}
-\setlength{\arrayrulewidth}{0.45pt}
-\setlength{\emergencystretch}{3em}
-\setlist[itemize]{leftmargin=16pt,topsep=2pt,itemsep=1pt,parsep=0pt}
-\urlstyle{same}
-
-% ---------------------------- EDIT BEFORE SUBMISSION ------------------------
-\newcommand{\reporttitle}{Project Execution and Tracking}
-\newcommand{\documentid}{PA3-Group02-Execution}
-\newcommand{\reportversion}{1.0}
-\newcommand{\reportdate}{15 November 2026}
-\newcommand{\reportperiod}{02--14 November 2026}
-\newcommand{\reportcutoff}{[INSERT VERIFIED CUTOFF DATE]}
-\newcommand{\projecturl}{https://github.com/users/hyt2434/projects/3}
-\newcommand{\repositoryurl}{[INSERT REPOSITORY URL]}
-% Replace all fields in [BRACKETS] with verified facts and relevant links.
-% Section f measures execution and tracking; do not treat a Done board card
-% alone as proof that an implementation has been merged and tested.
-% ---------------------------------------------------------------------------
-
-\pagestyle{fancy}
-\fancyhf{}
-\renewcommand{\headrulewidth}{0.4pt}
-\renewcommand{\footrulewidth}{0.4pt}
-\fancyhead[L]{%
-  \begin{tabular}[b]{@{}l@{}}
-    \fontsize{8.5}{10}\selectfont MEDICATION SAFETY ASSISTANT\\[-0.5mm]
-    \fontsize{8.5}{10}\selectfont \reporttitle\ (\documentid)
-  \end{tabular}%
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+\emergencystretch=3em
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\fontsize{12}{14}\selectfont MEDICATION SAFETY ASSISTANT\\Project Execution and Tracking (PA3-Group02-Execution)}
+\fancyhead[R]{\small Version 1.2}
+\fancyfoot[L]{\small University of Science, VNU-HCM -- Course Project}
+\fancyfoot[R]{\small Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{.4pt}\renewcommand{\footrulewidth}{.4pt}
+\newcommand{\issueurl}[1]{\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/#1}{GitHub Issue \##1}}
+\newcommand{\evidence}[5]{%
+ \clearpage
+ {\large\bfseries #1\par}\vspace{2mm}
+ \begin{center}\includegraphics[trim=#3,clip,width=.98\linewidth,height=.66\textheight,keepaspectratio]{#2}\end{center}
+ \textbf{Description.} #4\par
+ {\small\textbf{Evidence reference:} #5}
 }
-\fancyhead[R]{\fontsize{8.5}{10}\selectfont Version \reportversion}
-\fancyfoot[L]{\fontsize{8.5}{10}\selectfont University of Science, VNU-HCM --- Course Project}
-\fancyfoot[R]{\fontsize{8.5}{10}\selectfont Page \thepage\ of \pageref{LastPage}}
-
-% Reference-style numbered section title (e.g. 1   Project execution summary).
-\newcommand{\reportsection}[2]{%
-  \vspace{1.3mm}
-  {\fontsize{15.5}{18}\selectfont\bfseries #1\hspace{5mm}#2}\par\vspace{3mm}
-}
-
-% A plain black-line placeholder matching the monochrome document styling.
-\newcommand{\screenshotplaceholder}[1]{%
-  \begingroup
-  \setlength{\fboxsep}{0pt}%
-  \fbox{%
-    \begin{minipage}[c][.66\textheight][c]{.94\linewidth}
-      \centering
-      {\fontsize{14}{17}\selectfont\bfseries INSERT SCREENSHOT}\par\vspace{4mm}
-      {\fontsize{11}{14}\selectfont\ttfamily\detokenize{images/#1}}\par\vspace{4mm}
-      {\fontsize{10}{13}\selectfont Add the image to the \texttt{images/} folder.\par The figure will automatically replace this frame.}
-    \end{minipage}%
-  }
-  \endgroup
-}
-
-% One page per evidence item. The caption is ABOVE the screenshot, matching
-% the supplied UI Design document. All source links are black, not blue.
-% Usage: \evidencepage{section no.}{section title}{image name}{figure title}
-%                     {one- or two-sentence caption}{evidence URL/reference}
-\newcounter{evidencefigure}
-\newcommand{\evidencepage}[6]{%
-  \clearpage
-  \stepcounter{evidencefigure}
-  \reportsection{#1}{#2}
-  \begin{center}
-    {\fontsize{11}{13}\selectfont\bfseries Figure \theevidencefigure. #4}\par\vspace{1mm}
-    \begin{minipage}{.95\linewidth}
-      \centering\fontsize{10}{12.5}\selectfont #5
-    \end{minipage}
-    \par\vspace{4mm}
-    \begin{minipage}[c][.71\textheight][c]{\linewidth}
-       \centering
-       \IfFileExists{images/#3}{%
-         \includegraphics[width=.97\linewidth,height=.70\textheight,keepaspectratio]{images/#3}%
-       }{%
-         \screenshotplaceholder{#3}%
-       }
-    \end{minipage}
-    \par\vspace{2mm}
-    {\fontsize{8.5}{10}\selectfont\textit{Evidence reference:} #6}
-  \end{center}
-}
-
 \begin{document}
-
-% ============================= COVER PAGE ==================================
 \thispagestyle{empty}
-\vspace*{13mm}
 \begin{center}
-  {\fontsize{14}{17}\selectfont\bfseries MEDICATION SAFETY ASSISTANT}\par
-  \vspace{22mm}
-  {\fontsize{25}{30}\selectfont\bfseries \reporttitle}\par\vspace{5mm}
-  {\fontsize{14}{17}\selectfont PA3 --- Section f (20 points)}\par\vspace{12mm}
-  {\fontsize{12}{15}\selectfont Version \reportversion}
-\end{center}
+\vspace*{10mm}
+{\large\bfseries MEDICATION SAFETY ASSISTANT\par}
+\vspace{18mm}
+{\fontsize{25}{30}\selectfont\bfseries Project Execution and Tracking\par}
+\vspace{5mm}PA3 -- Section f\par
+\vspace{8mm}Group 02\par
 \vfill
-\begin{center}
-  \begin{tabular}{@{}>{\bfseries}r@{\hspace{4mm}}l@{}}
-    Document identifier: & \documentid\\[2mm]
-    Prepared by: & Group 02 --- Medication Safety Assistant Team\\[2mm]
-    Authors: & Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\\[2mm]
-    Organization: & University of Science, VNU-HCM\\[2mm]
-    Reporting period: & \reportperiod\\[2mm]
-    Date: & \reportdate
-  \end{tabular}
-\end{center}
-\vspace{13mm}
-\begin{center}
-  \begin{minipage}{.88\linewidth}
-    \centering\fontsize{10.5}{13.5}\selectfont
-    This document summarizes the team's PA3 execution, task allocation, progress reporting,
-    collaboration and verification. The following pages provide screenshots and links from
-    GitHub Projects, Issues, Pull Requests and other project records as supporting evidence.
-  \end{minipage}
-\end{center}
-\vspace*{7mm}
-
-% ============================ INTRODUCTION =================================
-\clearpage
-\reportsection{1}{Project execution summary}
-
-\textbf{Work accomplished.} For PA3, the team organized and tracked implementation tasks through GitHub Projects, with issues assigned to individual contributors. The frontend demonstration includes patient dashboard, prescription intake and medication confirmation views. The report separates confirmed implementation evidence from planned or in-progress work. The task counts and outstanding deliverables below must be updated from the board at the reporting cutoff.
-
-\vspace{2mm}
-\textbf{Execution overview}
-\vspace{1mm}
-
-\renewcommand{\arraystretch}{1.20}
-\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{39mm} X p{51mm}@{}}
-\toprule
-Area & Work performed / tracked & Verification to attach \\
-\midrule
-Planning & PA3 tasks are organized in the GitHub Projects board; per-task scope and assignments can be checked in Issues. & Project board and Issue details \\
-Frontend and UI & Patient-facing demo screens include dashboard, intake and per-medication confirmation. & Relevant Issues, PRs or screen captures \\
-Backend and database & [INSERT verified SQL schema, RBAC, API or integration deliverables and their actual status.] & Issue / PR / test reference \\
-Testing & A captured frontend check demonstrates that unconfirmed medication entries are prevented from proceeding to results. [ADD any verified CI or test status.] & Test output, CI checks or test report \\
-Team collaboration & [INSERT review activity, implementation discussions, handoffs and meetings with evidence.] & PR reviews or team records \\
-\bottomrule
-\end{tabularx}
-
-\vspace{4mm}
-\begin{minipage}[t]{.49\linewidth}
-\textbf{Task ownership and responsibilities}\par\vspace{1mm}
-\renewcommand{\arraystretch}{1.22}
-\begin{tabularx}{\linewidth}{@{}p{35mm}X@{}}
-\toprule
-Member & Work items and verified state \\
-\midrule
-Cao Hoàng Long & Database / core modules: [ISSUES AND STATUS] \\
-Hoàng Yến Trang & User Management / UI: [ISSUES AND STATUS] \\
-Lỗ Chí Thành & [ASSIGNED MODULES, ISSUES AND STATUS] \\
-\bottomrule
-\end{tabularx}
-\end{minipage}\hfill
-\begin{minipage}[t]{.48\linewidth}
-\textbf{Progress at reporting cutoff}\par\vspace{1mm}
-\renewcommand{\arraystretch}{1.22}
-\begin{tabularx}{\linewidth}{@{}Xr@{}}
-\toprule
-Total PA3 issues tracked & [N] \\
-Completed / verified & [N] \\
-In progress & [N] \\
-Blocked / pending & [N] \\
-\bottomrule
-\end{tabularx}
+Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\par
+University of Science, VNU-HCM\par
+Planned work period: 02--14 November 2026\par
+\vspace{5mm}
+\begin{minipage}{.87\linewidth}\centering
+PA3 tracking evidence: eight task records and live GitHub project / pull-request screenshots. Online status checked on 15 November 2026.
 \end{minipage}
+\end{center}
+\clearpage
+\section*{1. PA3 execution and tracking summary}
+\textbf{Work period.} PA3 Weeks 05--06 were planned for 02--14 November 2026. The eight tracked tasks cover database work, OCR, chatbot, medication matching, voice input and manual input.
 
-\vspace{4mm}
-\textbf{Tracking and reporting.} The team uses the shared project board for task status, Issues for requirements and assignments, and Pull Requests or testing records for implementation verification. [INSERT cadence of meetings/progress reports and any important blocker resolution.]
+\textbf{Current progress.} On 15 November 2026, the PA3-filtered board shows eight tasks (Issues \#61--\#68), all marked Done. Their issue pages are Closed. The dates shown are planned dates; they do not show when each task was completed.
 
-\vspace{2mm}
-\textbf{Progress checkpoints.} Week 5: [INSERT VERIFIED STATUS, 02--08 NOV]. Week 6: [INSERT VERIFIED STATUS, 09--14 NOV]. PA3 cutoff: [FINAL DELIVERABLES, OPEN ISSUES AND BLOCKERS].
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}Xl@{}}\toprule
+\textbf{Tracking item} & \textbf{Observed status}\\\midrule
+PA3 tasks on the filtered board & 8 Done / 8 total\\
+PR \#60 -- Database V4 & Merged into dev\\
+PR \#70 -- OCR and user interface & Open; approval required\\
+PR \#71 -- OCR & Open; approval required\\\bottomrule
+\end{tabularx}
 
-\vspace{2mm}
-{\fontsize{9}{11}\selectfont
-\textbf{Reporting cutoff:} \reportcutoff\quad
-\textbf{GitHub Project:} \url{https://github.com/users/hyt2434/projects/3}\quad
-\textbf{Repository:} \repositoryurl\par
-\textit{Note:} Replace every bracketed value with an actual screenshot-backed result. Do not count archived earlier-phase issues as completed PA3 work.}
+\textbf{What remains.} PRs \#70 and \#71 each show one unresolved review comment and one required approval. Their Checks panels show no checks available. These PRs still need review and integration even though the linked tasks are marked Done.
 
-% =========================== EVIDENCE FIGURES ===============================
-% Rename files to match the screenshots. You can remove or duplicate any page.
-\evidencepage{2}{GitHub Projects board}
- {01-project-board.png}
- {PA3 GitHub Projects --- board overview}
- {Board view showing task organization, team assignments and execution statuses at the selected checkpoint.}
- {\url{https://github.com/users/hyt2434/projects/3}}
+\textbf{Reading the evidence.} The descriptions explain each member's assigned work and the approach recorded in the issues; they are not a separate verification of every feature. Their acceptance checkboxes are unchecked, so Done does not by itself confirm that every test passed. No test run was performed for this report.
 
-\evidencepage{3}{Task breakdown and ownership}
- {02-task-assignment.png}
- {GitHub Issues --- task assignments}
- {Issue details showing scope, assignee, priority, scheduled dates or acceptance criteria for PA3 work items.}
- {[INSERT ISSUE URL / ISSUE NUMBERS]}
+\textbf{Sources.} \href{https://github.com/users/hyt2434/projects/3/views/1}{GitHub project board}; \href{https://github.com/hyt2434/Medical_Safety_Assistant}{project repository}. Live captures: 15 November 2026. Original issue screenshots were supplied by the team.
+\clearpage
+\section*{2. Task allocation and ownership}
+\normalsize
+\begin{tabularx}{\linewidth}{@{}p{13mm}X p{46mm}p{22mm}p{34mm}@{}}\toprule
+\textbf{Issue} & \textbf{Work package} & \textbf{Planned owner} & \textbf{Priority} & \textbf{Shown state}\\\midrule
+\#61 & User Management -- SQL database & Hoàng Yến Trang & P1 & Closed / Done\\
+\#62 & Prescription OCR & Hoàng Yến Trang & P1 & Closed / Done\\
+\#63 & Chatbot intent, entities and dialogue & Cao Hoàng Long & P2 & Closed / Done\\
+\#64 & Test medication database & Cao Hoàng Long & P1 & Closed / Done\\
+\#65 & Medication identification and matching & Cao Hoàng Long & P1 & Closed / Done\\
+\#66 & Core SQL schema and migrations & Cao Hoàng Long & P1 & Closed / Done\\
+\#67 & Vietnamese voice / STT input & Lỗ Chí Thành & P1 & Closed / Done\\
+\#68 & Validated manual medication input & Lỗ Chí Thành & P1 & Closed / Done\\\bottomrule
+\end{tabularx}
+\normalsize
+\textbf{Assignment.} Trang is the planned owner of two tasks, Long of four and Thanh of two. Issue \#61 is assigned to both Trang (hyt2434) and Long (DRAGON-1312).
 
-\evidencepage{4}{Progress tracking}
- {03-progress-updates.png}
- {GitHub Projects --- progress updates}
- {Status transitions or progress records used to follow completed, ongoing and blocked tasks across the PA3 period.}
- {[INSERT BOARD VIEW OR ISSUE HISTORY URL]}
+\textbf{Working together.} Trang and Long coordinate user IDs, foreign keys and database migrations. OCR, voice and manual entry use the same input format and require user confirmation. The test medication database supports matching and chatbot responses.
 
-\evidencepage{5}{Implementation evidence}
- {04-pull-requests.png}
- {GitHub Pull Requests --- code delivery}
- {Pull Request records linking implemented changes to the tasks assigned during PA3.}
- {[INSERT PR URLS]}
+\textbf{Next tracking update.} Record the review and merge outcomes for PRs \#70 and \#71, and attach test results when available.
 
-\evidencepage{6}{Code review and collaboration}
- {05-code-review.png}
- {Code review --- feedback and discussion}
- {Review comments, requested changes or technical discussion illustrating collaboration during implementation.}
- {[INSERT PR REVIEW OR DISCUSSION URL]}
+\evidence{3. PA3 project-board excerpt}{01-project-board.png}{0bp 79bp 210bp 507bp}
+{Trang, Long and Thanh split the PA3 work into eight issues, covering the database, OCR, chatbot, medicine matching and input screens. The board records who owns each task and shows all eight as Done.}
+{\href{https://github.com/users/hyt2434/projects/3}{GitHub Projects -- Medical Safety Assistant}}
+\evidence{Issue \#61 -- User Management -- SQL Database / Who did what}{issue-61.png}{0bp 226.220bp 0bp 0.000bp}
+{Trang is responsible for accounts, roles and user profiles, with Long also assigned to the database work. They coordinate shared user IDs so the account tables connect correctly to the other modules.}
+{\issueurl{61}; team-supplied screenshot.}
+\evidence{Issue \#61 -- User Management -- SQL Database / Approach and progress}{issue-61.png}{0bp 0.000bp 0bp 255.022bp}
+{The approach keeps one user account linked to separate role and profile records, avoiding duplicate accounts for people with several roles. The related Database V4 work is included in merged PR \#60.}
+{\issueurl{61}; team-supplied screenshot.}
+\evidence{Issue \#62 -- Prescription OCR Implementation / Who did what}{issue-62.png}{0bp 193.217bp 0bp 0.000bp}
+{Trang is responsible for reading prescription images and turning the extracted text into a draft medicine list. Users review that list before sending it to the next step.}
+{\issueurl{62}; team-supplied screenshot.}
+\evidence{Issue \#62 -- Prescription OCR Implementation / Approach and progress}{issue-62.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach lets users edit uncertain OCR results and enter details manually when an image cannot be read. Issue \#62 is marked Done, while its OCR PR \#71 is still awaiting review.}
+{\issueurl{62}; team-supplied screenshot.}
+\evidence{Issue \#63 -- Chatbot -- NLP Intent, Entities and Dialogue / Who did what}{issue-63.png}{0bp 192.617bp 0bp 0.000bp}
+{Long is responsible for helping the chatbot recognize what the user is asking, find medicine names and follow the conversation. This gives the chatbot the information needed to choose a suitable response.}
+{\issueurl{63}; team-supplied screenshot.}
+\evidence{Issue \#63 -- Chatbot -- NLP Intent, Entities and Dialogue / Approach and progress}{issue-63.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach is to ask follow-up questions when a medicine name or request is unclear and use reference data for medicine-related answers. Long's task is marked Done; this issue lists the cases to check.}
+{\issueurl{63}; team-supplied screenshot.}
+\evidence{Issue \#64 -- Build Test Medication Database / Who did what}{issue-64.png}{0bp 219.019bp 0bp 0.000bp}
+{Long is responsible for preparing sample medicine data for OCR and medicine matching. He is also responsible for checking the source and quality notes before using the existing data files.}
+{\issueurl{64}; team-supplied screenshot.}
+\evidence{Issue \#64 -- Build Test Medication Database / Approach and progress}{issue-64.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach uses repeatable import scripts and records where the data came from. It includes clear matches, unknown medicines and ambiguous names so the team can check more than just successful cases.}
+{\issueurl{64}; team-supplied screenshot.}
+\evidence{Issue \#65 -- Medication Identification and Matching / Who did what}{issue-65.png}{0bp 196.817bp 0bp 0.000bp}
+{Long is responsible for matching confirmed medicine names to reference records and standardizing ingredient names. This helps the system handle different spellings without confusing a product with its ingredients.}
+{\issueurl{65}; team-supplied screenshot.}
+\evidence{Issue \#65 -- Medication Identification and Matching / Approach and progress}{issue-65.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach separates a clear match from several possible matches or no match, instead of forcing a result. Issue \#65 is marked Done, with these cases listed for testing.}
+{\issueurl{65}; team-supplied screenshot.}
+\evidence{Issue \#66 -- Core SQL Schema and Migrations / Who did what}{issue-66.png}{0bp 228.020bp 0bp 0.000bp}
+{Long is responsible for the core database tables and the scripts that create or update them. He coordinates with Trang so the modules reuse the same user IDs and link to the correct accounts.}
+{\issueurl{66}; team-supplied screenshot.}
+\evidence{Issue \#66 -- Core SQL Schema and Migrations / Approach and progress}{issue-66.png}{0bp 0.000bp 0bp 249.022bp}
+{The database changes use keys and constraints to prevent broken links between records, with setup and rollback guidance for the team. Long opened PR \#60 for Database V4, and Trang merged it into dev.}
+{\issueurl{66}; team-supplied screenshot.}
+\evidence{Issue \#67 -- Vietnamese Voice / STT Input / Who did what}{issue-67.png}{0bp 225.620bp 0bp 0.000bp}
+{Thanh is responsible for Vietnamese voice input, turning spoken medicine details into text users can review. The result uses the same medicine-entry format as OCR and manual input.}
+{\issueurl{67}; team-supplied screenshot.}
+\evidence{Issue \#67 -- Vietnamese Voice / STT Input / Approach and progress}{issue-67.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach lets users correct the transcript and confirm it before continuing. If speech recognition or microphone access fails, users can switch to manual entry; the task is marked Done.}
+{\issueurl{67}; team-supplied screenshot.}
+\evidence{Issue \#68 -- Validated Manual Medication Input / Who did what}{issue-68.png}{0bp 223.819bp 0bp 0.000bp}
+{Thanh is responsible for the form used to type medicine details directly. Users can add, edit or remove medicines before confirming the list.}
+{\issueurl{68}; team-supplied screenshot.}
+\evidence{Issue \#68 -- Validated Manual Medication Input / Approach and progress}{issue-68.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach checks the entered fields, shows understandable errors and offers suggestions from the available medicine data. The confirmed list uses the same format as OCR and voice input so all three paths can continue through the same workflow.}
+{\issueurl{68}; team-supplied screenshot.}
 
-\evidencepage{7}{Testing and verification}
- {06-test-evidence.png}
- {Testing --- validation evidence}
- {Test logs, CI checks or test results supporting the reported behavior and completed work items.}
- {[INSERT TEST REPORT OR CI URL]}
-
-\evidencepage{8}{Teamwork and communication}
- {07-team-collaboration.png}
- {Team collaboration --- coordination records}
- {Meeting notes or team communications documenting work allocation, progress reporting and decisions.}
- {[INSERT MEETING NOTE OR COMMUNICATION REFERENCE]}
-
-\evidencepage{9}{Final execution status}
- {08-final-board.png}
- {GitHub Projects --- final PA3 status}
- {Board snapshot at the reporting cutoff, identifying completed, ongoing and outstanding work without assuming unfinished items are delivered.}
- {\url{https://github.com/users/hyt2434/projects/3}}
+\evidence{4. Live GitHub evidence -- PA3 board}{live-pa3-board.jpg}{0bp 150bp 0bp 72bp}
+{The live board shows all eight PA3 tasks as Done. The linked PRs give a more detailed picture: the database PR is merged, while the OCR and UI PRs still need review.}
+{\href{https://github.com/users/hyt2434/projects/3/views/1}{GitHub Projects}; captured 15 November 2026.}
+\evidence{PR \#60 -- Database V4 merged}{live-pr60.jpg}{140bp 100bp 140bp 135bp}
+{Long submitted Database V4, and Trang merged it from db into dev. This brings the shared database work for Issues \#61 and \#66 into the development branch.}
+{\href{https://github.com/hyt2434/Medical_Safety_Assistant/pull/60}{Pull request \#60}; captured 15 November 2026.}
+\evidence{PR \#70 -- OCR and user interface awaiting review}{live-pr70.jpg}{140bp 200bp 140bp 135bp}
+{Trang opened this PR to bring the OCR and user-interface changes into dev. At capture time, it still needed one approval and had one unresolved review comment, so the merge was pending.}
+{\href{https://github.com/hyt2434/Medical_Safety_Assistant/pull/70}{Pull request \#70}; captured 15 November 2026.}
+\evidence{PR \#71 -- OCR awaiting review}{live-pr71.jpg}{140bp 200bp 140bp 135bp}
+{Trang opened this PR for the OCR work linked to Issue \#62. At capture time, one review comment and the required approval were still pending, even though the issue was marked Done.}
+{\href{https://github.com/hyt2434/Medical_Safety_Assistant/pull/71}{Pull request \#71}; captured 15 November 2026.}
 
 \end{document}
