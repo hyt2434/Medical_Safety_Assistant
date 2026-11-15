@@ -1,0 +1,59 @@
+Source: https://docs.google.com/document/d/1hL1-R4h-wUWRMYfatBCGNO-6FeTvV1qBhrAj1i1jbPk
+Tab: t.r8sxx76xcr65
+Read: 2026-11-15
+
+Weekly Report
+09/11/2026 - 15/11/2026
+Group ID: Group 2
+Project Name: Medication Safety Assistant
+Prepared by: Lỗ Chí Thành
+ 
+Team members:
+Hoàng Yến Trang Leader / Project Manager Cao Hoàng Long NLP & Dataset Developer Lỗ Chí Thành System & Voice Developer
+ 
+Repository and branches: https://github.com/hyt2434/Medical_Safety_Assistant
+Planning and task tracking: GitHub Project board | Issue tracker
+Due to the complexity of the dataset which required a lot of time to process and research, the team has only completed the implementation approach docs and the physical ERD database design (containing specific attributes).
+1.      Achievements since last week:
+STT
+Description
+Due Date
+Responsibility
+%Complete
+1
+Worked on the RBAC ERD, covering users, roles, permissions, and role assignments. Prepared class diagrams for the User Management and OCR modules, ensuring consistency with the updated use-case specifications. Also worked on the PA3 UI Design document, including interface screenshots and descriptions of the main user workflows, and prepared the Project Execution and Tracking report with supporting evidence from GitHub Projects, Issues, Pull Requests, and team collaboration activities.
+15/11/2026
+Hoàng Yến Trang
+100%
+2
+Worked on the remaining database ERDs and prepared class diagrams for the NLP and Chatbot modules. Reviewed and revised the use-case specifications based on current system requirements and team discussions. Also worked on the Software Architecture Document, focusing on system components, their relationships, and module integration. Organized a team meeting to align the updated use cases with the corresponding class diagrams before finalizing the design documentation.
+15/11/2026
+Cao Hoàng Long
+100%
+3
+Worked on the class diagrams for the Voice/STT and Manual Input modules, including their main classes, attributes, operations, and relationships. Reviewed module interactions and adjusted the diagrams according to the updated use-case specifications. Also prepared Weekly Reports 6 and 7, summarizing project progress, team meetings, task assignments, technical discussions, and outstanding issues.
+15/11/2026
+Lỗ Chí Thành
+100%
+2. Issue and impact
+1. Use-Case and Class Diagram Consistency: Updated use cases required revisions to class diagrams to maintain consistency with system workflows and requirements.
+2. Cross-Module Integration: Ensuring consistent data structures, interfaces, and interactions across User Management, OCR, NLP/Chatbot, and Voice/STT modules.
+3. Documentation Coordination: Coordinating multiple members' deliverables to ensure consistency among use cases, architecture, ERDs, and class diagrams before submission.
+3.      Next week's goals:
+STT
+Description
+Due Date
+Responsibility
+1
+Begin developing Module 4, focusing on communication and interaction between patients and Healthcare Professionals (HCPs). Review and test the previously implemented User Management and OCR modules, and complete their corresponding SAD sections.
+22/11/2026
+Hoàng Yến Trang
+2
+Begin developing Module 3, focusing on medication safety assessment and diagnostic support. Review and test the previously implemented NLP and Chatbot modules, and finalize their corresponding SAD sections.
+22/11/2026
+Cao Hoàng Long
+3
+Begin developing Module 5, focusing on medication reminders, scheduled notifications, and medication adherence tracking. Review and test the previously implemented Voice/STT and Manual Input modules, and complete their corresponding SAD sections.
+22/11/2026
+Lỗ Chí Thành
+ 

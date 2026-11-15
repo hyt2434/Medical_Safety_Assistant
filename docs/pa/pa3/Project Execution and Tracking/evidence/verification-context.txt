@@ -1,0 +1,6 @@
+Run date: 2026-11-15
+Checkout: 5695a2a81d0fa41f242215a6944951278f078e13
+Command: python -m pytest apps/backend/tests/test_ocr_regions.py apps/backend/tests/test_ocr_backend.py -q -p no:cacheprovider --junitxml=tmp/pdfs/tracking/ocr-verification.xml
+Result: 20 passed, 1 warning in 5.13s
+Warning: StarletteDeprecationWarning for httpx TestClient; recommends httpx2.
+Scope: focused backend tests, including mocks/fixtures; not live OCR accuracy, frontend E2E, database integration, or acceptance of all PA3 tasks.
