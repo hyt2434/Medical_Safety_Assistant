@@ -83,7 +83,7 @@ class NumberedLayoutTests(unittest.TestCase):
         self.assertIsNone(extract_numbered_prescription([word('1.', 50, 100), word('2.', 50, 200)]))
 
     def test_header_independent_rows_and_missing_units(self):
-        words = [word('ĐƠN THUỐC', 50, 30)]
+        words = []  # The selected region excludes the prescription heading.
         for i, y in enumerate([100, 200], 1):
             words += [word(f'{i}.', 50, y), word('Brand 10mg (Alpha)', 90, y),
                       word('x', 600, y-5), word('10 ngày = 20 Viên', 630, y-5),
@@ -95,6 +95,15 @@ class NumberedLayoutTests(unittest.TestCase):
         self.assertIn('dose_unit_missing', result['medications'][0]['uncertain_fields'])
         self.assertNotIn('schedule_incomplete', result['medications'][0]['uncertain_fields'])
         self.assertNotIn('Khi', result['medications'][-1]['instructions_raw'])
+
+    def test_headerless_quantity_list_requires_medication_and_usage_evidence(self):
+        for product, usage in [('Supplies', 'Cách dùng: Uống'), ('Brand 10mg (Alpha)', 'Deliver tomorrow')]:
+            words = []
+            for i, y in enumerate([100, 200], 1):
+                words += [word(f'{i}.', 50, y), word(product, 90, y),
+                          word('x', 600, y-5), word('10 ngày = 20 Viên', 630, y-5),
+                          word(usage, 90, y+55)]
+            self.assertIsNone(extract_numbered_prescription(words))
 
     def test_actual_third_image(self):
         path = Path('data/local/module1/test-output/third-layout-evidence.json')

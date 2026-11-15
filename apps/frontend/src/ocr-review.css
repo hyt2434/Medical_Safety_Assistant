@@ -1,0 +1,140 @@
+.ocr-region-picker {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border, #d5e1dc);
+  border-radius: 12px;
+}
+.ocr-region-picker summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.ocr-region-picker p {
+  line-height: 1.55;
+}
+.ocr-region-image {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+}
+.ocr-region-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+.ocr-region-outline {
+  position: absolute;
+  box-sizing: border-box;
+  border: 3px solid #087e6d;
+  box-shadow: 0 0 0 2000px #0005;
+  pointer-events: none;
+}
+.ocr-region-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  border: 0;
+  padding: 0.75rem 0;
+}
+.ocr-region-fields legend {
+  font-size: 0.85rem;
+  padding-top: 0.75rem;
+}
+.ocr-region-fields label {
+  display: grid;
+  gap: 0.25rem;
+}
+.ocr-region-fields input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem;
+}
+.ocr-review-warning .notice-title {
+  display: block;
+  color: var(--color-warning);
+  font-size: 16px;
+}
+.ocr-review-warning .notice > svg {
+  flex-shrink: 0;
+}
+.ocr-review-warning p {
+  margin: 6px 0 0;
+}
+.ocr-keyboard-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-block: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+.ocr-keyboard-toggle svg {
+  flex-shrink: 0;
+  transition: transform 200ms;
+}
+.ocr-keyboard-toggle svg.is-open {
+  transform: rotate(180deg);
+}
+.ocr-keyboard-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms ease-out;
+}
+.ocr-keyboard-panel.is-open {
+  grid-template-rows: 1fr;
+}
+.ocr-keyboard-content {
+  min-height: 0;
+  overflow-y: clip;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocr-keyboard-panel,
+  .ocr-keyboard-toggle svg {
+    transition: none;
+  }
+}
+@media (max-width: 480px) {
+  .ocr-region-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.medicine-editor.medicine-editor-incomplete {
+  border-color: var(--color-danger);
+}
+.medicine-missing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-danger);
+  font-size: 14px;
+}
+.medicine-missing svg { flex-shrink: 0; }
+.intake-form .medicine-editor .field input[aria-invalid="true"] { border-color: var(--color-danger); }
+.intake-form .medicine-editor .field input[aria-invalid="true"]:focus { box-shadow: 0 0 0 2px var(--color-danger-soft); }
+.medicine-spelling:empty { display: none; }
+.spelling-suggestions, .spelling-applied { display: grid; gap: 10px; margin-bottom: 16px; }
+.spelling-suggestions { border-left: 3px solid var(--color-warning); padding-left: 12px; }
+.spelling-option { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.spelling-option > span { flex: 1 1 150px; min-width: 0; overflow-wrap: anywhere; }
+.spelling-option small { display: block; }
+.medicine-spelling .text-link {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  padding: 8px 0;
+  min-height: 44px;
+  font: inherit;
+  cursor: pointer;
+}
+.instruction-review .actions { flex-wrap: wrap; }
+.instruction-review p, .instruction-review small { overflow-wrap: anywhere; }
+.instruction-review .instruction-suggestion { margin: 0; }

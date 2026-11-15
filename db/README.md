@@ -1,4 +1,17 @@
-# Database V4
+# Database tools
+
+All database migration and management entry points are grouped under `db/`:
+
+| Scope | Migrations | CLI | Configuration |
+|---|---|---|---|
+| Auth / RBAC | `auth/migrations/` (Alembic) | `python db/auth/manage.py migrate` | `DATABASE_URL` / `AUTH_DB_PATH` |
+| Core V4, Modules 1–3 | `migrations/` (SQL) | `python db/manage.py migrate` | `CORE_DB_DSN` |
+
+See [Auth / RBAC setup](auth/README.md) for login and permissions. The remaining instructions below describe **Core V4 only**. These are separate migration systems, not interchangeable schemas. Runtime database files belong under ignored `artifacts/`, not in this source directory. Backend ORM and seed logic remain in `apps/backend/src/auth/`.
+
+## Core V4
+
+The backend now reads the shared application `DATABASE_URL` from `apps/backend/.env`. Auth also retains `AUTH_DATABASE_URL` / `AUTH_DB_PATH` as explicit legacy or isolated-test overrides. Core V4's standalone CLI still uses `CORE_DB_DSN`; it has not yet been merged into a single application migration runner. Do not assume changing the environment variable has reconciled Core's `identity.users` contract with Auth's user table.
 
 PostgreSQL 18 persistence for Modules 1–3: 20 owned tables, 193 attributes and
 40 restrictive foreign keys. The external `identity.users(id uuid NOT NULL
@@ -6,6 +19,7 @@ UNIQUE/PRIMARY KEY)` contract must exist for deployment migrations.
 
 ```text
 db/
+  auth/                # Auth/RBAC CLI and Alembic migrations; separate from Core
   migrations/          # ordered V4 migrations; applied files are immutable
   scripts/             # local PostgreSQL utilities and read-only inspection SQL
   tests/               # PostgreSQL integration checks and synthetic fixtures
@@ -13,7 +27,6 @@ db/
   manage.py           # guarded deployment/import CLI
   run_tests.py        # isolated V4 test runner
   schema_contract.json
-  requirements.txt
 src/shared/db/        # repository, importer and Modules 1–3 adapters
 ```
 
@@ -25,13 +38,13 @@ domain map, integration boundaries and migration compatibility rules.
 ## Setup and testing
 
 Run from the repository root; Python 3.10+ and PostgreSQL 18 are required.
-Install `db/requirements.txt` in your chosen environment. Provide the six
+Install the root `requirements.txt` from the repository root in your chosen environment. Provide the six
 approved CSVs locally under `data/datasets/`; they are intentionally excluded
 from Git. Missing source data is a setup requirement, not a reason to substitute
 invented or unapproved datasets.
 
 ```powershell
-py -3 -m pip install -r db/requirements.txt
+py -3 -m pip install -r requirements.txt
 # Start an EXISTING cluster; set paths to your local installation.
 & ./db/scripts/postgres-local.ps1 -Action Start -ClusterOnly -RuntimeDirectory <runtime-directory> -PgBin <postgres-bin-directory>
 $env:CORE_DB_DSN='host=127.0.0.1 port=55432 dbname=msa_core_test_v4newchecks user=core_fixture_admin'

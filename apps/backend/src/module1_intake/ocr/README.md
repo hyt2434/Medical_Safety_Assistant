@@ -4,10 +4,75 @@ Backend đầu tiên của Module 1 dùng Tesseract.js chạy hoàn toàn cục 
 đơn thuốc in. Kết quả là bản chép thô (`*_raw`) và luôn yêu cầu người dùng xác
 nhận; hệ thống không tự suy đoán thông tin thuốc bị thiếu.
 
+## Chọn vùng đọc và đối chiếu kết quả (2026-11-15)
+
+Giao diện Nhập toa → Chọn vùng cần đọc hỗ trợ kéo khung hoặc nhập bốn biên
+theo phần trăm. Giữ đủ tiêu đề, tên thuốc, cột số lượng, hướng dẫn và chân bảng.
+Vùng ngoài khung **không được xử lý**; chọn từng toa khi ảnh chứa nhiều toa.
+Không tự ghép các lần đọc hoặc tự xác nhận ứng viên.
+
+API nhận thêm multipart `region` tùy chọn, là JSON:
+`{"left":0,"top":0,"right":0.62,"bottom":1}`.
+Các số nằm trong [0,1] của ảnh sau xoay EXIF; không dùng tọa độ trước xoay.
+Vùng đảo chiều, vượt ảnh, không hữu hạn hoặc nhỏ hơn 32 pixel mỗi chiều bị từ chối.
+Không gửi `region` vẫn đọc toàn bộ ảnh như trước.
+
+`raw_output.ocr.image_input` chứa vùng pixel, kích thước ảnh đầy đủ và ma trận
+`ocr_to_full_normalized` để đưa tọa độ OCR về ảnh đầy đủ sau xoay EXIF.
+`diagnostics` phân biệt đọc được chữ với tách được cấu trúc. Văn bản của cả
+hai biến thể vẫn giữ trong `preprocessing.ocr_variants` ngay cả khi parser lỗi.
+Giao diện hiển thị văn bản, cảnh báo, bằng chứng từng thuốc và ứng viên đọc lại;
+chúng không tự ghi đè bản nháp. `result.json` lưu phản hồi cuối trong thư mục
+run cục bộ cùng ảnh nguồn (chứa dữ liệu riêng tư, đã gitignore, chưa có TTL).
+
+## So sánh engine cục bộ (2026-11-15)
+
+Thử 3 ảnh in cục bộ, 9 crop dòng có bản chép đối chiếu (446 ký tự sau NFC và
+chuẩn hóa khoảng trắng), cùng 4 trường hợp bố cục gồm toàn ảnh và phần trái
+của ảnh hai toa. Đây là khảo sát nhỏ, không phải tập kiểm định độc lập hay
+ước lượng độ chính xác lâm sàng. Crop được chọn thủ công; chưa đo recall toàn
+toa, chưa benchmark chữ viết tay, chưa fine-tune hoặc tối ưu mọi cấu hình.
+
+| Cấu hình | Lỗi ký tự trên 9 crop | Dòng đúng hoàn toàn |
+| --- | --- | --- |
+| Tesseract.js 6.0.1, vie+eng best_int, PSM 7 cho dòng | 27/446 (6,1%) | 2/9 |
+| latin_PP-OCRv5_mobile_rec, PaddleOCR 3.3.2 / PaddlePaddle 3.2.0 CPU | 116/446 (26,0%) | 1/9 |
+
+Paddle dùng TextRecognition trực tiếp cho crop dòng (không buộc detector tìm
+lại dòng đã biết). Toàn trang dùng PP-OCRv5_mobile_det + recognizer trên,
+2 CPU threads, batch nhận dạng 1, cạnh phát hiện tối đa 960, không unwarp,
+orientation hay MKLDNN. Tesseract toàn trang PSM 3. Thời gian 3 toàn ảnh:
+Tesseract khoảng 3,0 / 2,7 / 8,5 giây; Paddle khoảng 12,8 / 12,7 / 28,4 giây.
+Paddle không tính khởi tạo model vào từng ảnh, Tesseract có tính worker startup;
+thời gian chỉ tham khảo một lần chạy, không phải kiểm thử tải.
+
+Quyết định: giữ Tesseract cho runtime hiện tại. Cắt phần trái của ảnh hai toa
+bằng cùng engine giúp từ 0 thành 3 mục thuốc, nhưng chưa chứng minh tên/liều
+đều chính xác và không bao gồm phần phải bị thiếu nội dung. Không nới parser
+để tự đoán dữ liệu thiếu. Paddle server detector đã thử riêng nhưng không dùng
+trong bảng vì lượt chạy mặc định không ổn định; chưa kết luận về mọi model Paddle.
+
+Runner tái sử dụng: `apps/backend/scripts/benchmark_ocr.py`. Manifest là JSON
+array gồm `id`, `image` (đường dẫn), `text` (bản chép tay, hoặc null với ảnh
+bố cục). `text` không null chọn chế độ dòng cho cả hai engine. Giữ manifest,
+ảnh và outputs trong thư mục ignored vì có thể chứa dữ liệu bệnh nhân.
+Môi trường Paddle riêng Python 3.11 dùng
+`apps/backend/scripts/requirements-ocr-benchmark.txt`; không cài vào API venv.
+
+```powershell
+venv/Scripts/python.exe apps/backend/scripts/benchmark_ocr.py MANIFEST.json OUTPUT_TESS --engine tesseract
+tmp/ocr-benchmark-env/Scripts/python.exe apps/backend/scripts/benchmark_ocr.py MANIFEST.json OUTPUT_PADDLE --engine paddle
+```
+
+Bằng chứng phiên thử cục bộ: `tmp/ocr-benchmark/manifest.json`, `tesseract/`,
+`paddle-mobile/` (bố cục), `paddle-lines/` (TextRecognition trên 9 dòng),
+`region-service-result.json`. Không dùng điểm CER của lượt detector chạy trên
+crop nhỏ trong `paddle-mobile/results.json` để so sánh nhận dạng dòng.
+
 ## Cài đặt
 
 ```powershell
-python -m pip install -r apps/backend/requirements.txt
+python -m pip install -r requirements.txt
 npm --prefix apps/backend/src/module1_intake/ocr/node/ocr install
 ```
 
@@ -101,7 +166,7 @@ giữ nguyên `timing_raw`, không suy giờ uống hoặc tự xác nhận dữ
 
 Ảnh đầu vào: JPG/JPEG/JPE, PNG, WebP, BMP, TIFF/TIF và GIF một khung hình.
 File `.jpe` dùng MIME `image/jpeg`, cùng bộ giải mã với JPG/JPEG.
-Cài dependency bằng `python -m pip install -r requirements.txt` trong backend.
+Cài dependency bằng `python -m pip install -r requirements.txt` từ thư mục gốc repository.
 Ảnh được kiểm tra nội dung, xoay theo EXIF và chuyển RGB PNG (nền trắng với
 ảnh trong suốt) trước khi OCR. Giới hạn upload 10 MB và 25 triệu pixel.
 Ảnh động/TIFF nhiều trang bị từ chối rõ ràng; chưa hỗ trợ HEIC/HEIF, SVG, PDF.
@@ -154,7 +219,7 @@ parser này trích đầy đủ thành trường. Không coi nhận đủ dòng 
 Chạy từ thư mục gốc project:
 
 ```powershell
-python -m pip install -r apps/backend/requirements-cv.txt
+python -m pip install -r requirements.txt
 python apps/backend/scripts/compare_cv_ocr.py "duong-dan-anh.jpg" data/local/module1/cv-experiment
 ```
 

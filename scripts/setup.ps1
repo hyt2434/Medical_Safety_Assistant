@@ -20,7 +20,7 @@ try {
     if ($Offline) {
         & ./scripts/.venv/Scripts/python.exe -B -c "import pydantic, httpx, dotenv; from google import genai"
     } else {
-        & ./scripts/.venv/Scripts/python.exe -m pip install -r scripts/requirements.txt
+        & ./scripts/.venv/Scripts/python.exe -m pip install -r requirements.txt
     }
     if ($LASTEXITCODE) { throw 'Python dependency setup failed' }
     if (-not $Offline) {

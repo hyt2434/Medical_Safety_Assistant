@@ -66,8 +66,7 @@ def extract_numbered_prescription(words):
     height = statistics.median(w['bbox']['y1'] - w['bbox']['y0'] for w in starters)
     # Require multiple independent signals; numbered prose alone is insufficient.
     text = plain(' '.join(w['text'] for w in words))
-    if not ('don' in text and 'thuoc' in text):
-        return None
+    has_header = bool(re.search(r'\bdon\s+thuoc\b', text))
     first_y = center(starters[0]) - height * 1.5
     left = min(w['bbox']['x0'] for w in starters) - height * 2
     relevant = [w for w in words if center(w) >= first_y and w['bbox']['x0'] >= left]
@@ -186,6 +185,17 @@ def extract_numbered_prescription(words):
                             'schedule_requires_review': True})
     if matched < 2:
         return None
+    if not has_header:
+        # A selected region may omit the heading. Require corroboration within
+        # at least two rows, not just numbered text or a quantity column.
+        supported_rows = sum(
+            bool(m['quantity_raw'])
+            and bool(re.search(r'\d\s*(?:mg|mcg|g|ml|iu)\b', plain(m['product_raw'])))
+            and bool(re.search(r'\b(?:cach\s+dung|uong|xit|dung\s+ngoai)\b', plain(m['instructions_raw'] or '')))
+            for m in medications
+        )
+        if supported_rows < 2:
+            return None
     return {'medications': medications,
             'document_instructions_raw': reading_lines([w for w in relevant if footer_y is not None and center(w) >= footer_y], height),
             'warnings': ['Bố cục đánh số có thời gian/số lượng; kiểm tra đơn vị liều và nội dung OCR trước khi xác nhận.'],

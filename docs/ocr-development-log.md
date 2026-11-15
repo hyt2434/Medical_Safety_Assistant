@@ -1,5 +1,16 @@
 # Nhật ký phát triển và thử nghiệm OCR
 
+## OCR-26 — 2026-11-15: benchmark local và chọn vùng toa
+
+- Snapshot trước thay đổi: `64ad9da2`. So sánh Tesseract.js vie+eng với PaddleOCR 3.3.2 / PP-OCRv5 Latin mobile trên 3 ảnh in, 9 crop dòng có bản chép (446 ký tự). CER tương ứng 27/446 và 116/446; giữ Tesseract. Chưa đo tập độc lập, recall toàn toa hoặc chữ viết tay; không suy độ chính xác lâm sàng từ điểm này.
+- Ảnh hai phần toa: toàn ảnh đọc được chữ nhưng parser trả 0 mục; vùng trái trả 3 mục bằng cùng service. Không khẳng định đã đọc đủ phần phải hoặc mọi tên/liều đều đúng.
+- Thêm `region` tùy chọn trong multipart API; kiểm tra biên và kích thước, cắt sau xoay EXIF, lưu ma trận quy đổi tọa độ. UI hỗ trợ kéo khung và nhập biên bằng bàn phím.
+- Giữ văn bản của cả hai biến thể kể cả khi parser thất bại; phân biệt `NO_TEXT_DETECTED` và `STRUCTURE_NOT_RECOGNIZED`. UI hiển thị cảnh báo, bằng chứng, ứng viên sản phẩm và cách dùng; không tự ghi đè/xác nhận.
+- Lưu `result.json` cuối mỗi run trong thư mục ignored có sẵn. Không tải ảnh bệnh nhân lên dịch vụ ngoài. Paddle ở môi trường benchmark riêng, không đổi dependency runtime OCR.
+- Runner, cấu hình, giới hạn và cách tái hiện: `apps/backend/src/module1_intake/ocr/README.md`, `apps/backend/scripts/benchmark_ocr.py`. Ảnh/manifest/kết quả riêng tư nằm trong `tmp/ocr-benchmark/`.
+- Kiểm thử: các test OCR/API, test vùng đảo/ngoài ảnh/EXIF/ảnh nhỏ, giữ text khi parser lỗi; frontend build và Playwright chọn vùng → request → evidence → bản nháp chưa xác nhận. Bổ sung httpx2 cho Starlette 1.x TestClient.
+- Chưa triển khai tự tách mọi trang, tự deskew/phối cảnh, nhận dạng chữ viết tay hoặc tự chọn ứng viên theo confidence. Chọn vùng là thao tác người dùng; phần ngoài vùng chưa được xử lý.
+
 ## OCR-25 — 2026-11-10: hoàn tất package OCR, bỏ file chuyển tiếp
 
 - Chuyển service/mapping/selection vào application; API/internal models vào models. Gốc OCR chỉ còn README, __init__ và __main__, ngoài các package chức năng/node.
@@ -198,6 +209,36 @@ Cập nhật: 2026-11-09. Phạm vi: backend OCR, ảnh → JSON; chưa tích h�
 ## Quy ước ghi thêm
 
 Mỗi lần cập nhật ghi: mã vấn đề, ngày, loại mẫu (không có định danh bệnh nhân), hiện tượng, nguyên nhân đã xác minh/giả thuyết, thay đổi, lệnh test, kết quả, giới hạn và hướng tiếp theo. Phân biệt rõ “đã thử”, “đã tích hợp”, “đề xuất”.
+
+## OCR-28 — 2026-11-15: gợi ý chỉnh cách dùng sau OCR
+
+- Đã tích hợp `InstructionReview.tsx` ngay dưới ô “Cách dùng trên toa” cho dòng có nguồn OCR; tái sử dụng giao diện gợi ý hiện có. Không gọi AI hay dịch vụ ngoài.
+- Quy tắc `instruction-format-v1` trong `instructionFormatting.ts`: chuẩn hóa Unicode NFC, khoảng trắng, phân cách các nhãn Sáng/Trưa/Chiều/Tối/Cách dùng và cụm “Uống; sau ăn” / “Uống; trước ăn”. Không sửa từ tùy ý, suy diễn chữ thiếu hoặc thêm đơn vị. Dấu hai chấm chỉ chuẩn hóa sau nhãn, giữ cách viết giờ như `08:30`.
+- Ví dụ do người dùng cung cấp: `Sáng: 1 Chiều: 1Cách dùng: Uống; sau ăn` → gợi ý `Sáng: 1; Chiều: 1; Cách dùng: Uống sau ăn`. Giữ nguyên toàn bộ chữ/số và thứ tự biểu thức số (kể cả thập phân, phân số) bằng kiểm tra bảo toàn trước khi hiển thị.
+- Nhắc riêng khi gặp số liều trần sau nhãn buổi, ví dụ `Sáng: 1`, `Tối: 1/2`; không tự thêm viên/gói/ml. Cảnh báo vẫn hiện sau áp dụng cách trình bày và tự mất khi người dùng bổ sung đơn vị. Đây là nhận diện mẫu giới hạn, không phải bộ xác thực đầy đủ cách dùng hay liều.
+- Người dùng chọn “Áp dụng cách trình bày” hoặc “Giữ nguyên cách dùng”; hỗ trợ “Hoàn tác chỉnh cách dùng”. Không ghi đè thao tác gõ tay bằng hoàn tác cũ: nút chỉ hiện khi giá trị hiện tại còn trùng giá trị đã áp dụng. Không tự xác nhận thuốc; không thay tên, hàm lượng, hoạt chất.
+- Log thao tác: `ocrOriginalInstruction` giữ nội dung ban đầu; `instructionCorrections` ghi from/to, action apply/undo, thời gian ISO và ruleVersion. Lưu theo bản nháp trong sessionStorage hiện có, tồn tại qua reload cùng phiên; chưa phải audit server bền vững và chưa ghi mỗi lần gõ tay. File này là log phát triển phục vụ báo cáo.
+- Kiểm thử: `npm.cmd run build` đạt. `npx.cmd playwright test tests/instruction-review.spec.ts tests/medicine-spelling.spec.ts tests/ocr-review.spec.ts --workers=1`: 4/4 đạt, gồm quy tắc bảo toàn phủ định/đơn vị/giờ/thập phân/phân số, tính ổn định khi áp dụng lại, thiếu đơn vị, giữ nguyên, áp dụng, reload, hoàn tác, lịch sử và hai luồng OCR cũ. Viewport 375px không tràn ngang, ảnh `apps/frontend/test-results/instruction-review-instruc-2af01-o-and-retain-source-history/instruction-review-mobile.png`.
+- Vấn đề trong quá trình kiểm tra: đổi tên module quy tắc thành `instructionFormatting.ts` để tránh xung đột hoa/thường với `InstructionReview.tsx` trên Windows. Lượt chạy 3 worker gặp Chromium `ERR_INSUFFICIENT_RESOURCES`; chạy tuần tự 1 worker đạt. Không thay cấu hình kiểm thử chung.
+- Giới hạn: chỉ sửa cách trình bày theo quy tắc; chưa sửa chính tả tiếng Việt tự do. Không coi câu đã chỉnh là hướng dẫn dùng thuốc được xác minh; vẫn cần đối chiếu toa gốc.
+
+## OCR-27 — 2026-11-15: gợi ý sửa tên sau OCR và đánh dấu thông tin thiếu
+
+- Trạng thái: đã tích hợp vào form nhập toa. Thay đổi này không thay model OCR; xử lý bản nháp sau trích xuất.
+- Yêu cầu: hỗ trợ sửa lỗi tên thuốc có sự lựa chọn của người dùng; làm nổi bật thuốc thiếu thông tin; ghi lại quá trình phục vụ báo cáo.
+- Backend: endpoint có xác thực `GET /api/reference/medication-spelling?q=...&strength=...`. Đọc snapshot `data/medications.csv`, chỉ lấy `identity_state=SOURCE_REGISTERED_PRODUCT_ESTABLISHED` và `level2_qualified=true`: 8.741 bản ghi trong snapshot hiện tại. Đây là điều kiện xác minh nguồn của pipeline, không phải phê duyệt lâm sàng/production. Không gửi dữ liệu sang model hoặc dịch vụ bên ngoài.
+- Thuật toán: chuẩn hóa NFKC, chữ thường, khoảng trắng; khoảng cách Levenshtein tối đa 1 với tên dài 5–7 ký tự, tối đa 2 từ 8 ký tự; tên ngắn hơn 5 không đoán. Tên đã khớp chính xác không coi là lỗi. Giữ các token số độc lập trong tên; không sửa số hậu tố. Nếu có hàm lượng, yêu cầu khớp sau chuẩn hóa khoảng trắng và dấu phẩy thập phân; không quy đổi đơn vị. Gộp trùng theo tên/hàm lượng/dạng thuốc, tối đa 3 ứng viên. Đây là ngưỡng heuristic, chưa phải điểm xác suất hay kết quả benchmark độ chính xác.
+- UI: chỉ bật gợi ý cho dòng có nguồn OCR, đợi 350 ms sau nhập; hủy request cũ và chặn phản hồi lỗi thời. Có “Dùng tên này”, “Giữ nguyên tên”, “Hoàn tác đổi tên”. Hiển thị hàm lượng/dạng thuốc của ứng viên để người dùng đối chiếu. Form hiện chưa có trường dạng thuốc riêng để tự lọc theo dạng.
+- Bảo toàn: chỉ đổi tên sau click; không đổi hàm lượng, cách dùng, hoạt chất; `verified=false`. `ocrOriginalName` giữ nguyên tên OCR. `nameCorrections` lưu from/to, thời gian ISO, apply/undo, catalogId và sourceRecordId trong bản nháp/sessionStorage hiện có. Đây là lịch sử thao tác gợi ý trong phiên, không phải audit log server bền vững; chỉnh tay vẫn giữ tên OCR gốc nhưng chưa ghi từng lần gõ.
+- Thiếu thông tin: viền đỏ ở dòng thuốc và trường thiếu, icon và câu “Cần bổ sung…” chỉ rõ tên/hàm lượng/cách dùng; `aria-invalid` và `aria-describedby` hỗ trợ trình đọc màn hình. Chuỗi placeholder như “Tên chưa rõ” cũng được xem là thiếu. Tự bỏ đánh dấu khi đủ; hoạt chất là tùy chọn nên không tô đỏ. Bước xác nhận dùng chung quy tắc để không coi placeholder là dữ liệu đầy đủ. Cảnh báo vàng dò lại toa vẫn giữ.
+- Kiểm chứng: unit/API test gồm lỗi ký tự, tên đúng/không biết/quá ngắn, khác 5mg–50mg–5mcg, hậu tố số, gộp trùng, giới hạn độ dài, xác thực và đọc danh mục thật. Mẫu tổng hợp `Rechopld 30` + `30mg` tìm được `Rechopid 30` từ snapshot thực. `Desloratad1ne` + `5mg` trả rỗng vì không có ứng viên vượt qua đầy đủ điều kiện; không ép chọn sản phẩm khác. Ví dụ Desloratadine trong E2E dùng fixture giả, không phải kết quả đo trên toa bệnh nhân.
+- Lệnh backend: `$env:PYTHONPATH='apps/backend/src'; venv/Scripts/python.exe -m pytest apps/backend/tests/test_medication_spelling.py apps/backend/tests/test_ocr_regions.py -q` — 11 passed, 7 subtests passed.
+- Frontend: `npm.cmd run build` đạt; Playwright `tests/medicine-spelling.spec.ts` và `tests/ocr-review.spec.ts` đạt trong lượt kiểm thử chung (2/2). Bao phủ giữ nguyên, áp dụng, hoàn tác, bảo toàn trường, nguồn/lịch sử, highlight thiếu và tự hết khi điền đủ. Kiểm tra viewport 375px không tràn ngang; ảnh tại `apps/frontend/test-results/`.
+- Giới hạn: ưu tiên tránh sửa sai nên có thể bỏ lỡ tên thương mại có hậu tố, tên thiếu nhiều ký tự hoặc khác cách biểu diễn hàm lượng. Không khôi phục thuốc OCR bỏ sót, không đoán liều, không coi không tìm thấy là tên sai. Snapshot cache trong tiến trình; thay CSV cần khởi động lại backend. Cần bộ dữ liệu gán nhãn độc lập để đo precision/recall trước khi nới ngưỡng hoặc dùng production.
+
+### Ghi chú UI thay thế phần bằng chứng
+
+Theo yêu cầu người dùng, panel “Đối chiếu với toa gốc” và các accordion bằng chứng kỹ thuật đã được bỏ khỏi màn nhập toa. Các mô tả panel ở mục lịch sử trước đây không còn phản ánh UI hiện tại; dữ liệu OCR gốc vẫn được backend giữ lại.
 
 ## OCR-09 — 2026-11-09: đọc lại vùng mặt hàng bảng kê (đã tích hợp)
 

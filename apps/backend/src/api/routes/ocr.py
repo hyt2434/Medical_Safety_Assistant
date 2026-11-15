@@ -6,11 +6,14 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from pydantic import ValidationError
 
+from api.deps import require_permission
 from module1_intake.ocr.models.api import OcrResponse
 from module1_intake.ocr.application.service import LocalOcrService, OcrError
 from module1_intake.ocr.imaging.input import CONTENT_TYPES, DESCRIPTION
+from module1_intake.ocr.imaging.regions import ImageRegion
 
 router = APIRouter(prefix="/api/v1/ocr", tags=["Module 1 - OCR"])
 service = LocalOcrService()
@@ -19,7 +22,15 @@ ALLOWED_CONTENT_TYPES = CONTENT_TYPES
 
 
 @router.post("/extractions", response_model=OcrResponse)
-def create_extraction(file: UploadFile = File(...)) -> OcrResponse:
+def create_extraction(
+    file: UploadFile = File(...),
+    region: str | None = Form(default=None, max_length=512),
+    _session: dict = Depends(require_permission("intake.ocr")),
+) -> OcrResponse:
+    try:
+        selected_region = ImageRegion.model_validate_json(region) if region is not None else None
+    except ValidationError:
+        raise HTTPException(422, 'Vùng ảnh không hợp lệ. Hãy chọn lại vùng cần đọc.') from None
     if file.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, f"Chỉ hỗ trợ {DESCRIPTION}")
 
@@ -31,7 +42,7 @@ def create_extraction(file: UploadFile = File(...)) -> OcrResponse:
         if image_path.stat().st_size > MAX_UPLOAD_BYTES:
             raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Ảnh vượt quá giới hạn 10 MB")
         try:
-            return service.extract(image_path)
+            return service.extract(image_path, region=selected_region) if selected_region else service.extract(image_path)
         except OcrError as error:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(error)) from error
         finally:
