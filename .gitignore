@@ -121,3 +121,6 @@ service-account*.json
 *.db
 *.tmp
 *.temp
+
+# Tesseract runtime cache; language packages are restored by npm install.
+/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/

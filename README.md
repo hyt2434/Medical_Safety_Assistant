@@ -17,6 +17,7 @@
 
 ## Main entry points
 
+- Backend OCR: [setup, API testing, and code structure](apps/backend/src/module1_intake/ocr/README.md).
 - Frontend: [instructions](apps/frontend/README-PA2.md), [design system](apps/frontend/design.md).
 - Use-case diagrams: [PlantUML](<docs/design/use-cases/plantuml>).
 - Use-case report: [main.tex](pa/pa2/use-case-report/main.tex).
