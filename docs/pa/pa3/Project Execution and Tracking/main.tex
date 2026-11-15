@@ -1,0 +1,261 @@
+% !TeX program = xelatex
+% PA3 - Section f: Project Execution and Tracking (20 points)
+% Black-and-white report style, matching the supplied UI Design reference.
+% Paper: A4 landscape. Compiler: XeLaTeX (compile twice for correct page count).
+%
+% Screenshots are intentionally left IN THEIR ORIGINAL COLORS as documentary
+% evidence; all document typography, borders and links are black on white.
+% To add evidence, place screenshots in images/ with the filenames at the end.
+% Missing screenshots appear as black-outline placeholders, not compilation errors.
+
+\documentclass[11pt,a4paper,landscape]{article}
+\usepackage[left=17mm,right=17mm,top=18mm,bottom=16mm,headheight=32pt,headsep=5mm,footskip=10mm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Tinos}
+\usepackage{graphicx}
+\usepackage{tabularx,array,booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[hidelinks]{hyperref}
+\usepackage{ragged2e}
+\usepackage{needspace}
+
+\hypersetup{
+  pdftitle={Project Execution and Tracking - PA3 - Group 02},
+  pdfsubject={Section f - Project Execution and Tracking (20 points)},
+  pdfauthor={Group 02 - Cao Hoang Long, Hoang Yen Trang, Lo Chi Thanh}
+}
+\graphicspath{{images/}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\arrayrulewidth}{0.45pt}
+\setlength{\emergencystretch}{3em}
+\setlist[itemize]{leftmargin=16pt,topsep=2pt,itemsep=1pt,parsep=0pt}
+\urlstyle{same}
+
+% ---------------------------- EDIT BEFORE SUBMISSION ------------------------
+\newcommand{\reporttitle}{Project Execution and Tracking}
+\newcommand{\documentid}{PA3-Group02-Execution}
+\newcommand{\reportversion}{1.0}
+\newcommand{\reportdate}{15 November 2026}
+\newcommand{\reportperiod}{02--14 November 2026}
+\newcommand{\reportcutoff}{[INSERT VERIFIED CUTOFF DATE]}
+\newcommand{\projecturl}{https://github.com/users/hyt2434/projects/3}
+\newcommand{\repositoryurl}{[INSERT REPOSITORY URL]}
+% Replace all fields in [BRACKETS] with verified facts and relevant links.
+% Section f measures execution and tracking; do not treat a Done board card
+% alone as proof that an implementation has been merged and tested.
+% ---------------------------------------------------------------------------
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{%
+  \begin{tabular}[b]{@{}l@{}}
+    \fontsize{8.5}{10}\selectfont MEDICATION SAFETY ASSISTANT\\[-0.5mm]
+    \fontsize{8.5}{10}\selectfont \reporttitle\ (\documentid)
+  \end{tabular}%
+}
+\fancyhead[R]{\fontsize{8.5}{10}\selectfont Version \reportversion}
+\fancyfoot[L]{\fontsize{8.5}{10}\selectfont University of Science, VNU-HCM --- Course Project}
+\fancyfoot[R]{\fontsize{8.5}{10}\selectfont Page \thepage\ of \pageref{LastPage}}
+
+% Reference-style numbered section title (e.g. 1   Project execution summary).
+\newcommand{\reportsection}[2]{%
+  \vspace{1.3mm}
+  {\fontsize{15.5}{18}\selectfont\bfseries #1\hspace{5mm}#2}\par\vspace{3mm}
+}
+
+% A plain black-line placeholder matching the monochrome document styling.
+\newcommand{\screenshotplaceholder}[1]{%
+  \begingroup
+  \setlength{\fboxsep}{0pt}%
+  \fbox{%
+    \begin{minipage}[c][.66\textheight][c]{.94\linewidth}
+      \centering
+      {\fontsize{14}{17}\selectfont\bfseries INSERT SCREENSHOT}\par\vspace{4mm}
+      {\fontsize{11}{14}\selectfont\ttfamily\detokenize{images/#1}}\par\vspace{4mm}
+      {\fontsize{10}{13}\selectfont Add the image to the \texttt{images/} folder.\par The figure will automatically replace this frame.}
+    \end{minipage}%
+  }
+  \endgroup
+}
+
+% One page per evidence item. The caption is ABOVE the screenshot, matching
+% the supplied UI Design document. All source links are black, not blue.
+% Usage: \evidencepage{section no.}{section title}{image name}{figure title}
+%                     {one- or two-sentence caption}{evidence URL/reference}
+\newcounter{evidencefigure}
+\newcommand{\evidencepage}[6]{%
+  \clearpage
+  \stepcounter{evidencefigure}
+  \reportsection{#1}{#2}
+  \begin{center}
+    {\fontsize{11}{13}\selectfont\bfseries Figure \theevidencefigure. #4}\par\vspace{1mm}
+    \begin{minipage}{.95\linewidth}
+      \centering\fontsize{10}{12.5}\selectfont #5
+    \end{minipage}
+    \par\vspace{4mm}
+    \begin{minipage}[c][.71\textheight][c]{\linewidth}
+       \centering
+       \IfFileExists{images/#3}{%
+         \includegraphics[width=.97\linewidth,height=.70\textheight,keepaspectratio]{images/#3}%
+       }{%
+         \screenshotplaceholder{#3}%
+       }
+    \end{minipage}
+    \par\vspace{2mm}
+    {\fontsize{8.5}{10}\selectfont\textit{Evidence reference:} #6}
+  \end{center}
+}
+
+\begin{document}
+
+% ============================= COVER PAGE ==================================
+\thispagestyle{empty}
+\vspace*{13mm}
+\begin{center}
+  {\fontsize{14}{17}\selectfont\bfseries MEDICATION SAFETY ASSISTANT}\par
+  \vspace{22mm}
+  {\fontsize{25}{30}\selectfont\bfseries \reporttitle}\par\vspace{5mm}
+  {\fontsize{14}{17}\selectfont PA3 --- Section f (20 points)}\par\vspace{12mm}
+  {\fontsize{12}{15}\selectfont Version \reportversion}
+\end{center}
+\vfill
+\begin{center}
+  \begin{tabular}{@{}>{\bfseries}r@{\hspace{4mm}}l@{}}
+    Document identifier: & \documentid\\[2mm]
+    Prepared by: & Group 02 --- Medication Safety Assistant Team\\[2mm]
+    Authors: & Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\\[2mm]
+    Organization: & University of Science, VNU-HCM\\[2mm]
+    Reporting period: & \reportperiod\\[2mm]
+    Date: & \reportdate
+  \end{tabular}
+\end{center}
+\vspace{13mm}
+\begin{center}
+  \begin{minipage}{.88\linewidth}
+    \centering\fontsize{10.5}{13.5}\selectfont
+    This document summarizes the team's PA3 execution, task allocation, progress reporting,
+    collaboration and verification. The following pages provide screenshots and links from
+    GitHub Projects, Issues, Pull Requests and other project records as supporting evidence.
+  \end{minipage}
+\end{center}
+\vspace*{7mm}
+
+% ============================ INTRODUCTION =================================
+\clearpage
+\reportsection{1}{Project execution summary}
+
+\textbf{Work accomplished.} For PA3, the team organized and tracked implementation tasks through GitHub Projects, with issues assigned to individual contributors. The frontend demonstration includes patient dashboard, prescription intake and medication confirmation views. The report separates confirmed implementation evidence from planned or in-progress work. The task counts and outstanding deliverables below must be updated from the board at the reporting cutoff.
+
+\vspace{2mm}
+\textbf{Execution overview}
+\vspace{1mm}
+
+\renewcommand{\arraystretch}{1.20}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{39mm} X p{51mm}@{}}
+\toprule
+Area & Work performed / tracked & Verification to attach \\
+\midrule
+Planning & PA3 tasks are organized in the GitHub Projects board; per-task scope and assignments can be checked in Issues. & Project board and Issue details \\
+Frontend and UI & Patient-facing demo screens include dashboard, intake and per-medication confirmation. & Relevant Issues, PRs or screen captures \\
+Backend and database & [INSERT verified SQL schema, RBAC, API or integration deliverables and their actual status.] & Issue / PR / test reference \\
+Testing & A captured frontend check demonstrates that unconfirmed medication entries are prevented from proceeding to results. [ADD any verified CI or test status.] & Test output, CI checks or test report \\
+Team collaboration & [INSERT review activity, implementation discussions, handoffs and meetings with evidence.] & PR reviews or team records \\
+\bottomrule
+\end{tabularx}
+
+\vspace{4mm}
+\begin{minipage}[t]{.49\linewidth}
+\textbf{Task ownership and responsibilities}\par\vspace{1mm}
+\renewcommand{\arraystretch}{1.22}
+\begin{tabularx}{\linewidth}{@{}p{35mm}X@{}}
+\toprule
+Member & Work items and verified state \\
+\midrule
+Cao Hoàng Long & Database / core modules: [ISSUES AND STATUS] \\
+Hoàng Yến Trang & User Management / UI: [ISSUES AND STATUS] \\
+Lỗ Chí Thành & [ASSIGNED MODULES, ISSUES AND STATUS] \\
+\bottomrule
+\end{tabularx}
+\end{minipage}\hfill
+\begin{minipage}[t]{.48\linewidth}
+\textbf{Progress at reporting cutoff}\par\vspace{1mm}
+\renewcommand{\arraystretch}{1.22}
+\begin{tabularx}{\linewidth}{@{}Xr@{}}
+\toprule
+Total PA3 issues tracked & [N] \\
+Completed / verified & [N] \\
+In progress & [N] \\
+Blocked / pending & [N] \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+
+\vspace{4mm}
+\textbf{Tracking and reporting.} The team uses the shared project board for task status, Issues for requirements and assignments, and Pull Requests or testing records for implementation verification. [INSERT cadence of meetings/progress reports and any important blocker resolution.]
+
+\vspace{2mm}
+\textbf{Progress checkpoints.} Week 5: [INSERT VERIFIED STATUS, 02--08 NOV]. Week 6: [INSERT VERIFIED STATUS, 09--14 NOV]. PA3 cutoff: [FINAL DELIVERABLES, OPEN ISSUES AND BLOCKERS].
+
+\vspace{2mm}
+{\fontsize{9}{11}\selectfont
+\textbf{Reporting cutoff:} \reportcutoff\quad
+\textbf{GitHub Project:} \url{https://github.com/users/hyt2434/projects/3}\quad
+\textbf{Repository:} \repositoryurl\par
+\textit{Note:} Replace every bracketed value with an actual screenshot-backed result. Do not count archived earlier-phase issues as completed PA3 work.}
+
+% =========================== EVIDENCE FIGURES ===============================
+% Rename files to match the screenshots. You can remove or duplicate any page.
+\evidencepage{2}{GitHub Projects board}
+ {01-project-board.png}
+ {PA3 GitHub Projects --- board overview}
+ {Board view showing task organization, team assignments and execution statuses at the selected checkpoint.}
+ {\url{https://github.com/users/hyt2434/projects/3}}
+
+\evidencepage{3}{Task breakdown and ownership}
+ {02-task-assignment.png}
+ {GitHub Issues --- task assignments}
+ {Issue details showing scope, assignee, priority, scheduled dates or acceptance criteria for PA3 work items.}
+ {[INSERT ISSUE URL / ISSUE NUMBERS]}
+
+\evidencepage{4}{Progress tracking}
+ {03-progress-updates.png}
+ {GitHub Projects --- progress updates}
+ {Status transitions or progress records used to follow completed, ongoing and blocked tasks across the PA3 period.}
+ {[INSERT BOARD VIEW OR ISSUE HISTORY URL]}
+
+\evidencepage{5}{Implementation evidence}
+ {04-pull-requests.png}
+ {GitHub Pull Requests --- code delivery}
+ {Pull Request records linking implemented changes to the tasks assigned during PA3.}
+ {[INSERT PR URLS]}
+
+\evidencepage{6}{Code review and collaboration}
+ {05-code-review.png}
+ {Code review --- feedback and discussion}
+ {Review comments, requested changes or technical discussion illustrating collaboration during implementation.}
+ {[INSERT PR REVIEW OR DISCUSSION URL]}
+
+\evidencepage{7}{Testing and verification}
+ {06-test-evidence.png}
+ {Testing --- validation evidence}
+ {Test logs, CI checks or test results supporting the reported behavior and completed work items.}
+ {[INSERT TEST REPORT OR CI URL]}
+
+\evidencepage{8}{Teamwork and communication}
+ {07-team-collaboration.png}
+ {Team collaboration --- coordination records}
+ {Meeting notes or team communications documenting work allocation, progress reporting and decisions.}
+ {[INSERT MEETING NOTE OR COMMUNICATION REFERENCE]}
+
+\evidencepage{9}{Final execution status}
+ {08-final-board.png}
+ {GitHub Projects --- final PA3 status}
+ {Board snapshot at the reporting cutoff, identifying completed, ongoing and outstanding work without assuming unfinished items are delivered.}
+ {\url{https://github.com/users/hyt2434/projects/3}}
+
+\end{document}
