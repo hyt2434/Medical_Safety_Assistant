@@ -1,7 +1,7 @@
 """Focused offline regressions; --research-data attempts all original data suites.
 
 Run python -B scripts/run-tests.py. Optional Vision requirements are listed in
-scripts/requirements.txt. See scripts/provision-data.ps1 help for local data.
+requirements.txt at repository root. See scripts/provision-data.ps1 help for local data.
 """
 import argparse
 from pathlib import Path
@@ -35,7 +35,7 @@ def main():
         except ModuleNotFoundError as exc:
             print('Vision retry regressions unavailable: ' + str(exc), flush=True)
             class MissingVision(unittest.TestCase):
-                @unittest.skip('Install scripts/requirements.txt for mocked Vision regressions')
+                @unittest.skip('Install requirements.txt at repository root for mocked Vision regressions')
                 def test_vision_dependencies(self):
                     pass
             suite.addTests(loader.loadTestsFromTestCase(MissingVision))
