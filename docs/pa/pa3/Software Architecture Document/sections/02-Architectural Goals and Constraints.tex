@@ -1,0 +1,79 @@
+
+\section{Architectural Goals and Constraints}
+\label{sec:architectural-goals}
+
+\medskip
+\noindent\textbf{Architectural Goals}
+
+\begin{table}[!htbp]
+\centering
+\caption{Architectural Goals and Their Impacts}
+\label{tab:architectural-goals}
+
+\begin{tabularx}{\textwidth}{|L{3cm}|L{2cm}|Y|}
+\hline
+\textbf{Goal} & \textbf{Source} &
+\textbf{Architectural Impact} \\ \hline
+
+Safety and Reliability & NFR-02, NFR-03 &
+Confirm medication input, handle incomplete assessments,
+preserve severe warnings, and support fallback input.
+\\ \hline
+
+Security and Privacy & NFR-04 &
+Enforce RBAC and patient-authorized case sharing.
+\\ \hline
+
+Data Integrity and Traceability & NFR-07, NFR-10 &
+Preserve medication history, assessment results,
+review decisions, and source references.
+\\ \hline
+
+Performance and Usability & NFR-01, NFR-05 &
+Complete at least 90\% of standard safety checks within
+10 seconds under normal conditions; provide clear
+warnings and status feedback.
+\\ \hline
+
+Maintainability and Extensibility & NFR-08 &
+Separate the five main modules with clearly defined
+responsibilities.
+\\ \hline
+
+\end{tabularx}
+\end{table}
+
+\medskip
+\noindent\textbf{Architectural Constraints}
+
+\begin{table}[!htbp]
+\centering
+\caption{Architectural Constraints and Their Impacts}
+\label{tab:architectural-constraints}
+
+\begin{tabularx}{\textwidth}{|L{3cm}|L{2cm}|Y|}
+\hline
+\textbf{Constraint} & \textbf{Source} &
+\textbf{Architectural Impact} \\ \hline
+
+Web Platform & NFR-06 &
+Support major desktop and mobile browsers;
+provide manual input and in-app schedule viewing
+when browser capabilities are unavailable.
+\\ \hline
+
+Medication Safety Rules & NFR-03, PF-07 &
+Activate only verified, confirmed schedules.
+Hold new reminders for medicines with severe
+interactions pending HCP review; never
+automatically stop existing reminders or treatment.
+\\ \hline
+
+Research Scope and Data Sources & NFR-04, NFR-10 &
+Use synthetic or de-identified data and simulated HCP
+review. Respect data-source permissions and
+mark unsupported checks as unassessed.
+\\ \hline
+
+\end{tabularx}
+\end{table}

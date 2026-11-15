@@ -1,0 +1,52 @@
+{
+  "method": "Current frontend, isolated synthetic auth sessions, built-in demo data; no production records or authorization test",
+  "captures": [
+    {
+      "role": "hcp",
+      "route": "/hcp/queue",
+      "file": "07-task-a-hcp.png",
+      "heading": "Hàng chờ duyệt ca",
+      "permissions": [
+        "clinical.case_review",
+        "intake.ocr"
+      ],
+      "errors": []
+    },
+    {
+      "role": "medical_reviewer",
+      "route": "/reviewer/queue",
+      "file": "07-task-a-medical_reviewer.png",
+      "heading": "Rà soát và sửa dữ liệu",
+      "permissions": [
+        "catalog.review",
+        "catalog.edit",
+        "intake.ocr"
+      ],
+      "errors": []
+    },
+    {
+      "role": "admin",
+      "route": "/admin/accounts",
+      "file": "07-task-a-admin.png",
+      "heading": "Tài khoản và vai trò",
+      "permissions": [
+        "staff.directory",
+        "admin.accounts",
+        "admin.roles",
+        "admin.audit"
+      ],
+      "errors": []
+    },
+    {
+      "role": "technical_support",
+      "route": "/staff/tickets",
+      "file": "07-task-a-technical_support.png",
+      "heading": "Hàng đợi ticket hỗ trợ",
+      "permissions": [
+        "staff.directory",
+        "operations.queue"
+      ],
+      "errors": []
+    }
+  ]
+}

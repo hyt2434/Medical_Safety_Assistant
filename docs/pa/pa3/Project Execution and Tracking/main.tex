@@ -1,0 +1,152 @@
+% !TeX program = xelatex
+% Compile twice: xelatex -interaction=nonstopmode -halt-on-error main.tex
+% Original evidence is preserved in images/. Crops are display-only LaTeX trims.
+\documentclass[14pt,a4paper,landscape]{extarticle}
+\usepackage[left=17mm,right=17mm,top=22mm,bottom=17mm,headheight=34pt,headsep=8pt,footskip=23pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{graphicx,tabularx,array,booktabs,fancyhdr,lastpage}
+\usepackage[unicode,hidelinks]{hyperref}
+\hypersetup{pdftitle={Project Execution and Tracking - PA3},pdfauthor={Group 02}}
+\graphicspath{{images/}}
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+\emergencystretch=3em
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\fontsize{12}{14}\selectfont MEDICATION SAFETY ASSISTANT\\Project Execution and Tracking (PA3-Group02-Execution)}
+\fancyhead[R]{\small Version 1.2}
+\fancyfoot[L]{\small University of Science, VNU-HCM -- Course Project}
+\fancyfoot[R]{\small Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{.4pt}\renewcommand{\footrulewidth}{.4pt}
+\newcommand{\issueurl}[1]{\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/#1}{GitHub Issue \##1}}
+\newcommand{\evidence}[5]{%
+ \clearpage
+ {\large\bfseries #1\par}\vspace{2mm}
+ \begin{center}\includegraphics[trim=#3,clip,width=.98\linewidth,height=.66\textheight,keepaspectratio]{#2}\end{center}
+ \textbf{Description.} #4\par
+ {\small\textbf{Evidence reference:} #5}
+}
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+\vspace*{10mm}
+{\large\bfseries MEDICATION SAFETY ASSISTANT\par}
+\vspace{18mm}
+{\fontsize{25}{30}\selectfont\bfseries Project Execution and Tracking\par}
+\vspace{5mm}PA3 -- Section f\par
+\vspace{8mm}Group 02\par
+\vfill
+Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\par
+University of Science, VNU-HCM\par
+Planned work period: 02--14 November 2026\par
+\vspace{5mm}
+\begin{minipage}{.87\linewidth}\centering
+PA3 tracking evidence: eight task records and live GitHub project / pull-request screenshots. Online status checked on 15 November 2026.
+\end{minipage}
+\end{center}
+\clearpage
+\section*{1. PA3 execution and tracking summary}
+\textbf{Work period.} PA3 Weeks 05--06 were planned for 02--14 November 2026. The eight tracked tasks cover database work, OCR, chatbot, medication matching, voice input and manual input.
+
+\textbf{Current progress.} On 15 November 2026, the PA3-filtered board shows eight tasks (Issues \#61--\#68), all marked Done. Their issue pages are Closed. The dates shown are planned dates; they do not show when each task was completed.
+
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}Xl@{}}\toprule
+\textbf{Tracking item} & \textbf{Observed status}\\\midrule
+PA3 tasks on the filtered board & 8 Done / 8 total\\
+PR \#60 -- Database V4 & Merged into dev\\
+PR \#70 -- OCR and user interface & Open; approval required\\
+PR \#71 -- OCR & Open; approval required\\\bottomrule
+\end{tabularx}
+
+\textbf{What remains.} PRs \#70 and \#71 each show one unresolved review comment and one required approval. Their Checks panels show no checks available. These PRs still need review and integration even though the linked tasks are marked Done.
+
+\textbf{Reading the evidence.} The descriptions explain each member's assigned work and the approach recorded in the issues; they are not a separate verification of every feature. Their acceptance checkboxes are unchecked, so Done does not by itself confirm that every test passed. No test run was performed for this report.
+
+\textbf{Sources.} \href{https://github.com/users/hyt2434/projects/3/views/1}{GitHub project board}; \href{https://github.com/hyt2434/Medical_Safety_Assistant}{project repository}. Live captures: 15 November 2026. Original issue screenshots were supplied by the team.
+\clearpage
+\section*{2. Task allocation and ownership}
+\normalsize
+\begin{tabularx}{\linewidth}{@{}p{13mm}X p{46mm}p{22mm}p{34mm}@{}}\toprule
+\textbf{Issue} & \textbf{Work package} & \textbf{Planned owner} & \textbf{Priority} & \textbf{Shown state}\\\midrule
+\#61 & User Management -- SQL database & Hoàng Yến Trang & P1 & Closed / Done\\
+\#62 & Prescription OCR & Hoàng Yến Trang & P1 & Closed / Done\\
+\#63 & Chatbot intent, entities and dialogue & Cao Hoàng Long & P2 & Closed / Done\\
+\#64 & Test medication database & Cao Hoàng Long & P1 & Closed / Done\\
+\#65 & Medication identification and matching & Cao Hoàng Long & P1 & Closed / Done\\
+\#66 & Core SQL schema and migrations & Cao Hoàng Long & P1 & Closed / Done\\
+\#67 & Vietnamese voice / STT input & Lỗ Chí Thành & P1 & Closed / Done\\
+\#68 & Validated manual medication input & Lỗ Chí Thành & P1 & Closed / Done\\\bottomrule
+\end{tabularx}
+\normalsize
+\textbf{Assignment.} Trang is the planned owner of two tasks, Long of four and Thanh of two. Issue \#61 is assigned to both Trang (hyt2434) and Long (DRAGON-1312).
+
+\textbf{Working together.} Trang and Long coordinate user IDs, foreign keys and database migrations. OCR, voice and manual entry use the same input format and require user confirmation. The test medication database supports matching and chatbot responses.
+
+\textbf{Next tracking update.} Record the review and merge outcomes for PRs \#70 and \#71, and attach test results when available.
+
+\evidence{3. PA3 project-board excerpt}{01-project-board.png}{0bp 79bp 210bp 507bp}
+{Trang, Long and Thanh split the PA3 work into eight issues, covering the database, OCR, chatbot, medicine matching and input screens. The board records who owns each task and shows all eight as Done.}
+{\href{https://github.com/users/hyt2434/projects/3}{GitHub Projects -- Medical Safety Assistant}}
+\evidence{Issue \#61 -- User Management -- SQL Database / Who did what}{issue-61.png}{0bp 226.220bp 0bp 0.000bp}
+{Trang is responsible for accounts, roles and user profiles, with Long also assigned to the database work. They coordinate shared user IDs so the account tables connect correctly to the other modules.}
+{\issueurl{61}; team-supplied screenshot.}
+\evidence{Issue \#61 -- User Management -- SQL Database / Approach and progress}{issue-61.png}{0bp 0.000bp 0bp 255.022bp}
+{The approach keeps one user account linked to separate role and profile records, avoiding duplicate accounts for people with several roles. The related Database V4 work is included in merged PR \#60.}
+{\issueurl{61}; team-supplied screenshot.}
+\evidence{Issue \#62 -- Prescription OCR Implementation / Who did what}{issue-62.png}{0bp 193.217bp 0bp 0.000bp}
+{Trang is responsible for reading prescription images and turning the extracted text into a draft medicine list. Users review that list before sending it to the next step.}
+{\issueurl{62}; team-supplied screenshot.}
+\evidence{Issue \#62 -- Prescription OCR Implementation / Approach and progress}{issue-62.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach lets users edit uncertain OCR results and enter details manually when an image cannot be read. Issue \#62 is marked Done, while its OCR PR \#71 is still awaiting review.}
+{\issueurl{62}; team-supplied screenshot.}
+\evidence{Issue \#63 -- Chatbot -- NLP Intent, Entities and Dialogue / Who did what}{issue-63.png}{0bp 192.617bp 0bp 0.000bp}
+{Long is responsible for helping the chatbot recognize what the user is asking, find medicine names and follow the conversation. This gives the chatbot the information needed to choose a suitable response.}
+{\issueurl{63}; team-supplied screenshot.}
+\evidence{Issue \#63 -- Chatbot -- NLP Intent, Entities and Dialogue / Approach and progress}{issue-63.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach is to ask follow-up questions when a medicine name or request is unclear and use reference data for medicine-related answers. Long's task is marked Done; this issue lists the cases to check.}
+{\issueurl{63}; team-supplied screenshot.}
+\evidence{Issue \#64 -- Build Test Medication Database / Who did what}{issue-64.png}{0bp 219.019bp 0bp 0.000bp}
+{Long is responsible for preparing sample medicine data for OCR and medicine matching. He is also responsible for checking the source and quality notes before using the existing data files.}
+{\issueurl{64}; team-supplied screenshot.}
+\evidence{Issue \#64 -- Build Test Medication Database / Approach and progress}{issue-64.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach uses repeatable import scripts and records where the data came from. It includes clear matches, unknown medicines and ambiguous names so the team can check more than just successful cases.}
+{\issueurl{64}; team-supplied screenshot.}
+\evidence{Issue \#65 -- Medication Identification and Matching / Who did what}{issue-65.png}{0bp 196.817bp 0bp 0.000bp}
+{Long is responsible for matching confirmed medicine names to reference records and standardizing ingredient names. This helps the system handle different spellings without confusing a product with its ingredients.}
+{\issueurl{65}; team-supplied screenshot.}
+\evidence{Issue \#65 -- Medication Identification and Matching / Approach and progress}{issue-65.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach separates a clear match from several possible matches or no match, instead of forcing a result. Issue \#65 is marked Done, with these cases listed for testing.}
+{\issueurl{65}; team-supplied screenshot.}
+\evidence{Issue \#66 -- Core SQL Schema and Migrations / Who did what}{issue-66.png}{0bp 228.020bp 0bp 0.000bp}
+{Long is responsible for the core database tables and the scripts that create or update them. He coordinates with Trang so the modules reuse the same user IDs and link to the correct accounts.}
+{\issueurl{66}; team-supplied screenshot.}
+\evidence{Issue \#66 -- Core SQL Schema and Migrations / Approach and progress}{issue-66.png}{0bp 0.000bp 0bp 249.022bp}
+{The database changes use keys and constraints to prevent broken links between records, with setup and rollback guidance for the team. Long opened PR \#60 for Database V4, and Trang merged it into dev.}
+{\issueurl{66}; team-supplied screenshot.}
+\evidence{Issue \#67 -- Vietnamese Voice / STT Input / Who did what}{issue-67.png}{0bp 225.620bp 0bp 0.000bp}
+{Thanh is responsible for Vietnamese voice input, turning spoken medicine details into text users can review. The result uses the same medicine-entry format as OCR and manual input.}
+{\issueurl{67}; team-supplied screenshot.}
+\evidence{Issue \#67 -- Vietnamese Voice / STT Input / Approach and progress}{issue-67.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach lets users correct the transcript and confirm it before continuing. If speech recognition or microphone access fails, users can switch to manual entry; the task is marked Done.}
+{\issueurl{67}; team-supplied screenshot.}
+\evidence{Issue \#68 -- Validated Manual Medication Input / Who did what}{issue-68.png}{0bp 223.819bp 0bp 0.000bp}
+{Thanh is responsible for the form used to type medicine details directly. Users can add, edit or remove medicines before confirming the list.}
+{\issueurl{68}; team-supplied screenshot.}
+\evidence{Issue \#68 -- Validated Manual Medication Input / Approach and progress}{issue-68.png}{0bp 0.000bp 0bp 249.022bp}
+{The approach checks the entered fields, shows understandable errors and offers suggestions from the available medicine data. The confirmed list uses the same format as OCR and voice input so all three paths can continue through the same workflow.}
+{\issueurl{68}; team-supplied screenshot.}
+
+\evidence{4. Live GitHub evidence -- PA3 board}{live-pa3-board.jpg}{0bp 150bp 0bp 72bp}
+{The live board shows all eight PA3 tasks as Done. The linked PRs give a more detailed picture: the database PR is merged, while the OCR and UI PRs still need review.}
+{\href{https://github.com/users/hyt2434/projects/3/views/1}{GitHub Projects}; captured 15 November 2026.}
+\evidence{PR \#60 -- Database V4 merged}{live-pr60.jpg}{140bp 100bp 140bp 135bp}
+{Long submitted Database V4, and Trang merged it from db into dev. This brings the shared database work for Issues \#61 and \#66 into the development branch.}
+{\href{https://github.com/hyt2434/Medical_Safety_Assistant/pull/60}{Pull request \#60}; captured 15 November 2026.}
+\evidence{PR \#70 -- OCR and user interface awaiting review}{live-pr70.jpg}{140bp 200bp 140bp 135bp}
+{Trang opened this PR to bring the OCR and user-interface changes into dev. At capture time, it still needed one approval and had one unresolved review comment, so the merge was pending.}
+{\href{https://github.com/hyt2434/Medical_Safety_Assistant/pull/70}{Pull request \#70}; captured 15 November 2026.}
+\evidence{PR \#71 -- OCR awaiting review}{live-pr71.jpg}{140bp 200bp 140bp 135bp}
+{Trang opened this PR for the OCR work linked to Issue \#62. At capture time, one review comment and the required approval were still pending, even though the issue was marked Done.}
+{\href{https://github.com/hyt2434/Medical_Safety_Assistant/pull/71}{Pull request \#71}; captured 15 November 2026.}
+
+\end{document}
