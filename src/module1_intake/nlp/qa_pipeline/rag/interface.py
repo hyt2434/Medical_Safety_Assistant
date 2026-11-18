@@ -1,4 +1,4 @@
-"""Future document retrieval seam; Phase A never calls this adapter."""
+"""Shared retrieval seam for structured authorities and local RAG."""
 from typing import Protocol
 
 from ..contracts import RetrievalQuery, RetrievalResult
@@ -6,11 +6,7 @@ from ..contracts import RetrievalQuery, RetrievalResult
 
 
 class DocumentRetriever(Protocol):
-    """Future BGE-M3/FAISS/pgvector adapters return bounded, attributed passages here.
-
-    No documents, indexes, model downloads or clinical authority are supplied by
-    this interface. A future document adapter must independently verify its corpus.
-    """
+    """Adapters return bounded, attributed passages through the shared contract."""
     def retrieve(self, query: RetrievalQuery) -> RetrievalResult: ...
 
 

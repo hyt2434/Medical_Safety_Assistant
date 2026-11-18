@@ -16,7 +16,8 @@ from ..integration.handoff import (
     assessment_query, assess_confirmed_snapshot, build_handoff,
     create_safety_snapshot, identify_confirmed,
 )
-from ..qa_pipeline.pipeline import Answer, GroundedComposer, HybridQA
+from ..qa_pipeline.pipeline import Answer, GroundedComposer, HybridQA, document_question
+from ..qa_pipeline.rag.documents import LocalDocumentRetriever
 from ..qa_pipeline.contracts import RetrievalQuery
 from ..models import EntryView, DialogueAct, Intent, Medication, Reply, StrictModel, Understanding
 from ..integration.persistence import medication
@@ -76,7 +77,7 @@ class ApplicationResponse(StrictModel):
 
 class ApplicationService:
     def __init__(self, repo, provider, *, reference=None, medication_retriever=None, composer=None,
-                 dataset_build=None, dataset=None, data_context='PATIENT'):
+                 dataset_build=None, dataset=None, data_context='PATIENT', documents=None):
         self.repo = repo
         self.dataset_build = dataset_build or getattr(reference, 'build', None)
         self.dataset = dataset
@@ -84,16 +85,17 @@ class ApplicationService:
             raise ValueError('Unsupported snapshot data context')
         self.data_context = data_context
         self.records = CoreRecords(repo)
+        composer = composer or GroundedComposer(provider if isinstance(provider, OllamaProvider) else None)
         self.qa = HybridQA(medication=medication_retriever or (CoreReferenceRetriever(reference) if reference else None),
             safety=CoreAssessmentRetriever(repo), records=self.records,
-            composer=composer or GroundedComposer(provider if isinstance(provider, OllamaProvider) else None))
+            composer=composer, documents=documents if documents is not None else LocalDocumentRetriever(provider=composer.provider))
         self.bot = Chatbot(repo, provider, reference=reference, qa=self.qa)
 
     def capabilities(self):
         return {'extraction': 'WORKING', 'dialogue': 'WORKING', 'application_help': 'WORKING',
                 'medication_identification': 'PARTIAL' if self.dataset_build else 'UNAVAILABLE',
                 'medication_reference': 'PARTIAL' if self.qa.medication else 'UNAVAILABLE',
-                'safety': 'PARTIAL', 'owner_records': 'WORKING', 'reminders': 'UNAVAILABLE', 'document_rag': 'UNAVAILABLE'}
+                'safety': 'PARTIAL', 'owner_records': 'WORKING', 'reminders': 'UNAVAILABLE', 'document_rag': 'PARTIAL'}
 
     def _response(self, reply):
         workflow = self.bot.store.workflow(reply.workflow_id)
@@ -118,11 +120,43 @@ class ApplicationService:
     def send(self, request: TurnRequest):
         if not request.text.strip():
             raise ValueError('Message must contain 1–12000 characters')
+        if document_question(request.text):
+            return self._document_turn(request)
         workflow = self.bot.store.workflow(request.workflow_id)
         if workflow['state'] == 'COMPLETED' and fold(request.text.strip().rstrip('.!')) not in {'xac nhan', 'toi xac nhan'}:
             workflow = self.bot._check(request.workflow_id, request.revision)
             return self._completed_turn(request, workflow)
         return self._response(self.bot.send(request.workflow_id, request.text, expected_revision=request.revision))
+
+    def _document_turn(self, request):
+        """Knowledge questions need no single drug target or medication extraction."""
+        with self.bot.store.turn(request.workflow_id):
+            workflow = self.bot._check(request.workflow_id, request.revision)
+            if workflow['state'] in {'CANCELLED', 'FAILED'}:
+                raise ValueError('Terminal workflow; start a new dialogue')
+            answer = self.qa.answer(Intent.MEDICATION_QA, RetrievalQuery(request.text, 'document'))
+            self.repo.append_message(workflow['conversation_id'], 'USER', request.text)
+            if workflow['state'] == 'COMPLETED':
+                saved = self._saved_action(workflow)
+                response = (ApplicationResponse.model_validate_json(json.dumps(saved['application_response'])) if saved else
+                            self._response(Reply(text='', workflow_id=workflow['id'], revision=workflow['revision'], state=workflow['state'])))
+                response.assistant_message, response.qa_results = answer.text, [answer]
+                response.evidence_refs, response.executed_action = answer.evidence_refs, None
+                response.dialogue_act, response.active_intents = DialogueAct.ASK_QUESTION, [Intent.MEDICATION_QA]
+                response.next_action = 'SHOW_ANSWER' if answer.evidence_refs else 'UNAVAILABLE'
+                return self._retain_response(workflow, response)
+            ctx = deepcopy(workflow['context'])
+            ctx.update(qa_results=[answer.model_dump(mode='json')], dialogue_act='ASK_QUESTION',
+                       active_intents=[Intent.MEDICATION_QA.value], next_action='SHOW_ANSWER' if answer.evidence_refs else 'UNAVAILABLE')
+            ctx.pop('error_code', None)
+            if workflow['state'] == 'AWAITING_CONFIRMATION':
+                # Use the existing review renderer so a side question cannot make
+                # the displayed draft/revision or confirmation digest stale.
+                self.repo.append_message(workflow['conversation_id'], 'ASSISTANT', answer.text)
+                reply = self.bot._display(workflow, ctx)
+            else:
+                reply = self.bot._reply(workflow, answer.text, context=ctx)
+            return self._response(reply)
 
     def resume(self, workflow_id):
         workflow = self.bot.store.workflow(workflow_id)

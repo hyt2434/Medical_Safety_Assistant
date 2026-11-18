@@ -73,6 +73,7 @@ node_modules/
 /tmp/
 # Local Module 1 OCR inputs and outputs may contain personal/medical data.
 /data/local/
+/data/rag/index/
 
 # Local runtime and evidence; keep canonical source and approved tracked data.
 /artifacts/

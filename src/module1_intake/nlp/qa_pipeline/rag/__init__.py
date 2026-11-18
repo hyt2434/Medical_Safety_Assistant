@@ -1,1 +1,1 @@
-"""Phase B retrieval interface only; inactive in Phase A."""
+"""Local document ingestion and retrieval through the existing Q&A contract."""

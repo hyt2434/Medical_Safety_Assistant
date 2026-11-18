@@ -168,7 +168,10 @@ class OllamaProvider:
                     # Qwen defaults to thinking; it can exhaust the context budget
                     # before producing any structured content. Never parse thinking.
                     "think": False,
-                    "options": {"temperature": 0},
+                    # The default 4096-token Ollama context can truncate the
+                    # question/instructions when RAG supplies bilingual quotes
+                    # plus a schema. Reserve context for the complete request.
+                    "options": {"temperature": 0, "num_ctx": 16384},
                     "messages": [{"role": "system", "content": system + json.dumps(schema, ensure_ascii=False)},
                                  {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
                 })
