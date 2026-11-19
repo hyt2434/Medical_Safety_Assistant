@@ -41,6 +41,22 @@ def extraction(meds: list[Medication]) -> dict:
             "warnings": [], "document_instructions_raw": []}
 
 
+def message_metadata(voice=None):
+    metadata = {"schema": "message.v4", "content_refs": [], "input_source": "VOICE" if voice else "TEXT"}
+    if voice:
+        metadata['voice'] = deepcopy(voice)
+    return metadata
+
+
+def input_payload(text, message):
+    payload = {"schema": "input.v4", "digest_basis": "ORIGINAL_BYTES", "text": text}
+    metadata = message.get('metadata') or {}
+    payload['input_source'] = metadata.get('input_source', 'TEXT')
+    if payload['input_source'] == 'VOICE':
+        payload['voice'] = deepcopy(metadata['voice'])
+    return payload
+
+
 class CoreStore:
     def __init__(self, repo: Repository):
         self.repo = repo
@@ -71,7 +87,7 @@ class CoreStore:
     def save(self, workflow: dict, text: str, message: dict, meds: list[Medication],
              updates: dict[int, Medication], provider: str) -> list[dict]:
         old = self.entries(workflow)
-        payload = {"schema": "input.v4", "digest_basis": "ORIGINAL_BYTES", "text": text}
+        payload = input_payload(text, message)
         if not updates:
             saved = persist_module1(self.repo, workflow["intake_session_id"], text.encode("utf-8"),
                                     extraction(meds), modality="TEXT", input_payload=payload,

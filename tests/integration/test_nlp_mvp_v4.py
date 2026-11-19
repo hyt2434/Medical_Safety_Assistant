@@ -25,6 +25,45 @@ def send(service, response, text):
     return service.send(TurnRequest(workflow_id=response.workflow_id, revision=response.revision, text=text))
 
 
+def test_real_core_voice_review_provenance_and_retry(repo, monkeypatch):
+    """Real Core persistence; ASR and NLP are deterministic test doubles here."""
+    import hashlib
+    from module1_intake import api
+    from module1_intake.voice import ASRResult
+    from module1_intake.nlp.interfaces.application import VoiceRequest, VoiceEditRequest, VoiceSubmitRequest
+
+    text = 'Tôi đang uống Panadol 500mg, dạng viên nén, mỗi sáng một viên'
+    class Speech:
+        def transcribe(self, audio, language):
+            return ASRResult(text, 0.9)
+    monkeypatch.setattr(api, '_asr', Speech())
+    service = ApplicationService(repo, MockProvider())
+    current = service.start(task=Intent.ADD_MEDICATION)
+    view = service.preview_voice(VoiceRequest(workflow_id=current.workflow_id, revision=current.revision, audio_payload=b'audio fixture'))
+    assert service.resume(current.workflow_id).entries == []
+    current = service.edit_voice(VoiceEditRequest(workflow_id=view.workflow_id, revision=view.revision,
+        draft_id=view.draft.draft_id, text=text.replace('một viên', 'hai viên')))
+    reloaded = ApplicationService(repo, MockProvider())
+    assert reloaded.resume_voice(view.workflow_id) == current
+    failed = reloaded.preview_voice(VoiceRequest(workflow_id=current.workflow_id, revision=current.revision, audio_payload=b''))
+    assert failed.error_code == 'INVALID_AUDIO' and failed.draft == current.draft
+    assert failed.revision == current.revision
+    result = reloaded.submit_voice(VoiceSubmitRequest(workflow_id=current.workflow_id, revision=current.revision,
+        draft_id=current.draft.draft_id, explicit_confirmation=True))
+    assert result.entries[0].medication.dose_raw == 'hai viên' and not result.entries[0].confirmed
+    audio = repo._owned('intake_inputs', view.draft.audio_input_id)
+    assert audio['modality'] == 'AUDIO' and audio['input_digest'] == hashlib.sha256(b'audio fixture').hexdigest()
+    rows = repo._all('SELECT * FROM msa.intake_inputs WHERE session_id=%s AND user_id=%s AND modality=%s',
+        (audio['session_id'], repo.owner, 'TEXT'))
+    assert len(rows) == 1
+    assert rows[0]['payload_or_locator']['input_source'] == 'VOICE'
+    assert rows[0]['payload_or_locator']['voice']['raw_transcript'] == text
+    assert rows[0]['payload_or_locator']['voice']['audio_input_id'] == str(audio['id'])
+    done = reloaded.confirm(ConfirmationRequest(workflow_id=result.workflow_id, revision=result.revision,
+        request_key=uuid4(), explicit_confirmation=True))
+    assert done.entries[0].confirmed
+
+
 def test_real_core_pending_target_resume_and_owner_scoped_records(repo):
     first, second = 'Tôi đang uống Panadol', '500mg, dạng viên nén'
     provider = MockProvider([Understanding(medications=[Medication(name_raw='Panadol', evidence_text=first)]).model_dump_json(),

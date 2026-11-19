@@ -10,7 +10,25 @@ def fold(text: str) -> str:
                    if unicodedata.category(c) != "Mn")
 
 
-STRENGTH = re.compile(r"\d+(?:[.,]\d+)?\s*(?:mcg|µg|μg|mg|g|iu|ui|%)(?![a-z])", re.I)
+def _vietnamese_forms(words):
+    """Match original NFC text as well as folded text, without rewriting either."""
+    forms = {variant for word in words for variant in (word, fold(word))}
+    return '(?:' + '|'.join(re.escape(word).replace(r'\ ', r'\s+')
+                           for word in sorted(forms, key=lambda word: (-len(word), word))) + ')'
+
+
+_NUMBER_WORD = _vietnamese_forms(
+    ('không', 'một', 'mốt', 'hai', 'ba', 'bốn', 'tư', 'năm', 'lăm', 'sáu',
+     'bảy', 'tám', 'chín', 'mười', 'mươi', 'trăm', 'nghìn', 'ngàn', 'triệu',
+     'tỷ', 'linh', 'lẻ', 'nửa'))
+_WORD_INTEGER = rf'{_NUMBER_WORD}(?:\s+{_NUMBER_WORD}){{0,15}}'
+_WORD_NUMBER = rf'\b{_WORD_INTEGER}(?:\s+{_vietnamese_forms(("phẩy", "chấm"))}\s+{_WORD_INTEGER})?'
+_STRENGTH_UNIT = _vietnamese_forms(
+    ('mcg', 'µg', 'μg', 'mg', 'g', 'iu', 'ui', '%', 'miligam', 'miligram',
+     'milligram', 'mi-li-gam', 'mili gam', 'microgam', 'microgram', 'micrôgam', 'gam', 'gram'))
+# An explicit mass/unit phrase is still required. Tablet count/timing cannot
+# supply a strength. The matched source span remains verbatim, not a number conversion.
+STRENGTH = re.compile(rf'(?:\d+(?:[.,]\d+)?|{_WORD_NUMBER})\s*{_STRENGTH_UNIT}(?!\w)', re.I)
 DOSE = re.compile(r"(?:\d+(?:[.,/]\d+)?|mot|hai|nua)\s*(?:vien|ml|giot|nhat|ong|goi)\b")
 QUANTITY = re.compile(r"(?:\d+|mot|hai)\s*(?:hop|vi|chai|lo|goi|ong|vien|tui)\b")
 NEGATION = re.compile(r"\b(?:khong (?:con )?(?:uong|dung)|chua (?:uong|dung)|da ngung|ngung uong)\b")

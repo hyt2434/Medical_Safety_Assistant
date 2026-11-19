@@ -7,7 +7,7 @@ from uuid import UUID, uuid5
 from ..integration.handoff import build_handoff
 from .fsm import check_transition
 from ..models import DialogueAct, Intent, Medication, Reply, Understanding
-from ..integration.persistence import CoreStore, Repository, medication
+from ..integration.persistence import CoreStore, Repository, medication, input_payload, message_metadata
 from ..understanding.providers import InferenceError, Provider, understand
 from ..qa_pipeline.structured import APP_HELP, DEFERRED, SAFETY, Reference, reference_answer
 from ..understanding.routing import clarification_required, detect, requested_workflows
@@ -165,7 +165,7 @@ class Chatbot:
             updates[index] = med
         return updates
 
-    def send(self, identity, text: str, *, expected_revision: int) -> Reply:
+    def send(self, identity, text: str, *, expected_revision: int, _voice=None) -> Reply:
         if not text.strip() or len(text) > 12000:
             raise ValueError("Message must contain 1–12000 characters")
         if fold(text.strip().rstrip(".!")) in CONFIRM:
@@ -176,9 +176,13 @@ class Chatbot:
             workflow = self._check(identity, expected_revision)
             if workflow["state"] in TERMINAL:
                 raise ValueError("Terminal workflow; start a new intake or call revise()")
-            message = self.repo.append_message(workflow["conversation_id"], "USER", text)
+            if workflow['context'].get('voice_draft') and _voice is None:
+                raise ValueError('Review, edit, submit or discard the pending voice draft first')
+            message = self.repo.append_message(workflow["conversation_id"], "USER", text, message_metadata(_voice))
             if fold(text.strip()) in {"huy", "huy yeu cau"}:
                 cancel_ctx = deepcopy(workflow['context'])
+                if _voice:
+                    cancel_ctx.pop('voice_draft', None)
                 cancel_ctx.update(dialogue_act='CANCEL', next_action='DEFERRED', pending_questions=[], qa_results=[], error_code=None)
                 return self._reply(workflow, "Đã hủy yêu cầu; lịch sử được giữ lại.", state="CANCELLED", context=cancel_ctx)
             rows = self.store.entries(workflow)
@@ -190,11 +194,15 @@ class Chatbot:
             ctx['qa_results'] = []
             pending = ctx.get('pending_questions', [])
             if fold(text.strip()) in UNKNOWN_FIELDS and pending and pending[0]['field_key'] in {'purpose','interaction_target','medication_target'}:
+                if _voice:
+                    ctx.pop('voice_draft', None)
                 suspended = ctx.pop('suspended_intake_question', None)
                 ctx['pending_questions'] = [suspended] if suspended else []
                 ctx['next_action'] = 'UNAVAILABLE'
                 return self._reply(workflow, 'Giữ thông tin là chưa rõ. Chưa thực hiện tác vụ; bạn có thể chọn yêu cầu khác hoặc nhập thủ công.', context=ctx)
             if rows and fold(text.strip()) in UNKNOWN_FIELDS and pending and pending[0].get('target_id'):
+                if _voice:
+                    ctx.pop('voice_draft', None)
                 self._accept_unknown(ctx, rows, pending[0]['target_id'])
                 return self._intake_progress(workflow, ctx, rows)
             try:
@@ -204,7 +212,7 @@ class Chatbot:
                                           'pending_question': pending[:1]})
             except InferenceError as error:
                 inp = self.repo.record_input(workflow["intake_session_id"], "TEXT", text.encode("utf-8"),
-                    payload={"schema": "input.v4", "digest_basis": "ORIGINAL_BYTES", "text": text}, message=message["id"])
+                    payload=input_payload(text, message), message=message["id"])
                 self.repo.record_extraction(inp["id"], self.provider.name, "nlp-mvp-v1",
                     {"schema": "extraction.v4", "medications": [], "warnings": ["Inference rejected"], "document_instructions_raw": []},
                     status="FAILED", errors={"schema": "error.v4", "code": "UNTRUSTED_INFERENCE",
@@ -212,6 +220,8 @@ class Chatbot:
                 ctx['error_code'] = error.category.value
                 return self._questions(workflow, "Chưa trích xuất tin cậy. Nhập lại tên thuốc và nội dung trên nhãn/đơn, hoặc dùng nhập thủ công.", context=ctx, field_key='inference')
             intents = detect(text, value)
+            if _voice:
+                ctx.pop('voice_draft', None)
             ctx.pop('error_code', None)
             ctx.pop('exhausted_blocker', None)
             if pending and pending[0]['field_key'] in {'interaction_target', 'medication_target'} and not any(
@@ -327,6 +337,8 @@ class Chatbot:
                     revision=workflow["revision"], state=workflow["state"], handoff=build_handoff(self.store, workflow))
             workflow = self._check(identity, expected_revision)
             ctx = deepcopy(workflow["context"])
+            if ctx.get('voice_draft'):
+                raise ValueError('Review, submit or discard the pending voice draft before medication confirmation')
             pending, draft = ctx.get("pending_confirmation"), ctx.get("draft")
             if workflow["state"] != "AWAITING_CONFIRMATION" or not pending or not draft:
                 raise ValueError("Display a review before confirming")

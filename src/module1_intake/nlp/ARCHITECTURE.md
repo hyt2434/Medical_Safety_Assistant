@@ -30,7 +30,8 @@ nlp/
     pipeline.py                    Structured-first Q&A orchestration
     rag/
       __init__.py
-      interface.py                 Layer 3: retrieval protocol and disabled adapter
+      interface.py                 Retrieval protocol and explicit disabled fallback
+      documents.py                 Manifest-backed corpus ingestion and local BM25
   integration/
     __init__.py
     persistence.py                 Existing Core repository/intake coordination
@@ -71,12 +72,24 @@ implementation, with its stateful operations together.
    findings and coverage survive the 16-fact selection window. With no facts,
    composition never calls Qwen. Non-clinical messages retain supported help/task
    clarification; there is no unrestricted conversation endpoint.
-3. **Future RAG:** `rag/interface.py` defines `DocumentRetriever.retrieve(query)`
-   returning the shared `RetrievalResult`. `DisabledDocumentRetriever` returns
-   UNAVAILABLE without facts. Phase A never searches documents, even after a
-   structured-source failure. No embeddings, vector database, corpus, ingestion or
-   model download is implemented. Future adapters must independently verify their
-   sources and preserve attribution, coverage and limitations.
+3. **Document RAG:** `rag/documents.py` implements `LocalDocumentRetriever` over
+   `data/rag/sources.csv` and the declared files under `data/rag/raw/`. It ingests
+   page-preserving PDF text and English MedlinePlus XML summaries, chunks passages,
+   and ranks them with local BM25 plus source/title/topic signals. Qwen can translate
+   Vietnamese search terms and select supplied facts; evidence remains the original
+   source text with locators, hashes, population limits and coverage. For two fixed
+   textless-PDF sources, ingestion may fetch their allowlisted official HTML pages.
+   `data/rag/index/corpus.json.gz` caches corpus-derived passages under a source
+   signature; questions and model responses are not saved in that cache. There is
+   no embedding service or vector database.
+
+   `ApplicationService` supplies this retriever to `HybridQA`. Explicit document
+   questions use `RetrievalQuery(kind='document')`; medication identity, interaction
+   assessment and owner-record requests keep their structured paths. Failure of a
+   structured source does not automatically fall through to document search.
+   `rag/interface.py` retains the shared protocol and `DisabledDocumentRetriever`
+   for explicitly disabled/default standalone configurations. Missing corpus or
+   insufficient evidence returns the existing unavailable/limited answer.
 
 Reference candidates, source medication IDs and DDInter mapping IDs are not
 patient identity verification or interaction findings. Only an actual retained
@@ -93,6 +106,9 @@ sharing remain deferred to their owning services.
   consumers and dialogue use the same routing semantics.
 - Raw fields must come from the current source and the correct medication span.
   Strength, dose, frequency, duration and package quantity have distinct roles.
+  Numeric strengths and supported Vietnamese number/unit phrases such as
+  `năm trăm miligam` retain their original source span; tablet counts alone do
+  not supply a strength and no numeric conversion replaces the reviewed words.
   Keep `2 hộp` as raw quantity; never calculate pills, schedules or daily doses.
   Corrections extract only new evidence and retain previous evidence/fields.
 - Preserve `timing_raw="sáng và tối"` and its raw dose in one administration group;
@@ -129,8 +145,35 @@ idle between operations. Use one connection per active request.
 Workflows retain existing `MEDICATION_INTAKE`, `SAFETY_REQUEST`, `Q_AND_A` types.
 Intake moves through COLLECTING/CLARIFYING, AWAITING_CONFIRMATION, and COMPLETED or
 explicit cancellation. Side requests use existing SUSPENDED workflows with a
-disposition; they do not imply a completed clinical action. Inputs remain TEXT,
-with `medication-entry.v4` payloads and the existing raw-field JSONB extensions.
+disposition; they do not imply a completed clinical action. Typed NLP turns use
+TEXT inputs with `medication-entry.v4` payloads and the existing raw-field JSONB
+extensions. Voice uses the existing AUDIO modality for the original audio digest
+and ASR text, then a reviewed TEXT input for NLP; both are linked through Voice
+provenance. No Core schema change is required.
+
+## Voice review before the shared message flow
+
+The common `module1_intake.api.transcribe_voice()` returns `raw_transcript` and
+`confidence_score`. `ApplicationService.preview_voice()` binds that result to an
+owned workflow/revision and persists an editable voice draft without running NLP
+or creating a medication entry. The user sees the original transcript, can edit
+it, and explicitly agrees to send the displayed draft. `submit_voice()` then
+passes exactly that text through the same `send()` routing, grounding, extraction
+and correction flow as a typed turn. Medication review/confirmation is a separate
+step after extraction.
+
+The message and interpreted TEXT payload retain `input_source=VOICE`, the raw and
+edited text, language, confidence, draft ID and original `audio_input_id`. The
+adapter retains an audio digest rather than audio bytes in workflow context.
+Empty/silent audio and ASR failure leave the previous draft, medication entries,
+revision and displayed review intact for retry. NLP rejection retains the draft
+for editing/resubmission. Owner, revision and draft ID checks reject stale drafts;
+pending drafts must be submitted or discarded before medication confirmation.
+The existing application CLI provides `/voice WAV`, `/voice-draft`,
+`/voice-edit TEXT`, `/voice-send` and `/voice-cancel`. See
+[the Voice API contract](API.md#voice-drafts-in-the-same-conversation).
+
+## Medication confirmation
 
 Review pins its display message, revision, exact entry IDs and PostgreSQL content
 digests. Only normalized `xác nhận`/`tôi xác nhận` or the explicit confirmation
@@ -175,12 +218,21 @@ from `application`. New code should import each canonical owner directly.
 
 ## Verification and scope
 
-All 169 meaningful tests remain: offline extraction, diagnostics, CLI, semantics,
-application/policy, architecture, real model, and isolated PostgreSQL cases.
-These groups test different boundaries; no equivalent duplicate test was proven
-safe to remove. Five architecture checks protect aliases/exports, fingerprints of
-46 public schema exports, acyclic dependencies, evidence-only composition and
-disabled RAG. See [README.md](README.md#regression-tests) for commands and reports.
+Regression groups cover offline extraction, diagnostics, CLI, semantics,
+application/policy, architecture, BM25 document retrieval, Voice review, real
+models, and isolated PostgreSQL behavior. Architecture checks protect public
+aliases/schema exports, acyclic dependencies, evidence-only composition and the
+explicit disabled retriever. Active document retrieval has its own RAG tests.
+No duplicate test group has been established safe to remove. See
+[README.md](README.md#regression-tests) for launchers.
+
+Acceptance records have different scopes: the historical
+[198-test NLP run](../../../artifacts/nlp_mvp_v2/junit.xml) includes real Qwen and
+PostgreSQL cases; the [three Intake fixes](../../../artifacts/intake_three_fixes/RESULTS.md)
+record 243 passed and three RAG opt-in skips without running PostgreSQL or a
+Vietnamese WAV. The [Voice integration review](../../../artifacts/voice_manual_input/voice_chatbot_review.md)
+also records the later synthetic Vietnamese WAV run, including Whisper's
+`Panadol` to `Panadone` error. A newer count does not replace independent coverage.
 
 The consolidated documentation replaces historical intent/timing, checkpoint and
 handoff reports. Their current semantics, known provider failure/fix, regression

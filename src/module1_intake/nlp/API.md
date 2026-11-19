@@ -101,7 +101,7 @@ classes with unchanged schemas. The shared
 `shared.db.intake_adapter.build_confirmed_handoff(repo, workflow_id)` now builds
 the DTO for any Core input source, and the NLP `build_handoff` wrapper delegates
 to it. No NLP extraction/dialogue implementation is required by Module 2.
-Core intake supports `TEXT`, `IMAGE` and `MANUAL` with the same review and
+Core intake supports `TEXT`, `AUDIO`, `IMAGE` and `MANUAL` with the same review and
 confirmation requirements. Optional aligned `item_locators` on `persist_module1`
 retain caller-supplied page/box/form evidence through existing item origins.
 
@@ -113,6 +113,63 @@ for exact fields, future OCR/manual integration steps and outstanding team
 agreements. Those unfinished interfaces are not assumed to exist. Review
 adapters must check workflow revision and displayed digests before confirming;
 the unchanged handoff itself contains no workflow/revision token.
+
+## Voice drafts in the same conversation
+
+`module1_intake.api.transcribe_voice()` returns `raw_transcript` and
+`confidence_score`; it has no workflow, revision, medication fields or save
+authorization. `TurnRequest` instead requires `workflow_id`, `revision` and
+`text`. The application now connects these boundaries through a persisted,
+owner-scoped voice draft, without changing `TurnRequest` or `ApplicationResponse`.
+
+```python
+from module1_intake.nlp.application import VoiceRequest, VoiceEditRequest, VoiceSubmitRequest
+
+preview = service.preview_voice(VoiceRequest(
+    workflow_id=response.workflow_id, revision=response.revision,
+    audio_payload=wav_bytes, language='vi-VN'))
+# Render preview.draft.raw_transcript, .text and .confidence_score to the user.
+# If error_code is present, keep the existing draft and offer another recording.
+if preview.draft is not None and preview.error_code is None:
+    preview = service.edit_voice(VoiceEditRequest(
+        workflow_id=preview.workflow_id, revision=preview.revision,
+        draft_id=preview.draft.draft_id, text=user_edited_text))
+    # Render the edited draft, then submit only after the user's explicit action.
+    response = service.submit_voice(VoiceSubmitRequest(
+        workflow_id=preview.workflow_id, revision=preview.revision,
+        draft_id=preview.draft.draft_id, explicit_confirmation=True))
+# Render response.entries and the existing review; medication confirmation is
+# a separate service.confirm(ConfirmationRequest(...)) after that review.
+```
+
+`resume_voice(workflow_id)` restores the editable draft after reconnection.
+`discard_voice(VoiceDraftRequest(...))` removes it and refreshes the existing
+medication review. Preview/edit/discard return a `VoicePreview` with the current
+revision, optional draft, `error_code`, `retry_allowed` and `next_action`.
+Request UUIDs are typed in Python; use `model_validate_json()` for JSON transport.
+All mutating draft requests check owner, revision and the current draft ID.
+
+Preview runs the shared ASR API only. It creates no medication entry and invokes
+no NLP inference. Successful ASR retains an existing Core `AUDIO` input containing
+the raw audio digest, transcript, language and confidence; audio bytes themselves
+are not retained by this adapter. The workflow stores the draft and audio input
+ID. Failed/empty/silent audio leaves the prior draft, entries, workflow revision
+and displayed medication review unchanged, so recording can be retried.
+
+Submission sends exactly the reviewed text through the same `send()` routing,
+grounding, extraction and correction path as typing. The user message and the
+interpreted `TEXT` input retain `input_source=VOICE` with raw/edited transcript,
+language, confidence, draft ID and original `audio_input_id`. Thus TEXT describes
+the bytes sent to NLP; it does not erase the Voice origin. Later typed corrections
+retain their own TEXT source, while previous versions keep the original evidence.
+NLP rejection preserves the voice draft for correction and resubmission.
+
+Pending voice drafts block ordinary text submission and medication confirmation;
+the client must submit or discard them first. Transcript agreement never confirms
+medication entries. Completed workflows require the existing `revise()` or a new
+workflow before another voice draft. No new DB schema, HTTP server or browser
+microphone UI is introduced. The existing application CLI supports `/voice WAV`,
+`/voice-draft`, `/voice-edit TEXT`, `/voice-send` and `/voice-cancel`.
 
 ## Confirmed identification and optional assessment
 

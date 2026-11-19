@@ -149,3 +149,41 @@ def test_source_evidence_from_another_drug_cannot_supply_timing_slots():
                      administrations=[Administration(timing_raw='mỗi sáng', timing_slots_raw=['sáng', 'tối'])])
     with pytest.raises(EvidenceError):
         validate_medication(med, text)
+
+
+@pytest.mark.parametrize('strength', ['năm trăm miligam', 'hai trăm microgam',
+    'mười hai phẩy năm miligam', 'nửa gam', '500 mg'])
+def test_spoken_strengths_keep_original_source_and_dose(strength):
+    text = f'Tôi đang uống Example {strength}, dạng viên nén, mỗi sáng một viên'
+    med = Medication(name_raw='Example', strength_raw=strength, dosage_form_raw='viên nén',
+                     dose_raw='một viên', evidence_text=text)
+    assert validate_medication(med, text).strength_raw == strength
+    assert validate_medication(med, text).dose_raw == 'một viên'
+
+
+def test_spoken_strength_through_chatbot_and_dose_only_followup():
+    text = 'Tôi đang uống Panadol năm trăm miligam, dạng viên nén, mỗi sáng một viên'
+    repo, bot, reply = conversation()
+    reply = send(bot, reply, text)
+    assert reply.state == 'AWAITING_CONFIRMATION'
+    med = bot.store.entries(bot.store.workflow(reply.workflow_id))[0]['medication_fields']
+    assert med['strength_raw'] == 'năm trăm miligam' and med['dose_raw'] == 'một viên'
+    assert med['evidence_text'] == text
+    assert all(row['confirmed_at'] is None for row in repo.tables['medication_entry_versions'].values())
+
+    _, bot, reply = conversation()
+    reply = send(bot, reply, 'Tôi đang uống Panadol, dạng viên nén')
+    reply = send(bot, reply, 'mỗi sáng một viên')
+    med = bot.store.entries(bot.store.workflow(reply.workflow_id))[0]['medication_fields']
+    assert med['strength_raw'] is None and med['dose_raw'] == 'một viên'
+    assert reply.state == 'CLARIFYING'
+
+
+def test_spoken_strength_preserves_decomposed_accents_and_rejects_invented_normalization():
+    text = unicodedata.normalize('NFD', 'Example năm trăm miligam, mỗi sáng một viên')
+    strength = unicodedata.normalize('NFD', 'năm trăm miligam')
+    assert validate_medication(Medication(strength_raw=strength, evidence_text=text), text).strength_raw == strength
+    with pytest.raises(EvidenceError):
+        validate_medication(Medication(strength_raw='500 mg', evidence_text=text), text)
+    with pytest.raises(EvidenceError):
+        validate_medication(Medication(strength_raw='một viên', evidence_text='mỗi sáng một viên'), 'mỗi sáng một viên')

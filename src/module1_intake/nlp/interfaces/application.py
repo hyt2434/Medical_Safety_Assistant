@@ -20,7 +20,7 @@ from ..qa_pipeline.pipeline import Answer, GroundedComposer, HybridQA, document_
 from ..qa_pipeline.rag.documents import LocalDocumentRetriever
 from ..qa_pipeline.contracts import RetrievalQuery
 from ..models import EntryView, DialogueAct, Intent, Medication, Reply, StrictModel, Understanding
-from ..integration.persistence import medication
+from ..integration.persistence import medication, message_metadata
 from ..understanding.providers import OllamaProvider
 from ..understanding.providers import InferenceError, understand
 from ..understanding.routing import detect, explicit_backend_action
@@ -43,6 +43,45 @@ class ConfirmationRequest(StrictModel):
     revision: int = Field(ge=1)
     request_key: UUID
     explicit_confirmation: bool
+
+
+class VoiceRequest(StrictModel):
+    workflow_id: UUID
+    revision: int = Field(ge=1)
+    audio_payload: bytes | str
+    language: str = 'vi-VN'
+
+
+class VoiceDraftRequest(StrictModel):
+    workflow_id: UUID
+    revision: int = Field(ge=1)
+    draft_id: UUID
+
+
+class VoiceEditRequest(VoiceDraftRequest):
+    text: str = Field(min_length=1, max_length=12000)
+
+
+class VoiceSubmitRequest(VoiceDraftRequest):
+    explicit_confirmation: bool
+
+
+class VoiceDraft(StrictModel):
+    draft_id: UUID
+    audio_input_id: UUID
+    raw_transcript: str
+    text: str = Field(min_length=1, max_length=12000)
+    confidence_score: float | None = Field(default=None, ge=0, le=1)
+    language: str
+
+
+class VoicePreview(StrictModel):
+    workflow_id: UUID
+    revision: int
+    draft: VoiceDraft | None
+    error_code: str | None = None
+    retry_allowed: bool = True
+    next_action: str = 'REVIEW_VOICE_DRAFT'
 
 
 class WorkflowActionRequest(StrictModel):
@@ -117,25 +156,104 @@ class ApplicationService:
     def start(self, *, conversation_id=None, task=None):
         return self._response(self.bot.start(conversation_id=conversation_id, task=task))
 
-    def send(self, request: TurnRequest):
+    def send(self, request: TurnRequest, *, _voice=None):
         if not request.text.strip():
             raise ValueError('Message must contain 1–12000 characters')
+        workflow = self.bot._check(request.workflow_id, request.revision)
+        if workflow['context'].get('voice_draft') and _voice is None:
+            raise ValueError('Review, edit, submit or discard the pending voice draft first')
         if document_question(request.text):
-            return self._document_turn(request)
-        workflow = self.bot.store.workflow(request.workflow_id)
+            return self._document_turn(request, _voice=_voice)
         if workflow['state'] == 'COMPLETED' and fold(request.text.strip().rstrip('.!')) not in {'xac nhan', 'toi xac nhan'}:
             workflow = self.bot._check(request.workflow_id, request.revision)
             return self._completed_turn(request, workflow)
-        return self._response(self.bot.send(request.workflow_id, request.text, expected_revision=request.revision))
+        return self._response(self.bot.send(request.workflow_id, request.text, expected_revision=request.revision, _voice=_voice))
 
-    def _document_turn(self, request):
+    def resume_voice(self, workflow_id):
+        workflow = self.bot.store.workflow(workflow_id)
+        raw = workflow['context'].get('voice_draft')
+        return VoicePreview(workflow_id=workflow['id'], revision=workflow['revision'],
+            draft=VoiceDraft.model_validate_json(json.dumps(raw)) if raw else None,
+            retry_allowed=workflow['state'] not in {'COMPLETED', 'CANCELLED', 'FAILED'},
+            next_action='REVIEW_VOICE_DRAFT' if raw else 'TYPE_OR_RECORD')
+
+    def _save_voice_draft(self, workflow, draft):
+        ctx = deepcopy(workflow['context'])
+        if draft is None:
+            ctx.pop('voice_draft', None)
+        else:
+            ctx['voice_draft'] = draft.model_dump(mode='json')
+        if workflow['state'] == 'AWAITING_CONFIRMATION':
+            # Refresh the existing medication review/digest at the new revision.
+            question = (ctx.get('pending_questions') or [{}])[0].get('question')
+            self.bot._display(workflow, ctx, question=question)
+        else:
+            self.bot._transition(workflow, workflow['state'], ctx)
+        return self.resume_voice(workflow['id'])
+
+    def preview_voice(self, request: VoiceRequest):
+        from ... import api as intake_api
+        from ...voice.asr import VoiceInputError, _to_bytes
+
+        with self.bot.store.turn(request.workflow_id):
+            workflow = self.bot._check(request.workflow_id, request.revision)
+            if workflow['state'] in {'COMPLETED', 'CANCELLED', 'FAILED'}:
+                raise ValueError('Start or revise an active workflow before voice input')
+            try:
+                audio = _to_bytes(request.audio_payload)
+                result = intake_api.transcribe_voice(audio, request.language)
+                if len(result['raw_transcript']) > 12000:
+                    raise VoiceInputError('INVALID_AUDIO', 'Transcript exceeds the message limit')
+            except VoiceInputError as error:
+                return self.resume_voice(request.workflow_id).model_copy(update={'error_code': error.code})
+            # Core already accepts AUDIO. Retain the audio digest and ASR text;
+            # audio bytes are not stored in workflow context or duplicated as text bytes.
+            inp = self.repo.record_input(workflow['intake_session_id'], 'AUDIO', audio,
+                payload={'schema': 'input.v4', 'digest_basis': 'ORIGINAL_BYTES',
+                         'text': result['raw_transcript'], 'input_source': 'VOICE',
+                         'language': request.language, 'confidence_score': result['confidence_score']})
+            draft = VoiceDraft(draft_id=uuid4(), audio_input_id=inp['id'],
+                raw_transcript=result['raw_transcript'], text=result['raw_transcript'],
+                confidence_score=result['confidence_score'], language=request.language)
+            return self._save_voice_draft(workflow, draft)
+
+    def _voice_draft(self, request):
+        workflow = self.bot._check(request.workflow_id, request.revision)
+        draft = workflow['context'].get('voice_draft')
+        if not draft or draft['draft_id'] != str(request.draft_id):
+            raise ValueError('Voice draft changed; reload and review it')
+        return workflow, VoiceDraft.model_validate_json(json.dumps(draft))
+
+    def edit_voice(self, request: VoiceEditRequest):
+        with self.bot.store.turn(request.workflow_id):
+            workflow, draft = self._voice_draft(request)
+            if not request.text.strip():
+                raise ValueError('Voice draft must contain text')
+            return self._save_voice_draft(workflow, draft.model_copy(update={'text': request.text}))
+
+    def discard_voice(self, request: VoiceDraftRequest):
+        with self.bot.store.turn(request.workflow_id):
+            workflow, _ = self._voice_draft(request)
+            return self._save_voice_draft(workflow, None)
+
+    def submit_voice(self, request: VoiceSubmitRequest):
+        if request.explicit_confirmation is not True:
+            raise ValueError('Explicit review of the voice transcript is required')
+        with self.bot.store.turn(request.workflow_id):
+            _, draft = self._voice_draft(request)
+            # The exact reviewed text enters the same turn routing/extraction as typing.
+            # NLP failure retains the editable draft; success consumes it.
+            return self.send(TurnRequest(workflow_id=request.workflow_id, revision=request.revision,
+                text=draft.text), _voice=draft.model_dump(mode='json'))
+
+    def _document_turn(self, request, *, _voice=None):
         """Knowledge questions need no single drug target or medication extraction."""
         with self.bot.store.turn(request.workflow_id):
             workflow = self.bot._check(request.workflow_id, request.revision)
             if workflow['state'] in {'CANCELLED', 'FAILED'}:
                 raise ValueError('Terminal workflow; start a new dialogue')
             answer = self.qa.answer(Intent.MEDICATION_QA, RetrievalQuery(request.text, 'document'))
-            self.repo.append_message(workflow['conversation_id'], 'USER', request.text)
+            self.repo.append_message(workflow['conversation_id'], 'USER', request.text, message_metadata(_voice))
             if workflow['state'] == 'COMPLETED':
                 saved = self._saved_action(workflow)
                 response = (ApplicationResponse.model_validate_json(json.dumps(saved['application_response'])) if saved else
@@ -146,6 +264,8 @@ class ApplicationService:
                 response.next_action = 'SHOW_ANSWER' if answer.evidence_refs else 'UNAVAILABLE'
                 return self._retain_response(workflow, response)
             ctx = deepcopy(workflow['context'])
+            if _voice:
+                ctx.pop('voice_draft', None)
             ctx.update(qa_results=[answer.model_dump(mode='json')], dialogue_act='ASK_QUESTION',
                        active_intents=[Intent.MEDICATION_QA.value], next_action='SHOW_ANSWER' if answer.evidence_refs else 'UNAVAILABLE')
             ctx.pop('error_code', None)
