@@ -41,8 +41,10 @@ def test_real_core_voice_review_provenance_and_retry(repo, monkeypatch):
     current = service.start(task=Intent.ADD_MEDICATION)
     view = service.preview_voice(VoiceRequest(workflow_id=current.workflow_id, revision=current.revision, audio_payload=b'audio fixture'))
     assert service.resume(current.workflow_id).entries == []
+    edited_text = text.replace('một viên', 'hai viên')
     current = service.edit_voice(VoiceEditRequest(workflow_id=view.workflow_id, revision=view.revision,
-        draft_id=view.draft.draft_id, text=text.replace('một viên', 'hai viên')))
+        draft_id=view.draft.draft_id, text=edited_text))
+    assert current.draft.raw_transcript == text and current.draft.text == edited_text
     reloaded = ApplicationService(repo, MockProvider())
     assert reloaded.resume_voice(view.workflow_id) == current
     failed = reloaded.preview_voice(VoiceRequest(workflow_id=current.workflow_id, revision=current.revision, audio_payload=b''))
@@ -51,14 +53,28 @@ def test_real_core_voice_review_provenance_and_retry(repo, monkeypatch):
     result = reloaded.submit_voice(VoiceSubmitRequest(workflow_id=current.workflow_id, revision=current.revision,
         draft_id=current.draft.draft_id, explicit_confirmation=True))
     assert result.entries[0].medication.dose_raw == 'hai viên' and not result.entries[0].confirmed
-    audio = repo._owned('intake_inputs', view.draft.audio_input_id)
-    assert audio['modality'] == 'AUDIO' and audio['input_digest'] == hashlib.sha256(b'audio fixture').hexdigest()
+    # The adapter retains the ASR transcript, not an audio object. Core AUDIO
+    # requires a genuinely retained object; audio_input_id is the API's stable
+    # field name for the original TEXT input with VOICE provenance.
+    original = repo._owned('intake_inputs', view.draft.audio_input_id)
+    assert original['modality'] == 'TEXT'
+    assert original['input_digest'] == hashlib.sha256(text.encode('utf-8')).hexdigest()
+    payload = original['payload_or_locator']
+    assert payload['input_source'] == 'VOICE' and payload['text'] == text
+    assert payload['audio_retained'] is False and 'object_locator' not in payload
+    assert payload['audio_sha256'] == hashlib.sha256(b'audio fixture').hexdigest()
     rows = repo._all('SELECT * FROM msa.intake_inputs WHERE session_id=%s AND user_id=%s AND modality=%s',
-        (audio['session_id'], repo.owner, 'TEXT'))
-    assert len(rows) == 1
-    assert rows[0]['payload_or_locator']['input_source'] == 'VOICE'
-    assert rows[0]['payload_or_locator']['voice']['raw_transcript'] == text
-    assert rows[0]['payload_or_locator']['voice']['audio_input_id'] == str(audio['id'])
+        (original['session_id'], repo.owner, 'TEXT'))
+    assert len(rows) == 2
+    interpreted, = [row for row in rows if row['id'] != original['id']]
+    assert interpreted['input_digest'] == hashlib.sha256(edited_text.encode('utf-8')).hexdigest()
+    reviewed = interpreted['payload_or_locator']
+    assert reviewed['input_source'] == 'VOICE' and reviewed['text'] == edited_text
+    assert 'object_locator' not in reviewed
+    assert reviewed['voice']['raw_transcript'] == text
+    assert reviewed['voice']['text'] == edited_text
+    assert reviewed['voice']['audio_input_id'] == str(original['id'])
+    assert reviewed['voice']['draft_id'] == str(view.draft.draft_id)
     done = reloaded.confirm(ConfirmationRequest(workflow_id=result.workflow_id, revision=result.revision,
         request_key=uuid4(), explicit_confirmation=True))
     assert done.entries[0].confirmed

@@ -7,7 +7,7 @@ medical answer.
 
 | Document | Purpose |
 | --- | --- |
-| [Architecture](ARCHITECTURE.md) | Folder map, responsibilities, compatibility and safety contracts |
+| [Architecture](ARCHITECTURE.md) | Canonical imports, folder map, responsibilities and safety contracts |
 | [Application API](API.md) | Frontend DTOs, host integration, service methods and capability limits |
 | [V2 design input](../../../docs/requirements/NLP_CHATBOT_MVP_DESIGN_V2.txt) | Original requirements; the implemented Core V4 contract takes precedence |
 
@@ -30,12 +30,20 @@ are required. Application/extraction launchers reuse `.venv`; they never install
 packages, download models, bootstrap a database, create users or import reference
 data. Test-only bootstrap is an explicit option described below.
 
+Backend/UI hosts import `ApplicationService` and its request/response DTOs from
+`module1_intake.nlp.interfaces.application`. Implementation imports follow
+`understanding/`, `dialogue_management/`, `qa_pipeline/`, and `integration/`.
+Root compatibility modules have been removed; shared NLP DTOs remain in
+`models.py`, with source-independent medication/handoff types owned by
+`shared.intake_contracts`. See the migration table in
+[ARCHITECTURE.md](ARCHITECTURE.md#canonical-imports-and-public-boundaries).
+
 ## Run
 
 Stateless real-Qwen extraction:
 
 ```powershell
-& .\src\module1_intake\nlp\interactive_ollama.ps1 -Model 'qwen3.5:9b' -TimeoutSeconds 120
+& .\scripts\nlp\interactive_ollama.ps1 -Model 'qwen3.5:9b' -TimeoutSeconds 120
 ```
 
 Each input has an empty context. This tests extraction/validation only, without
@@ -46,7 +54,7 @@ Persisted application:
 ```powershell
 $nlpDsn = Read-Host 'Existing isolated development Core V4 DSN'
 $nlpOwner = Read-Host 'Existing synthetic identity.users UUID in that database'
-& .\src\module1_intake\nlp\application_ollama.ps1 `
+& .\scripts\nlp\application_ollama.ps1 `
     -Dsn $nlpDsn -Owner $nlpOwner -Model 'qwen3.5:9b' -TimeoutSeconds 120
 ```
 
@@ -104,12 +112,12 @@ understands requests and selects backend fact IDs for responses. Identities and
 findings are never taken from model knowledge.
 
 The confirmed medication DTOs are now owned by `shared.intake_contracts`, with
-unchanged NLP aliases/schemas. Chatbot, future OCR and manual adapters share
+unchanged NLP DTO identities/schemas. Chatbot, Voice, OCR and manual adapters share
 `build_confirmed_handoff` and the same Core verification boundary; Module 2 no
 longer imports NLP's store/models. See the
 [three-source integration contract](../../module2_medications/README.md#source-independent-module-1-boundary)
 for source metadata, corrections, review requirements and team agreements still
-needed for the unfinished OCR/manual interfaces.
+covering source metadata, explicit product selection and confirmed handoff.
 
 The original development CLI remains available with `PYTHONPATH=./src`:
 `python -m module1_intake.nlp --provider mock --owner <existing-uuid>` and
@@ -120,14 +128,14 @@ The mock grammar is intentionally limited; it is not an NLP accuracy benchmark.
 
 ```powershell
 # Offline: no database, real model, download or paid API.
-& .\src\module1_intake\nlp\test_mvp.ps1 -Dsn ''
+& .\scripts\nlp\test_mvp.ps1 -Dsn ''
 
 # Real Qwen extraction only; no PostgreSQL.
-& .\src\module1_intake\nlp\test_ollama.ps1 -Model 'qwen3.5:9b' -TimeoutSeconds 120
+& .\scripts\nlp\test_ollama.ps1 -Model 'qwen3.5:9b' -TimeoutSeconds 120
 
 # Complete suite, using the already provisioned isolated NLP fixture database.
 $nlpTestDsn = 'host=127.0.0.1 port=55432 dbname=msa_core_test_v4nlpe2e20261111checks user=core_fixture_admin connect_timeout=5'
-& .\src\module1_intake\nlp\test_mvp.ps1 `
+& .\scripts\nlp\test_mvp.ps1 `
     -Dsn $nlpTestDsn -RealOllama -Model 'qwen3.5:9b'
 ```
 
@@ -145,20 +153,20 @@ records stay in the dedicated NLP database.
 
 `-Dsn` enables PostgreSQL tests; `-RealOllama` sets `NLP_RUN_REAL_OLLAMA=1` for real
 inference, including combined Qwen/DB cases. Launchers restore their environment
-changes. Reports go to ignored `artifacts/nlp_mvp_v2/junit.xml`:
-
-```powershell
-[xml]$nlpReport = Get-Content -Raw .\artifacts\nlp_mvp_v2\junit.xml
-$nlpReport.testsuites.testsuite | Select-Object tests,failures,errors,skipped,time
-```
+changes. They resolve paths from `scripts/nlp/`, so an absolute script path also
+works from a different working directory. The test launcher now includes RAG and
+Voice review regressions and prints results to the terminal without replacing
+historical JUnit artifacts.
 
 Original V2 acceptance coverage: **142 offline**, **11 PostgreSQL with mock extraction**,
 **2 combined real-Qwen/PostgreSQL**, and **14 real-Qwen extraction** tests: **169**
 in total. Offline-only runs intentionally skip the other 27. Tests cover raw
 evidence, source timing, safe errors, owner/revision/digest gates, immutable
 corrections, side questions, resume, idempotent confirmation, grounded Q&A and the
-existing explicit Module 2/3 adapters. Five architecture checks protect aliases,
-46 captured public schema exports, dependency boundaries and inactive RAG.
+existing explicit Module 2/3 adapters. Current architecture checks address those
+same 46 captured schema fingerprints through canonical modules, and protect
+exports, serialization, dependency boundaries and the explicit disabled retriever.
+These historical counts are not the current suite size.
 Synthetic engineering tests do not establish clinical validity or model accuracy.
 
 Focused application/Module 2 tests (existing published four-product Core fixture;
@@ -214,10 +222,11 @@ bodies. On failure, use clarification or the host's manual-entry route; inferenc
 does not authorize writes or medication changes.
 
 Span/regex rules can conservatively reject unusual phrasing. Source-slot deletion,
-whole-turn recovery after arbitrary partial persistence failure, production HTTP
-authentication, candidate-resolution UI, clinical advice, reminders/HCP/summary
-execution and Phase B document retrieval remain outside this MVP.
+whole-turn recovery after arbitrary partial persistence failure, candidate-resolution
+UI, clinical advice and reminders/HCP/summary execution remain outside this MVP.
+The host now provides Auth/RBAC and owner-scoped HTTP transport. Document RAG
+uses the existing local BM25 pipeline; it does not authorize medication writes.
 
 Keep local environments, secrets, caches, reports and test artifacts out of Git.
-All canonical modules, compatibility forwards, tests, contract fingerprints and
-four PowerShell launchers are maintained source.
+Canonical modules, tests and unchanged contract fingerprints are maintained source;
+the four PowerShell launchers live in `scripts/nlp/`.

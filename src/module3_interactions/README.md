@@ -206,7 +206,7 @@ without pytest's `record_property`/xunit2 warning.
 For the complete current NLP regressions, use the same environment and run:
 
 ```powershell
-& .\src\module1_intake\nlp\test_mvp.ps1 `
+& .\scripts\nlp\test_mvp.ps1 `
     -Dsn $env:NLP_TEST_DSN -RealOllama -Model 'qwen3.5:9b'
 ```
 
@@ -226,7 +226,7 @@ database. Keep `$OutputEncoding` at UTF-8 when piping Vietnamese input from
 Windows PowerShell; its ASCII default replaces accented characters with `?`.
 
 ```powershell
-& .\src\module1_intake\nlp\interactive_ollama.ps1 `
+& .\scripts\nlp\interactive_ollama.ps1 `
     -Model 'qwen3.5:9b' -TimeoutSeconds 120
 ```
 
@@ -255,7 +255,7 @@ with psycopg.connect(dsn, autocommit=True) as db:
     print(owner)
 '@ | & .venv/Scripts/python.exe -X utf8 -B -
 if ($LASTEXITCODE -ne 0) { throw 'Development identity setup failed.' }
-& .\src\module1_intake\nlp\application_ollama.ps1 `
+& .\scripts\nlp\application_ollama.ps1 `
     -Dsn $env:CORE_DB_DSN -Owner $owner.Trim() `
     -Model 'qwen3.5:9b' -TimeoutSeconds 120 `
     -ReferenceBuild '463cd6c56dc5476fcabf5ad13405a909f3d0254a0043c3d5509140fb92ba1ab9' `

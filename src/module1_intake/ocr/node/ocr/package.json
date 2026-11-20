@@ -1,4 +1,5 @@
 {
+  "private": true,
   "dependencies": {
     "@tesseract.js-data/eng": "^1.0.0",
     "@tesseract.js-data/vie": "^1.0.0",

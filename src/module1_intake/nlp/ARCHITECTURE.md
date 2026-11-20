@@ -5,13 +5,13 @@
 ```text
 nlp/
   README.md                         Setup, launchers and regression tests
-  ARCHITECTURE.md                   Layers, safety contracts and compatibility
+  ARCHITECTURE.md                   Layers, safety contracts and public boundaries
   API.md                           Host/frontend integration
   requirements.txt                 Runtime dependencies
   requirements-dev.txt             Runtime plus test dependencies
   models.py                        Shared raw-evidence, entry-view and handoff DTOs
   __init__.py                      Existing public package exports
-  __main__.py                      Existing python -m entry point
+  __main__.py                      python -m entry point, delegates to interfaces.cli
   understanding/
     __init__.py
     providers.py                   Qwen/mock extraction and safe bounded retries
@@ -42,14 +42,12 @@ nlp/
     application_cli.py             Persisted terminal client
     interactive.py                 Stateless extraction terminal client
     cli.py                         Command-line argument handling
+
+scripts/nlp/                       At repository root, outside the Python package
   application_ollama.ps1            Persisted application launcher
   interactive_ollama.ps1            Stateless extraction launcher
-  test_mvp.ps1                      Full regression launcher
+  test_mvp.ps1                      NLP/RAG/Voice regression launcher
   test_ollama.ps1                   Real-model extraction test launcher
-  application.py, application_cli.py, dialogue.py, fsm.py, handoff.py,
-  hybrid_qa.py, interactive.py, persistence.py, policy.py, providers.py,
-  qa.py, retrieval.py, routing.py, validation.py
-                                   Compatibility forwards only
 ```
 
 Understanding depends on shared models, not dialogue, persistence or application
@@ -193,11 +191,11 @@ creation, Module 3 execution and assessment retrieval through `integration/hando
 Those paths recheck owner, latest versions, digests, confirmation and exact target
 sets. Inference and read-only Q&A cannot trigger clinical execution automatically.
 
-## Compatibility
+## Canonical imports and public boundaries
 
 The following abbreviate `module1_intake.nlp` as `nlp`:
 
-| Existing path | Canonical implementation |
+| Removed root module | Canonical implementation |
 | --- | --- |
 | `nlp.providers`, `nlp.routing`, `nlp.validation` | Corresponding `nlp.understanding.*` |
 | `nlp.dialogue` | `nlp.dialogue_management.manager` |
@@ -206,26 +204,46 @@ The following abbreviate `module1_intake.nlp` as `nlp`:
 | `nlp.qa`, `nlp.retrieval` | `nlp.qa_pipeline.structured`, including legacy contract/protocol exports |
 | `nlp.hybrid_qa` | `nlp.qa_pipeline.pipeline`, including composition/answer exports |
 | `nlp.application`, `nlp.application_cli`, `nlp.interactive` | Corresponding `nlp.interfaces.*` |
-| `nlp.__main__` | `nlp.interfaces.cli`; the existing `python -m` command still dispatches `main()` |
+| `nlp.__main__` (retained entry point) | Imports `main` from `nlp.interfaces.cli`, without module aliasing |
 
-These tiny files alias the canonical module through `sys.modules`, preserving
-class/exception identity and monkeypatches without duplicating implementations.
-They remain required by public import contracts, existing base/CLI tests and the
-checkpoint export/schema checks. An internal search alone cannot establish that
-external frontend/backend callers have stopped using a public path.
+The 14 root compatibility modules have been removed. Repository imports, CLI
+test patches and checkpoint addresses now target the canonical modules. There
+are no `sys.modules` aliases. External callers of a removed import must migrate
+using this table. `python -m module1_intake.nlp` remains the supported CLI.
 
-Package exports `Chatbot`, `Module2Handoff`, `MockProvider`, `OllamaProvider`, the
-provider logger name and source locators remain stable. Shared `EntryView` lives
-in `models.py` to avoid a retrieval-to-application dependency and is still exported
-from `application`. New code should import each canonical owner directly.
+`nlp.interfaces.application` owns the backend/UI service API: `ApplicationService`
+and the DTOs listed in its `__all__`. The HTTP adapter in
+`apps/backend/api/routes/intake.py` already imports this module directly. UI
+transport code should use that API, not the dialogue manager or Core store.
+
+Package exports `Chatbot`, `Module2Handoff`, `MockProvider`, `OllamaProvider` remain
+available; `Chatbot` stays lazy so extraction does not import PostgreSQL.
+`models.py` owns NLP intents, understanding, reply and `EntryView`; its shared
+medication/administration/confirmed-handoff names are the same class objects from
+`shared.intake_contracts`. They are retained to preserve model identity and JSON
+schemas. `EntryView` is also exposed in the application API. Classes already had
+their canonical `__module__` before the alias removal; JSON/pickle contracts do
+not require the removed modules.
+
+The logger string `module1_intake.nlp.providers` and evidence locator
+`module1_intake.nlp.qa.APP_HELP` deliberately remain stable identifiers. Neither
+is a dynamic Python import; renaming them would alter logging configuration or
+retained provenance. Internal symbol re-exports covered by the checkpoint still
+reference their original classes/functions, without duplicate implementations.
+
+All four PowerShell scripts resolve the repository from `scripts/nlp/`, use the
+root `.venv`, set absolute source/repository paths, and restore process environment
+variables. They work from other working directories. Tests write results to the
+terminal; the launcher does not overwrite historical JUnit evidence.
 
 ## Verification and scope
 
 Regression groups cover offline extraction, diagnostics, CLI, semantics,
 application/policy, architecture, BM25 document retrieval, Voice review, real
 models, and isolated PostgreSQL behavior. Architecture checks protect public
-aliases/schema exports, acyclic dependencies, evidence-only composition and the
-explicit disabled retriever. Active document retrieval has its own RAG tests.
+canonical exports, JSON/pickle type identity, schema fingerprints, acyclic
+dependencies, evidence-only composition and the explicit disabled retriever.
+Active document retrieval has its own RAG tests.
 No duplicate test group has been established safe to remove. See
 [README.md](README.md#regression-tests) for launchers.
 

@@ -81,7 +81,7 @@ transcript gốc dưới dạng `TEXT`, nguồn `VOICE`, kèm digest audio riên
 `object_locator` giả. `audio_input_id` tham chiếu input transcript gốc, kể cả khi
 người dùng sửa bản nháp. Core chỉ cho phép `AUDIO` khi có đối tượng được lưu thật.
 
-Trong application CLI hiện có (`nlp/application_ollama.ps1`), dùng:
+Trong application CLI hiện có (`scripts/nlp/application_ollama.ps1`, tính từ gốc repo), dùng:
 
 ```text
 /voice path/to/vietnamese.wav

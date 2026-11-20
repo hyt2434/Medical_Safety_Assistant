@@ -1,10 +1,12 @@
-"""Refactor contracts: legacy identity, schema stability and authority boundaries."""
+"""Canonical import paths, serialization, schema stability and authority boundaries."""
 import ast
 import hashlib
 import importlib
 from importlib.util import resolve_name
 import json
+import pickle
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
@@ -15,33 +17,48 @@ from module1_intake.nlp.qa_pipeline.contracts import RetrievalQuery, RetrievalRe
 from module1_intake.nlp.qa_pipeline.pipeline import HybridQA
 
 
-ALIASES = {
-    'providers': 'understanding.providers', 'routing': 'understanding.routing',
-    'validation': 'understanding.validation', 'dialogue': 'dialogue_management.manager',
-    'policy': 'dialogue_management.policy', 'fsm': 'dialogue_management.fsm',
-    'persistence': 'integration.persistence', 'handoff': 'integration.handoff',
-    'qa': 'qa_pipeline.structured', 'retrieval': 'qa_pipeline.structured',
-    'hybrid_qa': 'qa_pipeline.pipeline', 'application': 'interfaces.application',
-    'application_cli': 'interfaces.application_cli', 'interactive': 'interfaces.interactive',
-    '__main__': 'interfaces.cli',
-}
+RETIRED_MODULES = (
+    'providers', 'routing', 'validation', 'dialogue', 'policy', 'fsm',
+    'persistence', 'handoff', 'qa', 'retrieval', 'hybrid_qa',
+    'application', 'application_cli', 'interactive',
+)
 PREFIX = 'module1_intake.nlp.'
 CHECKPOINT = json.loads(Path(__file__).with_name('nlp_contracts_v2.json').read_text(encoding='utf-8'))
 
 
-def test_legacy_imports_share_one_implementation_and_preserve_checkpoint_exports(monkeypatch):
-    for old, current in ALIASES.items():
-        legacy = importlib.import_module(PREFIX + old)
-        canonical = importlib.import_module(PREFIX + current)
-        assert legacy is canonical, old
+def test_canonical_modules_preserve_checkpoint_exports_and_cli_patching(monkeypatch):
+    root = Path(nlp.__file__).parent
+    assert all(not (root / (name + '.py')).exists() for name in RETIRED_MODULES)
     for module, symbols in CHECKPOINT['exports'].items():
         imported = importlib.import_module(PREFIX + module)
+        assert imported.__name__ == PREFIX + module
         assert all(hasattr(imported, symbol) for symbol in symbols), module
-    legacy = importlib.import_module(PREFIX + 'interactive')
-    canonical = importlib.import_module(PREFIX + 'interfaces.interactive')
+    interactive = importlib.import_module(PREFIX + 'interfaces.interactive')
+    cli = importlib.import_module(PREFIX + 'interfaces.cli')
     sentinel = object()
-    monkeypatch.setattr(legacy, 'run_extraction_test', sentinel)
-    assert canonical.run_extraction_test is sentinel
+    calls = []
+    monkeypatch.setattr(cli, 'OllamaProvider', lambda *args, **kwargs: sentinel)
+    monkeypatch.setattr(interactive, 'run_extraction_test', calls.append)
+    cli.main(['--nlp-test'])
+    assert calls == [sentinel]
+
+
+def test_public_service_boundary_and_dto_serialization_keep_canonical_type_identity():
+    from module1_intake.nlp.interfaces import application
+    from module1_intake.nlp.models import Medication, Understanding
+    assert {'ApplicationService', 'ApplicationResponse', 'TurnRequest', 'ConfirmationRequest',
+            'VoiceRequest', 'VoiceEditRequest', 'VoiceSubmitRequest', 'ManualInputRequest',
+            'ManualEditRequest', 'WorkflowActionRequest'} <= set(application.__all__)
+    med = Medication(name_raw='Panadol', strength_raw='năm trăm miligam', evidence_text='Panadol năm trăm miligam')
+    values = [med, Understanding(medications=[med]), application.TurnRequest(
+        workflow_id=uuid4(), revision=1, text='Panadol năm trăm miligam'), application.VoiceDraft(
+        draft_id=uuid4(), audio_input_id=uuid4(), raw_transcript='Panadone', text='Panadol', language='vi-VN')]
+    for value in values:
+        restored = pickle.loads(pickle.dumps(value))
+        assert type(restored) is type(value)
+        assert restored.model_dump_json() == value.model_dump_json()
+        assert type(value).__module__ not in {PREFIX + name for name in RETIRED_MODULES}
+    assert Medication.__module__ == 'shared.intake_contracts'
 
 
 def test_public_dto_schemas_match_the_working_v2_checkpoint():
@@ -49,7 +66,7 @@ def test_public_dto_schemas_match_the_working_v2_checkpoint():
         module, symbol = qualified.rsplit('.', 1)
         model = getattr(importlib.import_module(PREFIX + module), symbol)
         current = model.model_json_schema()
-        if qualified == 'application.ApplicationResponse':
+        if qualified == 'interfaces.application.ApplicationResponse':
             # Explicitly additive execution-result fields; all pre-existing V2
             # properties and every other public DTO retain their captured schema.
             for field in ('identification_results', 'assessment_id', 'snapshot_id', 'executed_action'):
@@ -72,7 +89,7 @@ def test_layer_dependencies_are_acyclic_and_do_not_reenter_compatibility_modules
                 dependencies.add(resolve_name('.' * node.level + (node.module or ''), package) if node.level else node.module)
             elif isinstance(node, ast.Import):
                 dependencies.update(alias.name for alias in node.names)
-        assert not dependencies.intersection(PREFIX + alias for alias in ALIASES), module
+        assert not dependencies.intersection(PREFIX + name for name in RETIRED_MODULES), module
         if module.startswith(PREFIX + 'understanding.'):
             forbidden = ('shared.db', 'psycopg', *(PREFIX + part for part in ('integration', 'dialogue_management', 'qa_pipeline', 'interfaces')))
         elif module == PREFIX + 'qa_pipeline.contracts' or '.qa_pipeline.rag.' in module:

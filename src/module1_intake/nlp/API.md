@@ -22,10 +22,15 @@ response = service.send(TurnRequest(
 ))
 ```
 
-Existing imports from `module1_intake.nlp.application` remain valid. The host
-supplies authentication and HTTP/transport handlers, serializes DTOs, and maps
-permission/revision/validation errors to safe client responses. No HTTP server or
-frontend is provided here. Do not expose DB/provider exception bodies to clients.
+`module1_intake.nlp.interfaces.application` is the supported service/DTO import
+boundary for backend/UI adapters. Its `__all__` lists application requests,
+responses and `ApplicationService`; internal layers are imported from their
+own folders. Root-level compatibility modules have been removed.
+The host supplies authentication and HTTP/transport handlers, serializes DTOs,
+and maps permission/revision/validation errors to safe client responses.
+The current HTTP adapter is `apps/backend/api/routes/intake.py`; it obtains the
+Core owner through the server-managed Auth binding. Do not expose DB/provider
+exception bodies to clients.
 
 ## Requests and responses
 
@@ -109,9 +114,9 @@ Module 2 results add `input_evidence`, separate from reference provenance: actua
 input modality/payload/digest, extraction metadata and original/current source
 links are retained. Missing correction provenance stays explicitly unknown.
 See the [Module 2 source contract](../../module2_medications/README.md#source-independent-module-1-boundary)
-for exact fields, future OCR/manual integration steps and outstanding team
-agreements. Those unfinished interfaces are not assumed to exist. Review
-adapters must check workflow revision and displayed digests before confirming;
+for exact fields and source-specific review requirements. The existing host
+connects OCR, manual selection and Voice through this same service boundary.
+Review adapters check workflow revision and displayed digests before confirming;
 the unchanged handoff itself contains no workflow/revision token.
 
 ## Voice drafts in the same conversation
@@ -123,7 +128,7 @@ authorization. `TurnRequest` instead requires `workflow_id`, `revision` and
 owner-scoped voice draft, without changing `TurnRequest` or `ApplicationResponse`.
 
 ```python
-from module1_intake.nlp.application import VoiceRequest, VoiceEditRequest, VoiceSubmitRequest
+from module1_intake.nlp.interfaces.application import VoiceRequest, VoiceEditRequest, VoiceSubmitRequest
 
 preview = service.preview_voice(VoiceRequest(
     workflow_id=response.workflow_id, revision=response.revision,
@@ -263,8 +268,8 @@ failure retains the existing deterministic fallback.
 | Medication reference/identification | PARTIAL capability; explicit confirmed identification uses Module 2's published Core product/component/ingredient/mapping evidence. Before identification, Core retrieval remains candidate-only. Legacy historical facts retain their independent review/hash/locator guards |
 | Safety | PARTIAL capability; only explicit existing Module 2/3 execution and retained assessment evidence. Missing sources or targets yield UNAVAILABLE/UNASSESSED; incomplete results never imply safety |
 | Reminders, patient summaries, HCP sharing | DEFERRED; no connected Module 4/5 execution or invented schedule |
-| Document RAG | UNAVAILABLE; the future retrieval interface is inactive |
-| Production authentication/transport | Host responsibility |
+| Document RAG | Existing local BM25 retrieval over the declared corpus; document Q&A supplies bounded source excerpts to the grounded composer. Missing/scope-inappropriate evidence stays UNAVAILABLE. `DisabledDocumentRetriever` remains an explicit fallback |
+| Authentication/transport | Host responsibility; the current backend supplies Auth/RBAC and server-managed Core ownership bindings |
 
 Capability status describes the configured service; individual Q&A results may be
 UNAVAILABLE or PARTIAL. Clinical recommendations, prescribing, dose changes,
@@ -274,9 +279,9 @@ not production catalog coverage or clinical validity.
 
 ## Development clients
 
-`application_ollama.ps1` uses this service/DTO contract. Commands are `/new`,
+`scripts/nlp/application_ollama.ps1` uses this service/DTO contract. Commands are `/new`,
 `/resume UUID`, `/revise`, `/handoff`, `/identify`, `/assess`, `/safety-answer`,
-`/json`, `/exit` and `/quit`. `interactive_ollama.ps1` is a separate stateless
+`/json`, `/exit` and `/quit`. `scripts/nlp/interactive_ollama.ps1` is a separate stateless
 extraction client with no DB imports; it does not test this application contract.
 `/identify` and `/assess` display grounded source-backed results and update
 `/json`; `/resume` restores retained results. `/assess` remains a separate explicit

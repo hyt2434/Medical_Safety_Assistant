@@ -18,11 +18,12 @@ def main():
     sub.add_parser('medications',help='Main Module 2 lookup/pipeline CLI; --reference unified supported')
     args=parser.parse_args()
     if args.command=='image':
-        from module1_intake.ocr.local import local_ocr
+        from module1_intake.ocr.application.service import LocalOcrService
         args.output.mkdir(parents=True,exist_ok=False)
-        class Log:
-            def log(self,message): print(message,flush=True)
-        extracted,metadata=local_ocr(args.image,args.output,'image',Log())
+        result = LocalOcrService().extract(args.image)
+        extracted = result.extraction_run.raw_output['parsed']
+        metadata = {'provider': result.extraction_run.engine_name,
+                    'run_id': str(result.extraction_run.extraction_run_id), 'requires_user_review': True}
         (args.output/'extraction.json').write_text(json.dumps({'extraction':extracted,'metadata':metadata},ensure_ascii=False,indent=2),encoding='utf-8')
         print(json.dumps(extracted,ensure_ascii=False,indent=2))
 

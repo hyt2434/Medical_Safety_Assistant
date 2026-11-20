@@ -6,7 +6,8 @@ clinical safety.
 
 | Path | Responsibility |
 | --- | --- |
-| `apps/frontend/` | Canonical TypeScript/Vite PA2 application; PA1 comparison entry retained. |
+| `apps/frontend/` | Canonical React/TypeScript UI, Auth client and OCR review flow. |
+| `apps/backend/` | Auth/RBAC and Core V4 Intake HTTP API. |
 | `src/module1_intake/` | Intake adapters, OCR and the layered NLP MVP V2. |
 | `src/module2_medications/` | Medication identification and reference services. |
 | `src/module3_interactions/` | Interaction assessment and official-source adapters. |
@@ -21,17 +22,18 @@ clinical safety.
 
 Start with the [NLP setup and launchers](src/module1_intake/nlp/README.md),
 [frontend DTO/API contract](src/module1_intake/nlp/API.md), and
-[Core V4 setup](db/README.md). The NLP implementation keeps Hybrid Q&A Phase A
-and an inactive RAG Phase B interface. Compatibility modules forward to the
-layered implementation.
+[Core V4 setup](db/README.md). NLP uses structured-first Q&A and local BM25 document
+retrieval. Backend/UI adapters import `module1_intake.nlp.interfaces.application`;
+implementation imports use the canonical layer folders. Root compatibility
+wrappers have been removed; launchers live in `scripts/nlp/`.
 
-Run the [canonical PA2 frontend](apps/frontend/README-PA2.md) with `npm ci` and
+Run the [canonical React frontend](apps/frontend/README.md) with `npm ci` and
 `npm run dev` from `apps/frontend/`. The original team-authored
 [React PA1 prototype](docs/pa/pa1/react-prototype/README.md) remains independently
 runnable with its unique speech/chat behavior, assets and tests. Historical UI
-implementations under `docs/pa/` belong to their submissions. No backend API
-application exists in this branch; reusable Python business modules live only in
-root `src/`. Reports build from their own directories
+implementations under `docs/pa/` belong to their submissions. The backend launcher
+is `apps/backend/app.py`; reusable Python business modules live in root `src/`.
+See [backend setup and Core bindings](apps/backend/README.md). Reports build from their own directories
 and use canonical assets under `docs/design/` and `docs/pa/pa1/ui-prototype/screenshots/`.
 Historical 35/64-table database diagrams describe earlier designs; Core V4 lives in `db/`.
 `src/shared/schema.sql` is the separate SQLite DAV import staging schema.
@@ -39,7 +41,7 @@ Historical 35/64-table database diagrams describe earlier designs; Core V4 lives
 Offline NLP regression command, from the repository root with `.venv` ready:
 
 ```powershell
-& ./src/module1_intake/nlp/test_mvp.ps1 -Dsn ''
+& ./scripts/nlp/test_mvp.ps1 -Dsn ''
 ```
 
 Persisted tests require an explicitly marked isolated database. Keep local DSNs,

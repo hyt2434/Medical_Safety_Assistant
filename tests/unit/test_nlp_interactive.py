@@ -6,10 +6,10 @@ import sys
 import httpx
 import pytest
 
-from module1_intake.nlp.__main__ import main
-from module1_intake.nlp.interactive import run_extraction_test
+from module1_intake.nlp.interfaces.cli import main
+from module1_intake.nlp.interfaces.interactive import run_extraction_test
 from module1_intake.nlp.models import Administration, Intent, IntentCandidate, Medication, Understanding
-from module1_intake.nlp.providers import OllamaProvider
+from module1_intake.nlp.understanding.providers import OllamaProvider
 
 
 def run_lines(provider, lines):
@@ -109,8 +109,8 @@ def guarded(name, *args, **kwargs):
 builtins.__import__ = guarded
 os.environ.pop('CORE_DB_DSN', None)
 os.environ.pop('NLP_OLLAMA_MODEL', None)
-from module1_intake.nlp.__main__ import main
-from module1_intake.nlp import interactive
+from module1_intake.nlp.interfaces.cli import main
+from module1_intake.nlp.interfaces import interactive
 interactive.run_extraction_test = lambda provider: print(provider.model)
 main(['--nlp-test'])
 '''
@@ -136,5 +136,5 @@ def test_persisted_cli_still_requires_owner(capsys):
 
 def test_public_chatbot_export_still_works():
     from module1_intake.nlp import Chatbot
-    from module1_intake.nlp.dialogue import Chatbot as Original
+    from module1_intake.nlp.dialogue_management.manager import Chatbot as Original
     assert Chatbot is Original

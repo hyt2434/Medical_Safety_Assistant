@@ -8,11 +8,11 @@ from uuid import UUID, uuid4
 import httpx
 import pytest
 
-from module1_intake.nlp.dialogue import Chatbot
+from module1_intake.nlp.dialogue_management.manager import Chatbot
 from module1_intake.nlp.models import Medication, Understanding, Intent
-from module1_intake.nlp.providers import MockProvider, OllamaProvider, InferenceError, understand
-from module1_intake.nlp.routing import detect
-from module1_intake.nlp.validation import EvidenceError, validate_medication
+from module1_intake.nlp.understanding.providers import MockProvider, OllamaProvider, InferenceError, understand
+from module1_intake.nlp.understanding.routing import detect
+from module1_intake.nlp.understanding.validation import EvidenceError, validate_medication
 
 
 class FakeCore:
@@ -287,7 +287,7 @@ def test_application_help_works_without_inference_and_same_brand_can_be_added():
 
 
 def test_ambiguous_reference_name_is_not_verified_or_expanded():
-    from module1_intake.nlp.qa import reference_answer
+    from module1_intake.nlp.qa_pipeline.structured import reference_answer
     class AmbiguousReference:
         def lookup(self, fields):
             assert fields['name_raw'] == 'Para'

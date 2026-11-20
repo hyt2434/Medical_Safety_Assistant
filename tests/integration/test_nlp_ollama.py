@@ -1,6 +1,6 @@
 """Opt-in real local inference on synthetic Vietnamese text. No database access.
 
-Run via src/module1_intake/nlp/test_ollama.ps1 from the repository root.
+Run via scripts/nlp/test_ollama.ps1 from the repository root.
 """
 import os
 

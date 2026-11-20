@@ -1,1 +1,5 @@
-"""module1_intake/ocr package; planned packages expose no implementation."""
+"""Local OCR and printed-prescription extraction."""
+
+from module1_intake.ocr.application import LocalOcrService, OcrError
+
+__all__ = ["LocalOcrService", "OcrError"]
