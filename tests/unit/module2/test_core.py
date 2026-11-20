@@ -127,6 +127,65 @@ def test_ambiguous_products_retained_without_selection():
     assert narrowed['complete_identity'] and len(narrowed['candidates']) == 1
 
 
+def selected_reference(*, multiple_mappings=False):
+    first = product(source_medication_id='PC_synthetic_first')
+    selected = product(source_medication_id='PC_synthetic_selected')
+    comp = component(selected)
+    mappings = [mapping(comp)]
+    if multiple_mappings:
+        mappings.append(mapping(comp, 'DDInter900002', 'Synthetic Beta'))
+    repo = ReferenceRows([first, selected], [comp], mappings)
+    selection = {key: selected[key] for key in ('dataset_build', 'source_medication_id')}
+    selection['medication_id'] = selected['id']
+    return repo, selected, selection
+
+
+def test_core_manual_choice_preserves_source_id_product_uuid_and_ingredient_mapping():
+    repo, selected, selection = selected_reference()
+    query = confirmed()
+    before = deepcopy(query)
+    ambiguous = identify(query, CoreMedicationReference(repo, BUILD))
+    assert ambiguous['identified_candidate'] is None and len(ambiguous['candidates']) == 2
+    result = identify(query, CoreMedicationReference(repo, BUILD, selected_product=selection))
+    assert query == before
+    assert result['identified_candidate']['id'] == selected['id']
+    assert result['identified_candidate']['source_medication_id'] == 'PC_synthetic_selected'
+    assert result['manual_selection'] == selection
+    assert result['identification_status'] == 'VERIFIED' and result['ready_for_identifier_handoff']
+    assert result['ingredients'][0]['normalized_ingredient'] == 'Source Alpha'
+    assert result['verified_ddinter_ids'] == ['DDInter900001']
+    assert result['ingredients'][0]['ddinter_mappings'] == repo.mappings
+
+
+@pytest.mark.parametrize('conflict', ['source_id', 'core_uuid', 'strength', 'build'])
+def test_core_manual_choice_cannot_override_conflicting_identity(conflict):
+    repo, _, selection = selected_reference()
+    query = confirmed()
+    if conflict == 'build':
+        selection['dataset_build'] = OTHER_BUILD
+        with pytest.raises(ValueError, match='different catalog build'):
+            CoreMedicationReference(repo, BUILD, selected_product=selection)
+        return
+    if conflict == 'source_id':
+        selection['source_medication_id'] = 'PC_synthetic_first'
+    elif conflict == 'core_uuid':
+        selection['medication_id'] = repo.products[0]['id']
+    else:
+        query['strength_raw'] = '250mg'
+    result = identify(query, CoreMedicationReference(repo, BUILD, selected_product=selection))
+    assert result['candidates'] == [] and result['identified_candidate'] is None
+    assert not result['ready_for_identifier_handoff']
+
+
+def test_core_manual_choice_does_not_resolve_multiple_ddinter_targets():
+    repo, selected, selection = selected_reference(multiple_mappings=True)
+    result = identify(confirmed(), CoreMedicationReference(repo, BUILD, selected_product=selection))
+    assert result['identified_candidate']['id'] == selected['id']
+    assert result['identification_status'] == 'VERIFIED'
+    assert result['mapping_status'] == 'REVIEW_REQUIRED' and not result['ready_for_identifier_handoff']
+    assert result['ingredients'][0]['ddinter_mappings'] == repo.mappings
+
+
 @pytest.mark.parametrize('fields', [
     {'manufacturer': 'Unknown manufacturer'}, {'route_raw': 'uống'},
     {'strength_raw': '250mg'}, {'dosage_form_raw': 'Viên nén giải phóng kéo dài'},

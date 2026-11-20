@@ -57,6 +57,18 @@ def input_payload(text, message):
     return payload
 
 
+def manual_selection(repo, row):
+    """Only the current version's explicit form selection can constrain identity."""
+    if not row.get('source_extraction_id'):
+        return None
+    attempt = repo._owned('intake_extractions', row['source_extraction_id'])
+    inp = repo._owned('intake_inputs', attempt['input_id'])
+    payload = inp.get('payload_or_locator', inp.get('payload', {}))
+    if inp['modality'] == 'MANUAL' and payload.get('input_source') == 'MANUAL':
+        return deepcopy(payload.get('manual_fields', {}).get('selected_product'))
+    return None
+
+
 class CoreStore:
     def __init__(self, repo: Repository):
         self.repo = repo

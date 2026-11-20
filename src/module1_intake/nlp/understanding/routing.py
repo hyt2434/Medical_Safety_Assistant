@@ -20,7 +20,14 @@ WORKFLOWS = {Intent.ADD_MEDICATION: "MEDICATION_INTAKE", Intent.CHECK_INTERACTIO
 
 
 def detect(text: str, understanding: Understanding) -> list[Intent]:
-    result = [intent for intent, cue in CUES.items() if re.search(cue, fold(text))]
+    normalized = fold(text)
+    # Attribute labels describe an intake form as well as a reference question.
+    # Require a question/request signal when the user is reporting medication use.
+    report = bool(re.search(CUES[Intent.ADD_MEDICATION], normalized) or record_request_marker(text))
+    question = bool(re.search(r'\b(?:bao nhieu|la gi|the nao|cho biet|hoi|tra cuu|nhan dien|dinh danh|xac dinh thuoc)\b', normalized)
+                    or '?' in text)
+    result = [intent for intent, cue in CUES.items() if re.search(cue, normalized)
+              and not (intent == Intent.MEDICATION_QA and report and not question)]
     if record_request_marker(text) and Intent.ADD_MEDICATION not in result:
         result.append(Intent.ADD_MEDICATION)
     if (Intent.APP_HELP in result and Intent.ADD_MEDICATION in result and
@@ -28,8 +35,12 @@ def detect(text: str, understanding: Understanding) -> list[Intent]:
             not record_request_marker(text)):
         result.remove(Intent.ADD_MEDICATION)
     for candidate in understanding.intents:
+        if candidate.intent == Intent.MEDICATION_QA and report and not question:
+            continue
         if candidate.intent not in result:
             result.append(candidate.intent)
+    if question and not report and not record_request_marker(text) and Intent.MEDICATION_QA in result:
+        result = [intent for intent in result if intent != Intent.ADD_MEDICATION]
     if understanding.medications and not result:
         result.append(Intent.ADD_MEDICATION)
     return [i for i in result if i != Intent.UNKNOWN] or [Intent.UNKNOWN]

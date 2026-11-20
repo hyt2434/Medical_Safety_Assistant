@@ -4,6 +4,7 @@ The host constructs CoreRepository with its authenticated identity. No request D
 accepts an owner/user ID. CLI identity selection is development-only.
 """
 from copy import deepcopy
+import hashlib
 import json
 import re
 from typing import Literal
@@ -20,7 +21,7 @@ from ..qa_pipeline.pipeline import Answer, GroundedComposer, HybridQA, document_
 from ..qa_pipeline.rag.documents import LocalDocumentRetriever
 from ..qa_pipeline.contracts import RetrievalQuery
 from ..models import EntryView, DialogueAct, Intent, Medication, Reply, StrictModel, Understanding
-from ..integration.persistence import medication, message_metadata
+from ..integration.persistence import medication, message_metadata, extraction, fields
 from ..understanding.providers import OllamaProvider
 from ..understanding.providers import InferenceError, understand
 from ..understanding.routing import detect, explicit_backend_action
@@ -64,6 +65,17 @@ class VoiceEditRequest(VoiceDraftRequest):
 
 class VoiceSubmitRequest(VoiceDraftRequest):
     explicit_confirmation: bool
+
+
+class ManualInputRequest(StrictModel):
+    workflow_id: UUID
+    revision: int = Field(ge=1)
+    source_medication_id: str = Field(min_length=1, max_length=120)
+    medication: Medication
+
+
+class ManualEditRequest(ManualInputRequest):
+    entry_version_id: UUID
 
 
 class VoiceDraft(StrictModel):
@@ -206,11 +218,14 @@ class ApplicationService:
                     raise VoiceInputError('INVALID_AUDIO', 'Transcript exceeds the message limit')
             except VoiceInputError as error:
                 return self.resume_voice(request.workflow_id).model_copy(update={'error_code': error.code})
-            # Core already accepts AUDIO. Retain the audio digest and ASR text;
-            # audio bytes are not stored in workflow context or duplicated as text bytes.
-            inp = self.repo.record_input(workflow['intake_session_id'], 'AUDIO', audio,
+            # The current adapter does not retain audio objects. Core AUDIO requires
+            # a real retained object; record the ASR text as TEXT instead of inventing
+            # a locator. Keep the source-byte digest as separate provenance.
+            inp = self.repo.record_input(workflow['intake_session_id'], 'TEXT',
+                result['raw_transcript'].encode('utf-8'), content_type='text/plain; charset=utf-8',
                 payload={'schema': 'input.v4', 'digest_basis': 'ORIGINAL_BYTES',
                          'text': result['raw_transcript'], 'input_source': 'VOICE',
+                         'audio_retained': False, 'audio_sha256': hashlib.sha256(audio).hexdigest(),
                          'language': request.language, 'confidence_score': result['confidence_score']})
             draft = VoiceDraft(draft_id=uuid4(), audio_input_id=inp['id'],
                 raw_transcript=result['raw_transcript'], text=result['raw_transcript'],
@@ -298,6 +313,60 @@ class ApplicationService:
     def confirm(self, request: ConfirmationRequest):
         return self._response(self.bot.confirm(request.workflow_id, expected_revision=request.revision,
             request_key=request.request_key, explicit_confirmation=request.explicit_confirmation))
+
+    def save_manual(self, request: ManualInputRequest):
+        """Persist an explicit catalog selection/form for review, never identify it."""
+        with self.bot.store.turn(request.workflow_id):
+            workflow = self.bot._check(request.workflow_id, request.revision)
+            if workflow['state'] in {'COMPLETED', 'CANCELLED', 'FAILED'}:
+                raise ValueError('Start or revise an active workflow before manual input')
+            if workflow['context'].get('voice_draft'):
+                raise ValueError('Submit or discard the pending voice draft first')
+            if not self.dataset_build or not self.repo._one(
+                    'SELECT msa.published(%s) AS ok', (self.dataset_build,))['ok']:
+                raise ValueError('Manual selection requires a published Core catalog build')
+            products = self.repo._all('''SELECT * FROM msa_ref.medications
+                WHERE dataset_build=%s AND source_medication_id=%s''',
+                (self.dataset_build, request.source_medication_id))
+            if len(products) != 1:
+                raise ValueError('Selected catalog ID must resolve to exactly one Core product')
+            product = products[0]
+            selection = {'dataset_build': self.dataset_build, 'medication_id': str(product['id']),
+                'source_medication_id': product['source_medication_id'], 'brand_name': product['brand_name'],
+                'dosage_form': product['dosage_form'],
+                'registration_token': product['product_details'].get('registration_token')}
+            rows = self.bot.store.entries(workflow)
+            index = None
+            if isinstance(request, ManualEditRequest):
+                indexes = [n for n, row in enumerate(rows) if str(row['id']) == str(request.entry_version_id)]
+                if len(indexes) != 1:
+                    raise ValueError('Manual edit target is not in the current workflow review')
+                index = indexes[0]
+                self.bot.store.assert_latest(rows[index])
+                if rows[index]['confirmed_at'] is not None:
+                    raise ValueError('Revise confirmed medication through the existing correction flow')
+            med = request.medication
+            if not med.name_raw or fold(med.name_raw) != fold(product['brand_name']):
+                raise ValueError('Form name differs from the explicitly selected catalog product')
+            form = med.model_dump(mode='json')
+            payload = {'schema': 'input.v4', 'digest_basis': 'ORIGINAL_BYTES', 'input_source': 'MANUAL',
+                'manual_fields': {'selected_product': selection, 'medication': form}}
+            text = json.dumps(payload['manual_fields'], ensure_ascii=False, sort_keys=True)
+            message = self.repo.append_message(workflow['conversation_id'], 'USER', text,
+                {'schema': 'message.v4', 'content_refs': [], 'input_source': 'MANUAL', 'selected_product': selection})
+            inp = self.repo.record_input(workflow['intake_session_id'], 'MANUAL', text.encode('utf-8'),
+                payload=payload, content_type='application/json; charset=utf-8', message=message['id'])
+            attempt = self.repo.record_extraction(inp['id'], 'manual-form', 'manual-form-v1', extraction([med]))
+            if index is None:
+                rows.append(self.repo.create_item(attempt['id'], 1, fields(med)))
+            else:
+                rows[index] = self.repo.correct_entry(rows[index]['id'], fields(med), source_extraction=attempt['id'])
+            ctx = deepcopy(workflow['context'])
+            ctx.update(entry_version_ids=[str(row['id']) for row in rows], pending_confirmation=None,
+                awaiting_purpose=False, active_intents=[Intent.ADD_MEDICATION.value],
+                dialogue_act='CORRECT' if index is not None else 'PROVIDE_INFO', qa_results=[])
+            ctx.pop('error_code', None)
+            return self._response(self.bot._intake_progress(workflow, ctx, rows))
 
     def revise(self, workflow_id):
         return self._response(self.bot.revise(workflow_id))

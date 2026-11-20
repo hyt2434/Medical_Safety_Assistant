@@ -76,8 +76,10 @@ Voice trả `raw_transcript`/`confidence_score`, trong khi chatbot nhận
 `workflow_id`/`revision`/`text`. `ApplicationService.preview_voice()` nối hai
 hợp đồng bằng bản nháp gắn với đúng workflow. Người dùng xem/sửa, đồng ý gửi
 bản nháp, rồi xem dữ liệu chatbot trích xuất và xác nhận thuốc ở bước riêng.
-Audio lỗi không thay bản nháp trước. Nguồn `VOICE` và tham chiếu input `AUDIO`
-được giữ trong lịch sử tin nhắn/input, kể cả khi người dùng sửa transcript.
+Audio lỗi không thay bản nháp trước. Chính sách hiện tại không giữ audio: lưu
+transcript gốc dưới dạng `TEXT`, nguồn `VOICE`, kèm digest audio riêng; không tạo
+`object_locator` giả. `audio_input_id` tham chiếu input transcript gốc, kể cả khi
+người dùng sửa bản nháp. Core chỉ cho phép `AUDIO` khi có đối tượng được lưu thật.
 
 Trong application CLI hiện có (`nlp/application_ollama.ps1`), dùng:
 

@@ -98,6 +98,17 @@ def timing_slots(timing_raw: str | None) -> list[str]:
 
 def validate_medication(med: Medication, source: str) -> Medication:
     _present(med.evidence_text, source, "evidence_text")
+    # An explicitly labelled, quoted name is a bounded source field. Keep its
+    # complete content, even if inference splits off formulation words or copies
+    # the quote delimiters. This never expands a name from reference knowledge.
+    labels = list(re.finditer(
+        rf'\b{_vietnamese_forms(("tên", "tên thuốc", "thuốc tên"))}\s*[:=]?\s*'
+        r'(?:"([^"\n]+)"|“([^”\n]+)”)', med.evidence_text, re.I))
+    if med.name_raw and len(labels) == 1:
+        label = next(value for value in labels[0].groups() if value is not None)
+        candidate = med.name_raw.strip('"“”')
+        if candidate == label or label.startswith(candidate + ' '):
+            med = med.model_copy(update={'name_raw': label})
     start = source.find(med.evidence_text)
     preceding = re.split(r"[;\n]", source[:start])[-1]
     if (NEGATION.search(fold(preceding)) or UNCERTAINTY.search(fold(preceding))):

@@ -150,10 +150,13 @@ Request UUIDs are typed in Python; use `model_validate_json()` for JSON transpor
 All mutating draft requests check owner, revision and the current draft ID.
 
 Preview runs the shared ASR API only. It creates no medication entry and invokes
-no NLP inference. Successful ASR retains an existing Core `AUDIO` input containing
-the raw audio digest, transcript, language and confidence; audio bytes themselves
-are not retained by this adapter. The workflow stores the draft and audio input
-ID. Failed/empty/silent audio leaves the prior draft, entries, workflow revision
+no NLP inference. The current adapter does not retain audio bytes, so successful
+ASR records the original transcript as a Core `TEXT` input (`input_source=VOICE`),
+whose input digest hashes the transcript bytes. Separate `audio_sha256` and
+`audio_retained=false` metadata describe the original audio. No `object_locator`
+is invented: Core `AUDIO` requires a genuinely retained object. The existing
+`audio_input_id` API field references this original ASR input for compatibility.
+Failed/empty/silent audio leaves the prior draft, entries, workflow revision
 and displayed medication review unchanged, so recording can be retried.
 
 Submission sends exactly the reviewed text through the same `send()` routing,
@@ -163,6 +166,25 @@ language, confidence, draft ID and original `audio_input_id`. Thus TEXT describe
 the bytes sent to NLP; it does not erase the Voice origin. Later typed corrections
 retain their own TEXT source, while previous versions keep the original evidence.
 NLP rejection preserves the voice draft for correction and resubmission.
+
+### Manual catalog selection and form review
+
+`save_manual(ManualInputRequest(workflow_id, revision, source_medication_id,
+medication))` accepts an explicit source catalog ID and the shared `Medication`
+form. It resolves exactly that ID in the application's published Core build,
+persists a `MANUAL` input and unconfirmed entry, and displays the form together
+with the selected source ID, Core product UUID and registration. Suggestions do
+not call this method and never select/confirm a product themselves. Missing
+strength/form follows the existing clarification/explicit-unknown policy.
+
+`save_manual(ManualEditRequest(..., entry_version_id))` replaces the full form
+and explicit selection with a new unconfirmed version; the old review revision
+cannot confirm it. `confirm(ConfirmationRequest(...))` and explicit `IDENTIFY` /
+`ASSESS` use the common pipeline. The unchanged handoff DTO contains raw fields;
+Module 2 reads the current owned extraction's retained manual selection and
+constrains matching to that exact source ID/Core UUID within the pinned build.
+Contradictory form attributes still require review. A later typed correction
+does not inherit an old selection as authority. UI integration remains pending.
 
 Pending voice drafts block ordinary text submission and medication confirmation;
 the client must submit or discard them first. Transcript agreement never confirms

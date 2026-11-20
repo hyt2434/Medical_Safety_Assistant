@@ -7,7 +7,7 @@ from uuid import UUID, uuid5
 from ..integration.handoff import build_handoff
 from .fsm import check_transition
 from ..models import DialogueAct, Intent, Medication, Reply, Understanding
-from ..integration.persistence import CoreStore, Repository, medication, input_payload, message_metadata
+from ..integration.persistence import CoreStore, Repository, medication, input_payload, message_metadata, manual_selection
 from ..understanding.providers import InferenceError, Provider, understand
 from ..qa_pipeline.structured import APP_HELP, DEFERRED, SAFETY, Reference, reference_answer
 from ..understanding.routing import clarification_required, detect, requested_workflows
@@ -90,6 +90,10 @@ class Chatbot:
         rows = [self.repo._owned("medication_entry_versions", i) for i in context["entry_version_ids"]]
         rendered = [f"{n}. " + json.dumps(row["medication_fields"], ensure_ascii=False, sort_keys=True)
                     for n, row in enumerate(rows, 1)]
+        for n, row in enumerate(rows):
+            selection = manual_selection(self.repo, row)
+            if selection:
+                rendered[n] += '\nCatalog selection: ' + json.dumps(selection, ensure_ascii=False, sort_keys=True)
         text = "\n".join(rendered) + ("\nMục null là chưa rõ; tên thuốc chưa được xác minh. "
                "Kiểm tra từng mục, gõ 'xác nhận' để xác nhận đúng bản này, "
                "hoặc 'sửa thuốc 1 ...' để sửa. Đây không phải xác nhận an toàn.")

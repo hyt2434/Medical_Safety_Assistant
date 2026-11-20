@@ -50,6 +50,39 @@ def test_prescription_report_combines_with_safety_request():
     assert {candidate.intent for candidate in value.intents} == {Intent.ADD_MEDICATION, Intent.CHECK_INTERACTION}
 
 
+@pytest.mark.parametrize('name', ['Panadol', 'Alltrex', 'X'])
+def test_attribute_label_in_report_is_not_a_reference_question(name):
+    text = f'Tôi đang uống thuốc {name}, hàm lượng 500 mg, dạng viên nén.'
+    # A model-proposed QA intent must not override the declarative source text.
+    raw = Understanding(intents=[IntentCandidate(intent=Intent.MEDICATION_QA, evidence_text=text)],
+        medications=[Medication(name_raw=name, strength_raw='500 mg', dosage_form_raw='viên nén', evidence_text=text)])
+    assert detect(text, raw) == [Intent.ADD_MEDICATION]
+    repo, bot, reply = conversation(MockProvider([raw.model_dump_json()]))
+    reply = send(bot, reply, text)
+    assert reply.state == 'AWAITING_CONFIRMATION'
+    assert len(repo.tables['medication_entry_versions']) == 1
+
+
+def test_strength_question_overrides_model_intake_but_preserves_mixed_request():
+    question = 'Thuốc X có hàm lượng bao nhiêu?'
+    value = Understanding(intents=[IntentCandidate(intent=Intent.ADD_MEDICATION, evidence_text=question)],
+        medications=[Medication(name_raw='X', evidence_text=question)])
+    assert detect(question, value) == [Intent.MEDICATION_QA]
+    _, bot, reply = conversation(MockProvider([value.model_dump_json()]))
+    reply = send(bot, reply, question)
+    assert bot.store.entries(bot.store.workflow(reply.workflow_id)) == []
+    assert set(detect('Tôi đang uống X 500 mg. Thuốc này có hoạt chất là gì?', value)) == {
+        Intent.ADD_MEDICATION, Intent.MEDICATION_QA}
+
+
+@pytest.mark.parametrize('candidate', ['Alpha', 'Alpha Viên Sủi', '"Alpha Viên Sủi"'])
+def test_explicit_name_label_keeps_full_source_product_name(candidate):
+    text = 'Tôi đang uống thuốc tên "Alpha Viên Sủi", hàm lượng 500 mg, dạng viên sủi.'
+    med = validate_medication(Medication(name_raw=candidate, strength_raw='500 mg',
+        dosage_form_raw='viên sủi', evidence_text=text), text)
+    assert med.name_raw == 'Alpha Viên Sủi' and med.evidence_text == text
+
+
 @pytest.mark.parametrize('text,raw', [(REPORT, 'được kê'), ('Tôi không yêu cầu lưu Panadol.', 'lưu'),
                                     ('Có nên lưu Panadol?', 'lưu')])
 def test_report_question_or_negation_cannot_claim_explicit_record_request(text, raw):

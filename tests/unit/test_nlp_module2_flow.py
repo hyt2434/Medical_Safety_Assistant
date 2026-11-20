@@ -1,14 +1,16 @@
 """Application orchestration regressions using the existing Core/reference doubles."""
 from copy import deepcopy
+import hashlib
 import json
 from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
 
-from module1_intake.nlp.interfaces.application import ApplicationService, TurnRequest, WorkflowActionRequest
+from module1_intake.nlp.interfaces.application import (ApplicationService, TurnRequest, WorkflowActionRequest,
+    ManualInputRequest, ManualEditRequest, ConfirmationRequest)
 from module1_intake.nlp.interfaces.application_cli import run_application
-from module1_intake.nlp.models import Intent, Understanding, IntentCandidate
+from module1_intake.nlp.models import Intent, Understanding, IntentCandidate, Medication
 from module1_intake.nlp.qa_pipeline.composition import GroundedComposer
 from module1_intake.nlp.understanding.providers import MockProvider
 from module1_intake.nlp.understanding.routing import explicit_backend_action
@@ -44,6 +46,87 @@ class IdentifyingCore(FakeCore):
     def record_match(self, entry, outcome, **options):
         self._owned('medication_entry_versions', entry)
         return self.put('entry_matches', entry_version_id=entry, match_status=outcome, **options)
+
+
+class ManualCore(IdentifyingCore):
+    def _all(self, query, params=()):
+        if 'source_medication_id=%s' in query:
+            return deepcopy([p for p in self.references.products
+                if p['dataset_build'] == params[0] and p['source_medication_id'] == params[1]])
+        return super()._all(query, params)
+
+    def record_input(self, intake, modality, original_bytes, **kw):
+        assert modality in {'MANUAL', 'TEXT'}
+        self._owned('intake_sessions', intake)
+        return self.put('intake_inputs', session_id=intake, modality=modality,
+            input_digest=hashlib.sha256(original_bytes).hexdigest(), payload_or_locator=kw.pop('payload'), **kw)
+
+
+def manual_service():
+    repo = ManualCore()
+    second = product(name='Alpha')  # Same name, strength and form; different source ID/Core UUID.
+    comp = component(second)
+    repo.references.products.append(second)
+    repo.references.components.append(comp)
+    repo.references.mappings.append(mapping(comp))
+    app = ApplicationService(repo, MockProvider(), dataset_build=BUILD)
+    return repo, app, app.start(task=Intent.ADD_MEDICATION), second
+
+
+def test_manual_selection_edit_and_confirmation_pin_exact_duplicate_product():
+    repo, app, initial, selected = manual_service()
+    form = Medication(name_raw='Alpha', strength_raw='500 mg', dosage_form_raw='Viên nén',
+        dose_raw='2 viên', evidence_text='Alpha 500 mg, Viên nén, 2 viên')
+    current = app.save_manual(ManualInputRequest(workflow_id=initial.workflow_id, revision=initial.revision,
+        source_medication_id=selected['source_medication_id'], medication=form))
+    assert selected['id'] in current.assistant_message
+    with pytest.raises(ValueError, match='confirmation'):
+        action(app, current)
+    old = current
+    current = app.save_manual(ManualEditRequest(workflow_id=current.workflow_id, revision=current.revision,
+        source_medication_id=selected['source_medication_id'], entry_version_id=current.entries[0].entry_version_id,
+        medication=form.model_copy(update={'dose_raw': 'một viên', 'evidence_text': 'Alpha 500 mg, một viên'})))
+    with pytest.raises(ValueError, match='Stale'):
+        app.confirm(ConfirmationRequest(workflow_id=old.workflow_id, revision=old.revision,
+            request_key=uuid4(), explicit_confirmation=True))
+    current = app.confirm(ConfirmationRequest(workflow_id=current.workflow_id, revision=current.revision,
+        request_key=uuid4(), explicit_confirmation=True))
+    assert not repo.tables.get('entry_matches')
+    result = action(app, current).identification_results[0]
+    assert result['identified_candidate']['id'] == selected['id']
+    assert result['core_match_status'] == 'SELECTED' and result['ready_for_identifier_handoff']
+
+
+@pytest.mark.parametrize('change', ['unknown_id', 'wrong_name', 'foreign_entry', 'unpublished'])
+def test_invalid_manual_selection_cannot_write_draft_or_match(change):
+    repo, app, current, selected = manual_service()
+    values = dict(workflow_id=current.workflow_id, revision=current.revision,
+        source_medication_id=selected['source_medication_id'],
+        medication=Medication(name_raw='Alpha', evidence_text='Alpha'))
+    request_type = ManualInputRequest
+    if change == 'unknown_id':
+        values['source_medication_id'] = 'does-not-exist'
+    elif change == 'wrong_name':
+        values['medication'] = Medication(name_raw='Other', evidence_text='Other')
+    elif change == 'foreign_entry':
+        values['entry_version_id'], request_type = uuid4(), ManualEditRequest
+    else:
+        repo.references.published = False
+    before = deepcopy(repo.tables)
+    with pytest.raises(ValueError):
+        app.save_manual(request_type(**values))
+    assert repo.tables == before
+
+
+def test_manual_selection_does_not_override_conflicting_strength():
+    _, app, current, selected = manual_service()
+    current = app.save_manual(ManualInputRequest(workflow_id=current.workflow_id, revision=current.revision,
+        source_medication_id=selected['source_medication_id'], medication=Medication(name_raw='Alpha',
+            strength_raw='250 mg', dosage_form_raw='Viên nén', evidence_text='Alpha 250 mg')))
+    current = app.confirm(ConfirmationRequest(workflow_id=current.workflow_id, revision=current.revision,
+        request_key=uuid4(), explicit_confirmation=True))
+    result = action(app, current).identification_results[0]
+    assert result['identified_candidate'] is None and result['core_match_status'] == 'NO_MATCH'
 
 
 def turn(service, response, text):

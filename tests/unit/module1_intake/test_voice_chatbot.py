@@ -78,10 +78,15 @@ def test_voice_and_typing_share_extraction_session_and_review(app):
     voice_message = next(row for row in messages if (row.get('metadata') or {}).get('input_source') == 'VOICE')
     assert voice_message['conversation_id'] == service.bot.store.workflow(voice_start.workflow_id)['conversation_id']
     inputs = list(repo.tables['intake_inputs'].values())
-    interpreted = next(row for row in inputs if row['modality'] == 'TEXT' and row['payload']['input_source'] == 'VOICE')
+    interpreted = next(row for row in inputs if row['modality'] == 'TEXT' and 'voice' in row['payload'])
     assert interpreted['payload']['voice']['audio_input_id'] == str(view.draft.audio_input_id)
     assert interpreted['payload']['text'] == TEXT
-    assert repo._owned('intake_inputs', view.draft.audio_input_id)['input_digest'] == hashlib.sha256(b'speech').hexdigest()
+    original = repo._owned('intake_inputs', view.draft.audio_input_id)
+    assert original['modality'] == 'TEXT'
+    assert original['input_digest'] == hashlib.sha256(TEXT.encode('utf-8')).hexdigest()
+    assert original['payload']['audio_sha256'] == hashlib.sha256(b'speech').hexdigest()
+    assert original['payload']['audio_retained'] is False
+    assert 'object_locator' not in original['payload']
 
 
 def test_edit_review_then_correct_medication_before_confirmation(app):

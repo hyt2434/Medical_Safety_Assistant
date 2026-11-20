@@ -21,8 +21,11 @@ class CoreMedicationReference(CoreReferenceAdapter):
     One instance pins one immutable published build. The index is in memory only;
     neither source rows nor historical review flags are rewritten or filtered.
     """
-    def __init__(self, repo, dataset_build):
+    def __init__(self, repo, dataset_build, *, selected_product=None):
         super().__init__(repo, dataset_build)
+        self.selected_product = deepcopy(selected_product)
+        if selected_product and selected_product.get('dataset_build') != dataset_build:
+            raise ValueError('Manual selection belongs to a different catalog build')
         ledger = repo._one("SELECT obj_description('msa_ref'::regnamespace,'pg_namespace') AS ledger")
         self.build_metadata = json.loads(ledger['ledger'])['builds'][dataset_build]
         self._products = None
@@ -135,6 +138,12 @@ class CoreMedicationReference(CoreReferenceAdapter):
                 mode = 'SIMILAR_NAME_REVIEW_ONLY'
         # The published build is immutable. Shortlisting by an exact required
         # anchor avoids rescanning the catalog; all qualifiers still apply below.
+        if self.selected_product:
+            # Explicit source selection narrows candidates; it cannot override
+            # contradictory form fields or skip ingredient/mapping verification.
+            rows = [r for r in rows if r['source_medication_id'] == self.selected_product['source_medication_id']
+                    and str(r['id']) == self.selected_product['medication_id']]
+            result['manual_selection'] = deepcopy(self.selected_product)
         attribute_matches = 0
         for row in rows:
             details = row['product_details']
@@ -327,8 +336,21 @@ def identify_confirmed(repo, handoff: Module2Handoff, *, dataset_build):
         return []
     entries = [(row, _input_evidence(repo, row, handoff.intake_id)) for row in entries]
     reference = CoreMedicationReference(repo, dataset_build)
-    results = []
+    prepared = []
     for row, input_evidence in entries:
+        current = next((x for x in input_evidence['extractions']
+                        if x['id'] == str(row.get('source_extraction_id'))), None)
+        inp = next((x for x in input_evidence['inputs'] if current and x['id'] == current['input_id']), None)
+        selection = None
+        if inp and inp['modality'] == 'MANUAL' and inp['payload_or_locator'].get('input_source') == 'MANUAL':
+            manual = inp['payload_or_locator'].get('manual_fields', {})
+            selection = manual.get('selected_product')
+            if selection and manual.get('medication') != entry_medication(row).model_dump(mode='json'):
+                raise ValueError('Manual selection form differs from confirmed entry')
+        prepared.append((row, input_evidence, CoreMedicationReference(repo, dataset_build,
+            selected_product=selection) if selection else reference))
+    results = []
+    for row, input_evidence, reference in prepared:
         fields = {**deepcopy(row['medication_fields']), 'transcription_status': 'USER_CONFIRMED_TRANSCRIPTION'}
         identity = identify(fields, reference)
         crosswalk = {c['candidate_key']: c['id'] for c in identity['candidates']}

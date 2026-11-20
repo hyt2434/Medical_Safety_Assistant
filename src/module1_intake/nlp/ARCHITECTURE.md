@@ -147,9 +147,11 @@ Intake moves through COLLECTING/CLARIFYING, AWAITING_CONFIRMATION, and COMPLETED
 explicit cancellation. Side requests use existing SUSPENDED workflows with a
 disposition; they do not imply a completed clinical action. Typed NLP turns use
 TEXT inputs with `medication-entry.v4` payloads and the existing raw-field JSONB
-extensions. Voice uses the existing AUDIO modality for the original audio digest
-and ASR text, then a reviewed TEXT input for NLP; both are linked through Voice
-provenance. No Core schema change is required.
+extensions. Voice's non-retention policy records original ASR text and reviewed
+NLP text as linked TEXT inputs with VOICE provenance. Original audio gets a
+separate digest, not a fabricated retained-object locator. Core AUDIO is reserved
+for genuinely retained objects. Manual forms use MANUAL inputs and the same
+versioned review/confirmation boundary. No Core schema change is required.
 
 ## Voice review before the shared message flow
 
@@ -164,7 +166,8 @@ step after extraction.
 
 The message and interpreted TEXT payload retain `input_source=VOICE`, the raw and
 edited text, language, confidence, draft ID and original `audio_input_id`. The
-adapter retains an audio digest rather than audio bytes in workflow context.
+adapter retains an audio digest rather than audio bytes; the compatibility field
+`audio_input_id` points to the original transcript TEXT input.
 Empty/silent audio and ASR failure leave the previous draft, medication entries,
 revision and displayed review intact for retry. NLP rejection retains the draft
 for editing/resubmission. Owner, revision and draft ID checks reject stale drafts;
