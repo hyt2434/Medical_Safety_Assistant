@@ -8,7 +8,9 @@ from module1_intake.nlp.interfaces.interactive import format_understanding
 from module1_intake.nlp.models import Administration, Intent, IntentCandidate, Medication, Understanding
 from module1_intake.nlp.understanding.providers import InferenceCategory, InferenceError, MockProvider, understand
 from module1_intake.nlp.understanding.routing import detect
-from module1_intake.nlp.understanding.validation import EvidenceError, validate_medication, validate_understanding
+from module1_intake.nlp.understanding.validation import (
+    EvidenceError, align_medication_evidence, validate_medication, validate_understanding,
+)
 from tests.unit.test_nlp import conversation, send
 
 
@@ -220,3 +222,137 @@ def test_spoken_strength_preserves_decomposed_accents_and_rejects_invented_norma
         validate_medication(Medication(strength_raw='500 mg', evidence_text=text), text)
     with pytest.raises(EvidenceError):
         validate_medication(Medication(strength_raw='một viên', evidence_text='mỗi sáng một viên'), 'mỗi sáng một viên')
+
+
+@pytest.mark.parametrize('clauses,fields', [
+    (['Tôi đang uống Panadol 500mg, mỗi sáng 1 viên, bác sĩ kê 2 hộp',
+      'đang dùng Vitamin C 100mg, mỗi tối 2 viên, bác sĩ kê 1 hộp.'],
+     [('Panadol', '500mg', '1 viên', '2 hộp', 'mỗi sáng'),
+      ('Vitamin C', '100mg', '2 viên', '1 hộp', 'mỗi tối')]),
+    (['Tôi đang uống Core Fixture 0 0,5g', 'đang dùng Core Fixture 2 0,5g'],
+     [('Core Fixture 0', '0,5g', None, None, None), ('Core Fixture 2', '0,5g', None, None, None)]),
+    (['Không dùng Alpha 500mg, mỗi sáng 1 viên', 'Có lẽ dùng Beta 500mg, mỗi tối 1 viên'],
+     [('Alpha', '500mg', '1 viên', None, 'mỗi sáng'), ('Beta', '500mg', '1 viên', None, 'mỗi tối')]),
+])
+@pytest.mark.parametrize('separator', ['; ', '\n'])
+def test_recorded_broad_evidence_is_narrowed_once_without_changing_raw_values(clauses, fields, separator):
+    """The two observed Qwen failures plus equal-amount/qualifier regressions."""
+    text = separator.join(clauses)
+    meds = [Medication(name_raw=name, strength_raw=strength, dose_raw=dose, quantity_raw=quantity,
+        administrations=[Administration(timing_raw=timing, dose_raw=dose)] if timing else [],
+        evidence_text=text if index == 0 else clauses[index])
+        for index, (name, strength, dose, quantity, timing) in enumerate(fields)]
+    raw = Understanding(medications=meds)
+    before = raw.model_dump_json()
+    with pytest.raises(EvidenceError, match='Overlapping'):
+        validate_understanding(raw, text)  # The validator itself stays strict.
+    provider = MockProvider([before])
+    value = understand(provider, text, {}, attempts=1)
+    assert provider.calls == 1 and raw.model_dump_json() == before
+    assert [m.evidence_text for m in value.medications] == clauses
+    for med, (name, strength, dose, quantity, timing) in zip(value.medications, fields):
+        assert (med.name_raw, med.strength_raw, med.dose_raw, med.quantity_raw) == (name, strength, dose, quantity)
+        assert [a.timing_raw for a in med.administrations] == ([timing] if timing else [])
+    if text.startswith('Không'):
+        assert value.medications[0].negation_raw == 'Không dùng'
+        assert value.medications[1].uncertainty_raw == 'Có lẽ'
+    assert validate_understanding(value, text) == value
+
+
+@pytest.mark.parametrize('case', ['foreign_strength', 'foreign_dose', 'invented_evidence', 'omitted_negation', 'ambiguous_name'])
+def test_evidence_alignment_cannot_rescue_wrong_attribution_or_invented_spans(case):
+    text = 'Không dùng Alpha 500mg, mỗi sáng 1 viên; Beta 100mg, mỗi tối 2 viên'
+    first = Medication(name_raw='Alpha', strength_raw='500mg', dose_raw='1 viên', evidence_text=text)
+    second = Medication(name_raw='Beta', strength_raw='100mg', dose_raw='2 viên', evidence_text=text.split('; ')[1])
+    if case == 'foreign_strength': first.strength_raw = '100mg'
+    if case == 'foreign_dose': first.dose_raw = '2 viên'
+    if case == 'invented_evidence': first.evidence_text = 'invented'
+    if case == 'omitted_negation': first.evidence_text = 'Alpha 500mg, mỗi sáng 1 viên'
+    if case == 'ambiguous_name':
+        text = text.replace('Beta', 'Alpha')
+        first.evidence_text = text
+        second.name_raw, second.evidence_text = 'Alpha', text.split('; ')[1]
+    raw = Understanding(medications=[first, second])
+    assert align_medication_evidence(raw, text) == raw
+    with pytest.raises(InferenceError) as caught:
+        understand(MockProvider([raw.model_dump_json()]), text, {}, attempts=1)
+    assert caught.value.category == InferenceCategory.EVIDENCE
+
+
+def test_prescribed_quantity_in_next_sentence_stays_with_its_medication():
+    clauses = ['Alpha 10mg. Bác sĩ kê 2 hộp.', 'Beta 10mg. Bác sĩ kê 1 hộp.']
+    text = '; '.join(clauses)
+    raw = Understanding(medications=[Medication(name_raw=name, strength_raw='10mg',
+        quantity_raw=quantity, evidence_text=text) for name, quantity in [('Alpha', '2 hộp'), ('Beta', '1 hộp')]])
+    value = understand(MockProvider([raw.model_dump_json()]), text, {}, attempts=1)
+    assert [m.evidence_text for m in value.medications] == clauses
+    assert [m.quantity_raw for m in value.medications] == ['2 hộp', '1 hộp']
+
+
+def test_already_bounded_second_span_does_not_block_first_span_repair():
+    text = 'Alpha 10mg; đang dùng Beta 20mg.'
+    raw = Understanding(medications=[Medication(name_raw='Alpha', strength_raw='10mg', evidence_text=text),
+        Medication(name_raw='Beta', strength_raw='20mg', evidence_text='Beta 20mg')])
+    value = understand(MockProvider([raw.model_dump_json()]), text, {}, attempts=1)
+    assert [m.evidence_text for m in value.medications] == ['Alpha 10mg', 'Beta 20mg']
+
+
+@pytest.mark.parametrize('text', [
+    'Alpha 500mg và Beta 100mg, cả hai mỗi sáng 1 viên',
+    'Alpha 500mg; Beta 100mg, cả hai mỗi sáng 1 viên',
+])
+def test_shared_information_requires_restatement_without_distributing_or_losing_source(text):
+    # A genuine shared phrase has no two disjoint, complete per-drug spans in
+    # the current DTO. Keep the original message and request explicit per-drug input.
+    raw = Understanding(medications=[Medication(name_raw=name, strength_raw=strength,
+        dose_raw='1 viên', administrations=[Administration(timing_raw='mỗi sáng', dose_raw='1 viên')],
+        evidence_text=text) for name, strength in [('Alpha', '500mg'), ('Beta', '100mg')]])
+    held = align_medication_evidence(raw, text)
+    assert held.ambiguous and not held.medications
+    repo, bot, reply = conversation(MockProvider([raw.model_dump_json()] * 2))
+    reply = send(bot, reply, text)
+    assert reply.state == 'CLARIFYING' and 'thông tin dùng chung' in reply.text
+    assert not repo.tables.get('medication_entry_versions')
+    assert not repo.tables.get('entry_matches') and not repo.tables.get('safety_assessments')
+    assert any(r['text_content'] == text for r in repo.tables['conversation_messages'].values())
+
+
+def test_omitted_shared_instruction_is_not_silently_lost_after_clause_alignment():
+    text = 'Alpha 500mg; Beta 100mg, cả hai mỗi sáng 1 viên'
+    raw = Understanding(medications=[Medication(name_raw='Alpha', strength_raw='500mg', evidence_text='Alpha 500mg'),
+        Medication(name_raw='Beta', strength_raw='100mg', evidence_text='Beta 100mg, cả hai mỗi sáng 1 viên')])
+    provider = MockProvider([raw.model_dump_json()])
+    value = understand(provider, text, {}, attempts=1)
+    assert provider.calls == 1 and value.ambiguous and not value.medications
+
+
+def test_explicit_shared_ambiguity_cannot_make_partial_medication_entries():
+    text = 'Alpha và Beta, mỗi thuốc 1 viên mỗi sáng'
+    raw = Understanding(ambiguous=True)
+    repo, bot, reply = conversation(MockProvider([raw.model_dump_json()]))
+    reply = send(bot, reply, text)
+    assert reply.state == 'CLARIFYING' and 'thông tin dùng chung' in reply.text
+    assert not repo.tables.get('medication_entry_versions')
+
+
+def test_shared_information_restatement_reaches_review_then_explicit_confirmation():
+    shared = 'Alpha và Beta, mỗi thuốc 1 viên mỗi sáng'
+    clauses = ['Tôi đang dùng Alpha 500mg, dạng viên nén, mỗi sáng 1 viên',
+               'đang dùng Beta 100mg, dạng viên nén, mỗi sáng 1 viên']
+    corrected = '; '.join(clauses)
+    raw = Understanding(medications=[Medication(name_raw=name, strength_raw=strength,
+        dosage_form_raw='viên nén', dose_raw='1 viên', evidence_text=clause,
+        administrations=[Administration(timing_raw='mỗi sáng', dose_raw='1 viên')])
+        for name, strength, clause in zip(('Alpha', 'Beta'), ('500mg', '100mg'), clauses)])
+    repo, bot, reply = conversation(MockProvider([Understanding(ambiguous=True).model_dump_json(), raw.model_dump_json()]))
+    reply = send(bot, reply, shared)
+    assert reply.state == 'CLARIFYING' and not repo.tables.get('medication_entry_versions')
+    reply = send(bot, reply, corrected)
+    assert reply.state == 'AWAITING_CONFIRMATION'
+    entries = bot.store.entries(bot.store.workflow(reply.workflow_id))
+    assert len(entries) == 2 and all(row['confirmed_at'] is None for row in entries)
+    assert all(row['medication_fields']['dose_raw'] == '1 viên' for row in entries)
+    assert not repo.tables.get('entry_matches') and not repo.tables.get('safety_assessments')
+    reply = send(bot, reply, 'xác nhận')
+    assert reply.state == 'COMPLETED' and len(reply.handoff.entries) == 2
+    assert all(entry.medication.administrations[0].timing_raw == 'mỗi sáng' for entry in reply.handoff.entries)

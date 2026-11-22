@@ -222,7 +222,7 @@ class Chatbot:
                     status="FAILED", errors={"schema": "error.v4", "code": "UNTRUSTED_INFERENCE",
                                              "message": "Extraction unavailable or rejected by validation", "details": {'category': error.category.value}})
                 ctx['error_code'] = error.category.value
-                return self._questions(workflow, "Chưa trích xuất tin cậy. Nhập lại tên thuốc và nội dung trên nhãn/đơn, hoặc dùng nhập thủ công.", context=ctx, field_key='inference')
+                return self._questions(workflow, "Chưa trích xuất tin cậy. Nhập riêng từng thuốc thành một dòng, kèm lại thông tin dùng chung cho từng thuốc, hoặc dùng nhập thủ công.", context=ctx, field_key='inference')
             intents = detect(text, value)
             if _voice:
                 ctx.pop('voice_draft', None)
@@ -314,7 +314,7 @@ class Chatbot:
                     return self._reply(workflow, "\n".join(side), context=ctx)
                 self.repo.append_message(workflow["conversation_id"], "ASSISTANT", "\n".join(side))
             if clarification_required(intents, value):
-                return self._questions(workflow, "Bạn muốn nhập thuốc, tra cứu hay yêu cầu kiểm tra tương tác? Hãy nói rõ yêu cầu.", context=ctx, field_key='task_intent')
+                return self._questions(workflow, "Bạn muốn nhập thuốc, tra cứu hay yêu cầu kiểm tra tương tác? Hãy nói rõ yêu cầu. Nếu có thông tin dùng chung, hãy ghi riêng từng thuốc thành một dòng kèm thông tin đó.", context=ctx, field_key='task_intent')
             if not value.medications:
                 if rows and any(candidate.record_request_raw for candidate in value.intents):
                     return self._intake_progress(workflow, ctx, rows)

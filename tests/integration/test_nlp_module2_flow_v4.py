@@ -15,26 +15,26 @@ from module1_intake.nlp.models import Intent, Medication, Understanding
 from module1_intake.nlp.understanding.providers import MockProvider, OllamaProvider
 from shared.db import CoreRepository
 from shared.db.importer import read_ledger
+from tests.db_cleanup import isolated_core_owner
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.fixture
 def setup(connection):
-    owner = uuid4()
-    connection.execute('INSERT INTO identity.users(id) VALUES (%s)', (owner,))
-    repo = CoreRepository(connection, authenticated_owner=owner)
     ledger = read_ledger(connection)
-    builds = repo._all('SELECT dataset_build,count(*) AS n FROM msa_ref.medications GROUP BY dataset_build')
-    build = next((b['dataset_build'] for b in builds if b['n'] == 4 and
-                  ledger['builds'].get(b['dataset_build'], {}).get('synthetic') and
-                  ledger['builds'][b['dataset_build']].get('published')), None)
-    if build is None:
-        pytest.skip('Existing published four-product synthetic Core fixture required; no reference import is performed')
-    spec = importlib.util.spec_from_file_location('nlp_module2_existing_fixtures', ROOT / 'db/tests/fixtures.py')
-    fixtures = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(fixtures)
-    return repo, build, fixtures.dataset()
+    with isolated_core_owner(connection) as owner:
+        repo = CoreRepository(connection, authenticated_owner=owner)
+        builds = repo._all('SELECT dataset_build,count(*) AS n FROM msa_ref.medications GROUP BY dataset_build')
+        build = next((b['dataset_build'] for b in builds if b['n'] == 4 and
+                      ledger['builds'].get(b['dataset_build'], {}).get('synthetic') and
+                      ledger['builds'][b['dataset_build']].get('published')), None)
+        if build is None:
+            pytest.skip('Existing published four-product synthetic Core fixture required; no reference import is performed')
+        spec = importlib.util.spec_from_file_location('nlp_module2_existing_fixtures', ROOT / 'db/tests/fixtures.py')
+        fixtures = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fixtures)
+        yield repo, build, fixtures.dataset()
 
 
 def provider():
@@ -158,8 +158,8 @@ def cli_conversation(setup, inference, *, save=False):
 
     def read(prompt):
         text = next(inputs)
-        if text == 'Nhận diện các thuốc đã xác nhận':
-            assert count(repo, 'entry_matches') == count(repo, 'safety_assessments') == 0
+        if text in {'xác nhận', 'Nhận diện các thuốc đã xác nhận'}:
+            assert count(repo, 'entry_matches') == count(repo, 'medication_list_snapshots') == count(repo, 'safety_assessments') == 0
         if text == 'Kiểm tra tương tác các thuốc đã xác nhận':
             assert count(repo, 'entry_matches') > 0 and count(repo, 'safety_assessments') == 0
         output.append(prompt + text)

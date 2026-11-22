@@ -34,7 +34,7 @@ def seed_accounts(db):
     for identity, email, password, name, status, roles in _ACCOUNTS:
         if db.scalar(select(User).where(func.lower(User.email) == email.lower())) is not None:
             continue
-        db.add(User(user_id=identity, email=email, password_hash=hash_password(password),
+        db.add(User(user_id=identity, legacy_user_id=identity, email=email, password_hash=hash_password(password),
                     full_name=name, account_status=status))
         db.flush()
         for code in roles:

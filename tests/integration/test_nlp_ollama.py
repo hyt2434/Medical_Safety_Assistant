@@ -58,6 +58,24 @@ def test_real_multiple_medications_do_not_share_slots(provider):
     assert any(x.timing_raw == 'mỗi tối' and x.dose_raw == '2 viên' for x in b.administrations)
 
 
+def test_real_identical_strength_and_dose_still_have_separate_evidence(provider):
+    text = 'Tôi đang uống Panadol 500mg, mỗi sáng 1 viên; đang dùng Vitamin C 500mg, mỗi tối 1 viên.'
+    value = extract(provider, text)
+    a, b = value.medications
+    assert (a.name_raw, b.name_raw) == ('Panadol', 'Vitamin C')
+    assert a.strength_raw == b.strength_raw == '500mg'
+    assert a.dose_raw == b.dose_raw == '1 viên'
+    assert any(x.timing_raw == 'mỗi sáng' for x in a.administrations)
+    assert any(x.timing_raw == 'mỗi tối' for x in b.administrations)
+    assert text.find(a.evidence_text) + len(a.evidence_text) <= text.find(b.evidence_text)
+
+
+def test_real_shared_instruction_is_held_for_per_medication_restatement(provider):
+    text = 'Tôi đang uống Panadol 500mg; đang dùng Vitamin C 100mg, cả hai mỗi sáng 1 viên.'
+    value = extract(provider, text)
+    assert value.ambiguous and value.medications == []
+
+
 def test_real_missing_fields_remain_missing(provider):
     med, = extract(provider, 'Tôi đang uống Panadol.').medications
     assert med.name_raw == 'Panadol'

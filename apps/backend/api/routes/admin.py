@@ -9,6 +9,7 @@ from shared.auth.rbac import role_catalog
 router = APIRouter(prefix="/api/admin", tags=["RBAC administration"])
 
 class GrantOut(BaseModel):
+    id: str
     roleCode: RoleCode
     grantedAt: str
     expiresAt: str | None

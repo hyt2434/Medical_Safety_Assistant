@@ -20,7 +20,7 @@ def timestamp():
     return now().isoformat()
 
 def instant(value):
-    parsed = datetime.fromisoformat(value)
+    parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value)
     return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
 
 def token_hash(token):
@@ -28,7 +28,7 @@ def token_hash(token):
 
 def audit(db, actor, action, target_type="account", target="", success=True):
     db.add(AuditEvent(actor_user_id=actor, action_code=action, target_type=target_type,
-        target_id=target, success=int(success), occurred_at=timestamp()))
+        target_id=str(target), success=bool(success), occurred_at=now()))
 
 def grant_is_active(grant, moment):
     return (not grant.revoked_at and instant(grant.granted_at) <= moment
@@ -121,6 +121,13 @@ def delete_session(token):
             db.delete(session)
 
 def require_owner(session, user_id):
-    if session["account"]["id"] != user_id:
-        raise PermissionError("Cross-account resource access")
+    if session['account']['id'] == user_id:
+        return
+    # Legacy URLs resolve only through the unique, retained original identifier.
+    # Never accept an arbitrary client-supplied Core owner or merge identities.
+    with transaction() as db:
+        if db.scalar(select(User.user_id).where(User.user_id == session['account']['id'],
+                                                User.legacy_user_id == user_id)):
+            return
+    raise PermissionError("Cross-account resource access")
 

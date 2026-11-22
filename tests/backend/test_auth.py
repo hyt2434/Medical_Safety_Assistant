@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from shared.auth.db import reset_connection
+from shared.auth.types import identity_uuid
 
 
 class AuthApiTests(unittest.TestCase):
@@ -87,7 +88,7 @@ class AuthApiTests(unittest.TestCase):
             json={"userId": "u-support", "roleCode": "hcp", "granted": True},
         )
         self.assertEqual(grant.status_code, 200)
-        support = next(item for item in grant.json()["accounts"] if item["id"] == "u-support")
+        support = next(item for item in grant.json()["accounts"] if item["id"] == identity_uuid("u-support"))
         self.assertIn("hcp", support["roles"])
         self.assertIn("clinical.case_review", support["permissions"])
 

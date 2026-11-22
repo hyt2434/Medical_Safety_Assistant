@@ -43,6 +43,7 @@ CONJOINED_DAYPARTS = re.compile(r"(?:sang|trua|chieu|toi|dem)(?:\s+va\s+(?:sang|
 GROUPED_DAYPARTS = re.compile(
     r"\b(?:sang|trua|chieu|toi|dem)\s+(?:va|hoac|den)\s+(?:sang|trua|chieu|toi|dem)\b")
 DURATION = re.compile(r'\b(?:trong|lien tuc)\s+\d+\s+(?:ngay|tuan|thang)\b')
+SHARED_SCOPE = re.compile(r'\b(?:ca (?:hai|ba|bon|\d+)|moi thuoc|tat ca (?:cac )?thuoc)\b')
 
 
 class EvidenceError(ValueError):
@@ -183,6 +184,49 @@ def validate_medication(med: Medication, source: str) -> Medication:
             if getattr(result, key) is not None
         ]))
     return result
+
+
+def align_medication_evidence(value: Understanding, source: str) -> Understanding:
+    """Narrow broad model evidence only to independently attributable clauses.
+
+    Every named medication must belong to one distinct semicolon/newline clause.
+    All supplied raw fields must already occur there and inside the original
+    model span. Explicit shared scope requires restatement under the current
+    single-span DTO; ambiguous names stay untouched for strict validation.
+    """
+    if len(value.medications) < 2:
+        return value
+    if SHARED_SCOPE.search(fold(source)):
+        # Preserve the complete message in dialogue, but do not silently lose a
+        # shared instruction if the model omitted it or assigned it to one drug.
+        return value.model_copy(update={'ambiguous': True, 'medications': []})
+    clauses = [part.strip() for part in re.split(r'[;\n]+', source) if part.strip()]
+    if len(clauses) < 2:
+        return value
+    aligned, assigned = [], set()
+    for med in value.medications:
+        if not med.name_raw or med.evidence_text not in source:
+            return value
+        candidates = [i for i, clause in enumerate(clauses) if med.name_raw in clause]
+        if len(candidates) != 1 or candidates[0] in assigned:
+            return value
+        index = candidates[0]
+        clause = clauses[index]
+        # Narrow only: never expand truncated evidence, fabricate source text,
+        # erase an own-clause qualifier or discard an ungrounded raw field.
+        if clause in med.evidence_text:
+            bounded = clause
+        elif med.evidence_text in clause:
+            bounded = med.evidence_text  # Already bounded; the validator checks omitted qualifiers.
+        else:
+            return value
+        raw = [v for k, v in med.model_dump().items() if k.endswith('_raw') and v is not None]
+        raw += [v for admin in med.administrations for v in (admin.timing_raw, admin.dose_raw) if v is not None]
+        if any(not field.strip() or field not in bounded for field in raw):
+            return value
+        assigned.add(index)
+        aligned.append(med.model_copy(update={'evidence_text': bounded}))
+    return value.model_copy(update={'medications': aligned})
 
 
 def validate_understanding(value: Understanding, source: str) -> Understanding:

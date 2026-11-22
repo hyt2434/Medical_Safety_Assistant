@@ -23,6 +23,7 @@ from module3_interactions.engine import BoundedDataset, assess
 from shared.db import CoreRepository
 from shared.db import importer
 from tests.unit.module2.test_core import ReferenceRows
+from tests.db_cleanup import isolated_core_owner
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -168,9 +169,8 @@ def postgres_repo():
     with psycopg.connect(dsn, autocommit=True) as db:
         marker = db.execute("SELECT shobj_description(oid,'pg_database') FROM pg_database WHERE datname=current_database()").fetchone()[0]
         assert marker == 'Medication Safety Assistant Core V4 isolated test'
-        owner = uuid4()
-        db.execute('INSERT INTO identity.users(id) VALUES (%s)', (owner,))
-        yield CoreRepository(db, authenticated_owner=owner)
+        with isolated_core_owner(db) as owner:
+            yield CoreRepository(db, authenticated_owner=owner)
 
 
 def test_confirmed_nlp_core_snapshot_and_module3(postgres_repo):

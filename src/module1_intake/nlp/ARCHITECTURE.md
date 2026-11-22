@@ -109,6 +109,14 @@ sharing remain deferred to their owning services.
   not supply a strength and no numeric conversion replaces the reviewed words.
   Keep `2 hộp` as raw quantity; never calculate pills, schedules or daily doses.
   Corrections extract only new evidence and retain previous evidence/fields.
+- Before strict validation, broad model evidence may be narrowed to a literal
+  semicolon/newline clause only when each medication name maps uniquely to a
+  distinct clause and every supplied raw field remains in that bounded span.
+  No raw value is changed or borrowed, and existing bounded spans are retained.
+  Unsupported, invented, duplicate and overlapping evidence still fails the
+  unchanged validator. Explicit shared instructions such as `cả hai` or
+  `mỗi thuốc` require per-medication restatement under the single-span DTO:
+  the full message is retained, but no partial medication list is created.
 - Preserve `timing_raw="sáng và tối"` and its raw dose in one administration group;
   the backend derives `timing_slots_raw=["sáng","tối"]`. Alternatives, ranges,
   meal-relative and complex timings stay combined. No clock times or frequency

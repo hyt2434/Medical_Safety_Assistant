@@ -6,7 +6,7 @@ PERMISSIONS_BY_ROLE = {
     "patient": ("patient.workspace", "intake.ocr"),
     "hcp": ("clinical.case_review", "intake.ocr"),
     "medical_reviewer": ("catalog.review", "catalog.edit", "intake.ocr"),
-    "admin": ("staff.directory", "admin.accounts", "admin.roles", "admin.audit"),
+    "admin": ("staff.directory", "admin.accounts", "admin.roles", "admin.audit", "operations.assign"),
     "technical_support": ("staff.directory", "operations.queue"),
 }
 

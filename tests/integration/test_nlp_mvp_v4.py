@@ -12,13 +12,13 @@ from module1_intake.nlp.models import DialogueAct, Intent, Medication, Understan
 from module1_intake.nlp.understanding.providers import MockProvider, OllamaProvider
 from module1_intake.nlp.qa_pipeline.contracts import RetrievalQuery
 from shared.db import CoreRepository
+from tests.db_cleanup import isolated_core_owner
 
 
 @pytest.fixture
 def repo(connection):
-    owner = uuid4()
-    connection.execute('INSERT INTO identity.users(id) VALUES (%s)', (owner,))
-    return CoreRepository(connection, authenticated_owner=owner)
+    with isolated_core_owner(connection) as owner:
+        yield CoreRepository(connection, authenticated_owner=owner)
 
 
 def send(service, response, text):

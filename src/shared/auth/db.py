@@ -61,6 +61,9 @@ def migrate():
     with engine().begin() as connection:
         if connection.dialect.name == "postgresql":
             connection.exec_driver_sql("SELECT pg_advisory_xact_lock(74031821)")
+        elif connection.dialect.name == 'sqlite':
+            # SQLite DDL must participate in the same atomic upgrade transaction.
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
         config.attributes["connection"] = connection
         command.upgrade(config, "head")
 

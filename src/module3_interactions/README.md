@@ -89,8 +89,10 @@ Major/contraindicated warnings and conflicts containing those levels remain
 immediate. Each durable finding includes `evidence.reminder_hold`; the aggregate
 is in `check_results.ddi.scope.reminder_hold` and the runtime result. It identifies
 affected entry versions and limits the proposed hold to **new implicated reminder
-activations**. Existing reminders are unchanged. No Module 5 gate or activation
-policy is implemented. Committed warnings remain available through
+activations**. Existing reminders are unchanged. The system DB extensions now
+enforce exact schedule/assessment/HCP approval when an explicit new activation
+is stored through `shared.db.domain_repository`. Module 3 still does not activate
+or deliver reminders; its existing activation-policy flag is retained. Committed warnings remain available through
 `CoreRepository.severe_warnings()` after lookup/composition failures and retries.
 
 ## Verification and known limits

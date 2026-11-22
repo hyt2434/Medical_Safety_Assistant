@@ -4,6 +4,7 @@ No reference imports, paid inference, Module 2/3 execution or shared DB fixtures
 """
 from copy import deepcopy
 import os
+import json
 from pathlib import Path
 import re
 import sys
@@ -17,6 +18,7 @@ from module1_intake.nlp.dialogue_management.manager import Chatbot
 from module1_intake.nlp.understanding.providers import MockProvider
 from module1_intake.nlp.models import Medication, Understanding
 from shared.db import CoreRepository
+from tests.db_cleanup import isolated_core_owner
 
 
 @pytest.fixture(scope='module')
@@ -26,8 +28,8 @@ def connection():
         pytest.skip('NLP_TEST_DSN not configured; isolated PostgreSQL integration only')
     options = conninfo_to_dict(dsn)
     if (options.get('host') not in {'localhost', '127.0.0.1', '::1'} or
-            not re.fullmatch(r'msa_core_test_v4nlp[a-z0-9]*checks', options.get('dbname', ''))):
-        pytest.fail('Refusing database: dedicated loopback msa_core_test_v4nlp<suffix>checks required')
+            not re.fullmatch(r'msa_core_test_v4(?:nlp|system)[a-z0-9]*checks', options.get('dbname', ''))):
+        pytest.fail('Refusing database: dedicated loopback NLP/system ...checks database required')
     # Guard happens BEFORE bootstrap or connection. msa_core_test_v4checks is rejected.
     if os.environ.get('NLP_TEST_BOOTSTRAP') == '1':
         sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'db'))
@@ -43,11 +45,10 @@ def connection():
 @pytest.fixture
 def setup(connection):
     # Synthetic identities exist only in the explicitly marked NLP fixture database.
-    owner = uuid4()
-    connection.execute('INSERT INTO identity.users(id) VALUES (%s)', (owner,))
-    repo = CoreRepository(connection, authenticated_owner=owner)
-    bot = Chatbot(repo, MockProvider())
-    return connection, repo, bot, bot.start()
+    with isolated_core_owner(connection) as owner:
+        repo = CoreRepository(connection, authenticated_owner=owner)
+        bot = Chatbot(repo, MockProvider())
+        yield connection, repo, bot, bot.start()
 
 
 def send(bot, reply, text):
@@ -67,7 +68,10 @@ def test_real_v4_payloads_digests_confirmation_and_resume(setup):
     restored = Chatbot(repo, MockProvider())
     r = send(restored, r, 'xác nhận')
     assert r.state == 'COMPLETED' and r.handoff.entries[0].identity_status == 'NOT_ATTEMPTED'
-    assert db.execute("SELECT count(*) FROM information_schema.tables WHERE table_schema IN ('msa','msa_ref') AND table_type='BASE TABLE'").fetchone()[0] == 20
+    contract=json.loads((Path(__file__).resolve().parents[2]/'db/schema_contract.json').read_text(encoding='utf-8'))
+    actual={row[0] for row in db.execute("SELECT table_schema||'.'||table_name FROM information_schema.tables WHERE table_schema IN ('msa','msa_ref') AND table_type='BASE TABLE'")}
+    assert actual=={table['name'] for table in contract['tables']}
+    assert len(contract['baseline']['tables'])==20 and set(contract['baseline']['tables'])<=actual
     assert db.execute('SELECT count(*) FROM msa.entry_matches WHERE user_id=%s', (repo.owner,)).fetchone()[0] == 0
 
 

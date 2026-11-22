@@ -1,8 +1,11 @@
 ﻿# Auth API
 
-Xác thực nằm trong API Python (`apps/backend`), không nằm trong 20 bảng Core V4.
+Xác thực nằm trong API Python (`apps/backend`) và database Auth riêng.
 
-`identity.users` chỉ là phụ thuộc ngoài với cột `id`. Schema V4 không có `USERS`, `ROLES`, `USER_ROLES`. Module xác thực dùng SQLAlchemy và Alembic trong database riêng, hỗ trợ PostgreSQL và SQLite. Không thay đổi 20 bảng Core V4 hoặc tự tạo liên kết giả với `identity.users`.
+Core có registry `identity.users(id uuid)` và schema nghiệp vụ mở rộng theo SAD
+(36 bảng); Auth có tám bảng riêng, dùng SQLAlchemy/Alembic và UUID chung với Core.
+Baseline 20 bảng V4 và dữ liệu đã kiểm định được giữ nguyên. Schema không có FK
+xuyên database; cơ chế cấp phát thật nằm trong `shared.auth.core_owner`.
 
 Phiên dùng cookie `msa_session`: HttpOnly, SameSite=Lax, không phải bearer token. Trên HTTP local, cookie chưa bật `Secure`. Production phải bật `Secure` khi phục vụ qua HTTPS.
 
@@ -108,12 +111,14 @@ Không có biến này thì test PostgreSQL báo skipped. Test xác thực/phân
 ## OCR và Core V4
 
 `CORE_DB_DSN` và `CORE_REFERENCE_BUILD` chọn Core/danh mục đã cấp phát riêng;
-`CORE_USER_BINDINGS` là JSON một-một Auth ID → UUID đã tồn tại trong `identity.users`.
-Ví dụ cấu trúc: `{"account-id":"<Core UUID đã cấp phát>"}`. Không dùng chuỗi ví dụ
-như dữ liệu thật. Chỉ quản trị cấu hình máy chủ, client không gửi owner.
+Auth trả UUID chuẩn; Core cần bản ghi cùng UUID trong `identity.users`.
+`CORE_USER_BINDINGS` cũ chỉ còn là đầu vào migration, không phải cách chọn một
+owner khác lúc chạy. Dùng `AUTH_LEGACY_UUID_MAP` đã đối chiếu khi nâng cấp ID cũ;
+xem [hợp đồng Auth](../../db/auth/README.md). Chỉ server/operator cấp liên kết;
+client không gửi owner. Retry cấp phát giữ tài khoản, mật khẩu và grant đã có.
 Thiếu liên kết trả 403; cấu hình không hợp lệ trả 503; tài nguyên chủ khác trả 404.
 
-`GET /api/v1/intake/capabilities` cho UI biết luồng lưu Core có được cấu hình.
+`GET /api/v1/intake/capabilities` kiểm tra UUID đã hiện diện ở Core, không chỉ DSN.
 POST `/api/v1/intake/workflows` tạo bản nháp; upload vào `/workflows/{id}/ocr`;
 `/ocr/edit` lưu bản sửa và trả revision mới. `/confirm` yêu cầu đồng ý rõ ràng và
 revision hiện tại; `/actions` với `ASSESS` mới chạy Module 2–3. OCR giữ ảnh thật và

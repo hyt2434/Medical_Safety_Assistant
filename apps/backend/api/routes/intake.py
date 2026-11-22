@@ -10,6 +10,8 @@ from pydantic import BaseModel, ConfigDict, ValidationError, Field
 
 from apps.backend.api.deps import require_permission, current_session
 from shared.auth.core_owner import core_owner
+from shared.auth.db import transaction
+from shared.auth.sessions import audit
 from shared.db import CoreRepository
 from shared.intake_contracts import Medication
 from module1_intake.nlp.interfaces.application import (
@@ -48,19 +50,32 @@ class HttpVoiceSubmit(VoiceSubmitRequest):
 
 @router.get('/capabilities')
 def capabilities(session=Depends(current_session)):
+    linked = False
     try:
-        core_owner(session['account']['id'])
-        linked = True
-    except (PermissionError, ValueError, TypeError):
-        linked = False
+        owner = core_owner(session['account']['id'])
+        if os.environ.get('CORE_DB_DSN'):
+            with psycopg.connect(os.environ['CORE_DB_DSN'], autocommit=True, connect_timeout=3) as connection:
+                linked = bool(connection.execute('SELECT 1 FROM identity.users WHERE id=%s', (owner,)).fetchone())
+    except (PermissionError, ValueError, TypeError, psycopg.Error):
+        pass
     return {'persistent_intake': bool(linked and os.environ.get('CORE_DB_DSN') and
         os.environ.get('CORE_REFERENCE_BUILD') and 'patient.workspace' in session['contextPermissions'])}
+
+
+def _deny_missing_core_link(session):
+    # Commit to Auth before raising: this denial creates no Core resource and
+    # must survive the request/Core connection unwinding. No body data is used.
+    account_id = session['account']['id']
+    with transaction() as db:
+        audit(db, account_id, 'intake.denied.core_link_missing',
+              target_type='account', target=account_id, success=False)
 
 
 def current_application(session=Depends(require_permission('patient.workspace'))):
     try:
         owner = core_owner(session['account']['id'])
     except PermissionError:
+        _deny_missing_core_link(session)
         raise HTTPException(403, 'Tài khoản chưa được liên kết với hồ sơ Core') from None
     except (ValueError, TypeError):
         raise HTTPException(503, 'Cấu hình liên kết tài khoản Core không hợp lệ') from None
@@ -70,6 +85,7 @@ def current_application(session=Depends(require_permission('patient.workspace'))
     try:
         with psycopg.connect(dsn, autocommit=True) as connection:
             if not connection.execute('SELECT 1 FROM identity.users WHERE id=%s', (owner,)).fetchone():
+                _deny_missing_core_link(session)
                 raise HTTPException(403, 'Liên kết Core chưa được cấp phát')
             repo = CoreRepository(connection, authenticated_owner=owner)
             yield ApplicationService(repo, OllamaProvider(os.environ.get('NLP_OLLAMA_MODEL', 'qwen3.5:9b')),

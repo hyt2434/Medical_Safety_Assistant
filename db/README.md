@@ -1,12 +1,16 @@
 # Database V4
 
-PostgreSQL 18 persistence for Modules 1–3: 20 owned tables, 193 attributes and
-40 restrictive foreign keys. The external `identity.users(id uuid NOT NULL
-UNIQUE/PRIMARY KEY)` contract must exist for deployment migrations.
+PostgreSQL 18 system schema: 36 Core tables, 326 columns and 71 restrictive
+foreign keys, plus eight tables / 33 columns in the separate [Auth database](auth/README.md).
+The original Core V4 baseline (20 tables / 193 columns / 40 FKs) is preserved.
+`identity.users(id uuid NOT NULL UNIQUE/PRIMARY KEY)` is the Core store's local
+identity registry; a linked Auth account uses the same UUID. No cross-database
+foreign key or second identity-mapping table is introduced.
 
 ```text
 db/
   migrations/          # ordered V4 migrations; applied files are immutable
+  identity.sql         # explicit new-install Core UUID registry, not Auth tables
   scripts/             # local PostgreSQL utilities and read-only inspection SQL
   tests/               # PostgreSQL integration checks and synthetic fixtures
   docs/CONTRACT.md     # schema, data, ownership and application contracts
@@ -24,9 +28,9 @@ domain map, integration boundaries and migration compatibility rules.
 ## Setup and testing
 
 Run from the repository root; Python 3.10+ and PostgreSQL 18 are required.
-Install `db/requirements.txt` in your chosen environment. Provide the six
-approved CSVs locally under `data/datasets/`; they are intentionally excluded
-from Git. Missing source data is a setup requirement, not a reason to substitute
+Install `db/requirements.txt` in your chosen environment. The six approved CSVs
+are versioned under `data/datasets/`, the canonical source directory. Other local
+datasets remain ignored. Missing source data is a setup requirement, not a reason to substitute
 invented or unapproved datasets.
 
 ```powershell
@@ -58,11 +62,45 @@ refused for an existing cluster. Loopback trust authentication is for isolated
 testing only. Use `-Action Status` or `-Action Stop` with the same runtime path.
 
 For an authorized deployment with the agreed identity contract, set its DSN and
-run `db/manage.py migrate`, then `db/manage.py import`. This does not authorize
+run `db/manage.py provision-identity` if the local registry has not been installed,
+then `db/manage.py migrate` and `db/manage.py import`. Existing registry data is
+validated and never rewritten; the command rejects an Auth database. This does not authorize
 synthetic tests there. The migration runner rejects the retired Phase 2 schema;
 no automatic prototype-to-V4 conversion is supplied.
 
 ## Maintenance
+
+`003_system_domains.sql` adds the SAD's proposed tables and per-box cabinet;
+`004_domain_access_and_audit.sql` adds scoped RLS and transactional business audit;
+`005_schedule_runtime_guard.sql` completes runtime guards without changing the
+already applied migrations. The [contract](docs/CONTRACT.md) maps all domains and
+documents JSONB, deletion, schedule verification and sharing rules.
+
+For a schema-empty marked upgrade test DB and a separate system test DB, run:
+
+```powershell
+# Supply only verified loopback ...checks DBs; do not use an application DB.
+$env:SYSTEM_TEST_DSN = '<marked system test DSN>'
+$env:SYSTEM_UPGRADE_TEST_DSN = '<schema-empty marked systemupgrade test DSN>'
+# prepare-test creates/marks a new test DB without installing schema or resetting it.
+./.venv/Scripts/python.exe db/manage.py prepare-test --dsn $env:SYSTEM_UPGRADE_TEST_DSN --isolated-test
+$env:PYTHONPATH = 'src;.;db'
+./.venv/Scripts/python.exe -m pytest db/tests/test_system_domains.py -q
+```
+
+The upgrade checks read the unchanged baseline SQL and exercise both successful
+upgrade and rollback after a synthetic failure. Schema/data changes in that DB
+are rolled back. Application E2E uses existing, hash-verified reference fixtures;
+it never resets a database. `tests/db_cleanup.py` creates unique owners, checks
+the marker and cleanup privilege first, and removes only their records after
+multi-connection APIs commit. Teardown temporarily sets replication role inside
+its own administrative transaction because Core history forbids ordinary DELETE;
+all behavioral tests run with guards enabled. It verifies zero remaining rows
+and restoration to `origin`. Never use this teardown against deployment data.
+
+Run shared-DB test groups sequentially: global before/after integrity checks
+intentionally detect unrelated concurrent writes. API concurrency is exercised
+inside its dedicated tests with generated identities.
 
 - Keep SQL migrations byte-for-byte stable after application. Add a numbered
   migration for future changes; `.gitattributes` preserves their exact bytes.

@@ -107,13 +107,13 @@ class CoreV4Tests(unittest.TestCase):
                                          explicit_confirmation=True, supersedes=supersedes, snapshot=snapshot, assessment=assessment)
         return saved, pending, request, digest
 
-    def test_01_exact_twenty_tables_193_attributes_types_and_nulls(self):
+    def test_01_system_contract_and_preserved_v4_attributes_types_and_nulls(self):
         contract = json.loads((ROOT / "db/schema_contract.json").read_text(encoding="utf-8"))
         tables = self.db.execute("""SELECT table_schema||'.'||table_name FROM information_schema.tables
             WHERE table_schema IN ('msa','msa_ref') AND table_type='BASE TABLE'""").fetchall()
         self.assertEqual({r[0] for r in tables}, {t["name"] for t in contract["tables"]})
         total = 0
-        types = {"integer": "int4", "bigint": "int8"}
+        types = {"integer": "int4", "bigint": "int8", "boolean": "bool"}
         for table in contract["tables"]:
             actual = self.db.execute("""SELECT a.attname,t.typname,a.attnotnull,a.attgenerated,
                 pg_get_expr(d.adbin,d.adrelid) FROM pg_attribute a JOIN pg_type t ON t.oid=a.atttypid
@@ -130,12 +130,18 @@ class CoreV4Tests(unittest.TestCase):
                 else:
                     self.assertIsNotNone(row[4])
             total += len(actual)
-        self.assertEqual(total, 193)
+        self.assertEqual(total, contract['system']['column_count'])
+        self.assertEqual(sum(len(t['columns']) for t in contract['tables'] if t['name'] in contract['baseline']['tables']), 193)
+        self.assertEqual(len(contract['baseline']['tables']), 20)
 
-    def test_02_forty_composite_foreign_keys_restrict_and_two_join_pks(self):
+    def test_02_system_foreign_keys_restrict_and_preserved_join_pks(self):
+        contract = json.loads((ROOT / 'db/schema_contract.json').read_text(encoding='utf-8'))
         rules = self.db.execute("""SELECT confupdtype,confdeltype FROM pg_constraint
             WHERE contype='f' AND connamespace IN ('msa'::regnamespace,'msa_ref'::regnamespace)""").fetchall()
-        self.assertEqual(len(rules), 40)
+        self.assertEqual(len(rules), contract['system']['foreign_key_count'])
+        baseline = self.db.execute("""SELECT count(*) FROM pg_constraint WHERE contype='f'
+            AND conrelid::regclass::text=ANY(%s)""", (contract['baseline']['tables'],)).fetchone()[0]
+        self.assertEqual(baseline, 40)
         self.assertTrue(all(r == ("r", "r") for r in rules))
         for table, keys in (("snapshot_entries", "{snapshot_id,entry_version_id}"),
                             ("finding_entries", "{finding_id,entry_version_id}")):
