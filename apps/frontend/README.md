@@ -1,4 +1,4 @@
-﻿# Tiểu Bạch frontend
+# Tiểu Bạch frontend
 
 Ứng dụng React + TypeScript được tích hợp từ commit `e41a745` của nhánh OCR/UI, theo thiết kế Stitch trên nhánh nguồn. Vite build ứng dụng, React Router quản lý điều hướng, Lucide cung cấp icon. Font dùng thống nhất theo prototype UI: Bricolage Grotesque cho tiêu đề và IBM Plex Sans cho nội dung, đóng gói cục bộ với đầy đủ ký tự tiếng Việt và Latin.
 
@@ -46,15 +46,17 @@ Kiểm thử Playwright tự tìm Chrome hoặc Edge; có thể dùng Google Chr
 
 Các trang Stitch được dùng làm tham chiếu về bảng màu teal/mint/kem, menu ngang, typography, thẻ thuốc, cảnh báo, biểu mẫu và bảng ca. Các màn hình xác nhận, kết quả, lịch nhắc, yêu cầu review, phản hồi, nguồn dữ liệu, quản trị và trang không tìm thấy được bổ sung theo cùng hệ thống giao diện.
 
-## Thử luồng xuyên suốt
+## Thử luồng nhập thuốc thật
 
-1. Vào `/login`, đăng nhập `mai.demo@example.com` bằng mật khẩu development trong `apps/backend/README.md`.
-2. Mở **Nhập toa thuốc**, chọn **Dùng dữ liệu minh họa**. Bộ thuốc mẫu và ảnh minh họa là hai dữ liệu riêng, không phải kết quả OCR.
-3. Hoàn tất hồ sơ bằng dữ liệu giả đã biết, chọn **Kiểm tra lại**, đối chiếu và xác nhận từng dòng để xem kết quả minh họa.
-4. Tạo yêu cầu mẫu, đồng ý chia sẻ và nhập câu hỏi. Yêu cầu xuất hiện trong hàng chờ HCP của cùng phiên.
-5. Vào `/hcp/login`, đăng nhập `an.demo@example.com`, tìm ca `BN-DEMO`, kiểm tra thuốc và soạn phản hồi. Có thể chọn xác nhận lịch mẫu để thử bước nhắc thuốc.
-6. Quay lại `/login` với `mai.demo@example.com`, xem phản hồi tại **Kết quả**. Xem kế hoạch và chủ động chọn thiết lập lời nhắc rồi kiểm tra điều kiện tạo lịch.
-7. Mở **Lịch thuốc**, ghi nhận đã uống/bỏ qua hoặc hoàn tác. Tải lại trang vẫn giữ dữ liệu phiên.
+1. Từ gốc repo chạy `.venv/Scripts/python.exe apps/backend/app.py --port 8000 --no-reload`; chạy `npm run dev` trong `apps/frontend/`. Mở http://127.0.0.1:5173. Backend đọc `.env` local; không đưa DSN vào bundle.
+2. Đăng nhập patient đã được máy chủ liên kết UUID Core. `/intake`, `/chat`, `/verify` và `/results` dùng chung bản nháp Core đang mở.
+3. Manual: tìm danh mục, đối chiếu mã/nhà sản xuất/dạng/thành phần, chủ động chọn sản phẩm. Form giữ source ID và dataset build, không tự chọn kết quả đầu tiên.
+4. Chatbot: gửi tiếng Việt tới Qwen qua API; xem câu hỏi làm rõ và bản nháp. Hội thoại tải từ máy chủ.
+5. Voice: thu âm nếu browser cho phép hoặc tải WAV; xem transcript gốc từ Whisper, sửa rồi gửi vào chatbot. Audio không lưu lâu dài; giữ transcript gốc/bản sửa và digest.
+6. OCR: tải ảnh/crop, chạy Tesseract, sửa và lưu từng thuốc.
+7. Đồng ý đúng revision → xác nhận danh sách → chủ động nhận diện/đánh giá. Xem định danh, hoạt chất, bằng chứng và coverage. Sửa sau xác nhận tạo phiên bản mới, kết quả cũ không áp dụng.
+
+Review HCP và lịch nhắc vẫn là minh họa riêng, chưa nối nghiệp vụ với kết quả Core.
 
 ## Cấu trúc mã
 
@@ -76,20 +78,17 @@ tests/workflows.spec.ts     Luồng xuyên vai trò và kiểm tra responsive
 
 ## Trạng thái dữ liệu và giới hạn
 
-- Các màn hình minh họa dùng dữ liệu giả trong `sessionStorage`. Luồng OCR Core khi được cấu hình lưu bản nháp và kết quả trên PostgreSQL sau xác nhận. Nút **Xóa dữ liệu phiên** ở trang đăng nhập đặt lại dữ liệu.
-- Ảnh JPG/PNG/WebP tối đa 10 MB chỉ tải lên khi bấm đọc thông tin. Máy chủ chạy Tesseract vie+eng và lưu ảnh thật/raw output. UI cho sửa tên, hàm lượng, dạng thuốc, liều, thời điểm; lưu bản sửa → đối chiếu → xác nhận rõ ràng → gọi Module 2–3. Sửa form hủy hiệu lực đồng ý trước đó.
-- Nhận giọng nói sử dụng Web Speech khi browser hỗ trợ và được cấp quyền. Dịch vụ của browser có thể cần mạng. Bản chép lời chỉnh sửa được; chưa tự tách thành thuốc. Không hỗ trợ thì có hướng dẫn nhập tay.
-- OCR và danh mục Core V4 đã nối backend. Khi thiếu cấu hình/liên kết Core, OCR chỉ trả bản trích xuất chưa được đánh giá. Form Manual, Web Speech và chat vẫn là prototype; các API Core tương ứng đã có nhưng UI chưa nối. Đăng nhập, phiên và quyền API quản trị đi qua backend Python. Chat dùng câu trả lời đã chuẩn bị. Đọc văn bản dùng speech synthesis nếu browser hỗ trợ.
-- Chat lưu câu hỏi và câu trả lời trong phiên trình duyệt. Khung **Lịch sử câu hỏi** hỗ trợ tìm kiếm, chọn để xem lại và xóa lịch sử có xác nhận. Hình Tiểu Bạch nổi trên các trang khác giúp mở nhanh chat; HCP và quản trị cũng có thể mở chat mà không đổi vai trò. Khi chưa đăng nhập, đường dẫn này đi qua đăng nhập rồi tiếp tục tới chat.
-- Chỉ bộ dữ liệu mẫu nguyên vẹn được chuyển vào tình huống review cố định. Thuốc nhập khác giữ trạng thái chưa đánh giá; thiếu bối cảnh/hoạt chất giữ trạng thái thiếu dữ liệu. Không có kết luận “an toàn” giả.
-- Sửa toa hủy kết quả trước đó. Xác nhận nhập liệu không đồng nghĩa với xác nhận điều trị.
-- Review HCP chỉ là mô phỏng. Lịch mới chỉ được tạo sau phản hồi HCP xác nhận lịch mẫu, người dùng xem kế hoạch và chủ động chọn bật. Lịch cũ của thuốc khác không tự dừng. Chưa có thông báo nền, SMS, gửi tin nhắn hoặc đồng bộ bệnh viện.
-- Triệu chứng được người dùng tự ghi nhận và tự chọn mức hỗ trợ; chưa có phân loại y khoa tự động. Nội dung khẩn cấp nhắc tìm trợ giúp thực tế, không chờ hàng chờ.
-- Route guard trên giao diện chỉ điều hướng sau khi `/api/auth/me` xác nhận phiên. Quyền thật của API quản trị nằm ở backend. Mật khẩu development và các tài khoản mẫu ghi trong `apps/backend/README.md`.
+- Manual, chatbot, Voice và OCR dùng chung workflow/revision/owner phía máy chủ. SessionStorage chỉ giữ con trỏ workflow và khóa idempotency cho luồng này; dữ liệu lâm sàng tải từ Core.
+- Thiếu liên kết Core/quyền, lỗi API và hết phiên được hiển thị rõ; không thay kết quả lỗi bằng dữ liệu mẫu. Đăng xuất/đổi tài khoản gỡ dữ liệu y tế khỏi màn hình.
+- OCR giữ ảnh/raw output thật theo chính sách `data/local/module1/runs/`. Voice lưu TEXT nguồn VOICE với transcript và digest, không có object locator giả. Ca tự động dùng WAV tiếng Việt tổng hợp qua Whisper thật; không dùng Web Speech thay Whisper.
+- PARTIAL không phải kiểm tra đầy đủ hay kết luận an toàn. Xác nhận nhập liệu không phải xác nhận điều trị. UI giữ evidence và giới hạn do backend trả về.
+- Hồ sơ, tủ thuốc, HCP review và lịch nhắc ngoài luồng Core vẫn là minh họa phiên trình duyệt; không tự tạo lịch từ kết quả tương tác. Bản mẫu HCP chỉ mở với state đã đánh dấu nguồn bộ dữ liệu mẫu và không có workflow Core đang mở.
 
 ## Kiểm tra
 
-`test:e2e` kiểm tra toàn luồng người dùng → HCP → phản hồi → bật lịch mẫu; chặn dữ liệu chưa xác nhận; hủy kết quả khi sửa toa; giữ trạng thái chưa đánh giá; upload ảnh, lọc thuốc, lưu hồ sơ và trạng thái ngày trống. Kiểm tra các route ở chiều rộng 320, 375, 414, 768 và 1440 px, theo dõi lỗi JavaScript và tràn ngang.
+`npm run build` chạy TypeScript và Vite. `tests/ocr-review.spec.ts` kiểm tra bốn đường UI bằng HTTP fixture: sửa, crop, lựa chọn không đứng đầu, gửi lặp, lỗi audio/API, hết phiên và evidence. Playwright mặc định tắt Core dù có `.env` dev; Auth dùng SQLite riêng. Các ca HCP/reminder trong `workflows.spec.ts` chỉ là hồi quy prototype.
+
+Nghiệm thu browser/API/PostgreSQL với Qwen/Whisper/Tesseract thật: từ gốc repo đặt `INTAKE_RUN_REAL_BROWSER=1`, `MODULE2_TEST_DSN` tới Core test có marker, `RBAC_POSTGRES_TEST_URL` tới Auth test có marker và `MSA_DDINTER_INDEX` tới index đã có; chạy `.venv/Scripts/python.exe -m pytest tests/integration/test_intake_browser_e2e.py -q -s`. Test từ chối DB dev, tạo UUID riêng, đối chiếu DDInter và dọn đúng dữ liệu lượt chạy. Cần cache Whisper small, Ollama/Qwen, Tesseract vie+eng, Chrome/Edge và ảnh/WAV mẫu hiện có; không tải model hoặc nạp lại reference tự động.
 
 Khi triển khai lên static hosting, cần cấu hình fallback các đường dẫn SPA về `index.html`.
 
@@ -101,12 +100,6 @@ The browser calls relative `/api/...` URLs. `API_PROXY_URL` configures the Vite 
 
 Development starts on port 5173. Vite selects a higher free port only when another server occupies it; opening another browser tab does not change ports. Add the actual development origin to the backend allowlist if it is not already listed, then restart the backend.
 
-## Luồng OCR lưu Core
+## Luồng Intake lưu Core
 
-Xem cấu hình Auth/Core và ánh xạ UUID do máy chủ quản lý tại
-[backend README](../backend/README.md#ocr-và-core-v4). UI gọi capabilities →
-workflows → OCR → OCR/edit → confirm → actions; trước confirm không gọi đánh giá.
-Kiểm tra UI dùng HTTP fixtures trong `tests/ocr-review.spec.ts`; kiểm tra Tesseract
-và PostgreSQL thật nằm tại `tests/integration/test_ocr_api_core_v4.py` ở gốc repo.
-Không gửi owner từ trình duyệt. Build dùng duy nhất `index.html` → `src/main.tsx`
-→ `src/App.tsx`, tránh cặp `app.ts`/`App.tsx` trên Windows.
+Xem [backend README](../backend/README.md#ocr-và-core-v4). UI gọi capabilities → workflows → nguồn nhập → details/xem-sửa → confirm → actions. Máy chủ xác định owner từ session. Build dùng duy nhất `index.html` → `src/main.tsx` → `src/App.tsx`.

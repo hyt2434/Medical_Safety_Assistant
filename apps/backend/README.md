@@ -1,4 +1,4 @@
-﻿# Auth API
+# Auth API
 
 Xác thực nằm trong API Python (`apps/backend`) và database Auth riêng.
 
@@ -106,7 +106,7 @@ $env:RBAC_POSTGRES_TEST_URL = 'postgresql+psycopg://USER:PASSWORD@127.0.0.1:5432
 ./.venv/Scripts/python.exe -m pytest tests/backend/test_rbac_postgres.py -q
 ```
 
-Không có biến này thì test PostgreSQL báo skipped. Test xác thực/phân quyền dùng dữ liệu riêng, gồm migration cũ, seed lặp, thu hồi/hết hạn, đa ngữ cảnh, chống nâng quyền, truy cập chéo tài khoản, cookie và audit. Ngoài luồng OCR Core và danh mục đọc Core, các luồng thuốc và hồ sơ chăm sóc ở frontend vẫn là prototype; RBAC không biến các dữ liệu đó thành dịch vụ lâm sàng production.
+Không có biến này thì test PostgreSQL báo skipped. Test xác thực/phân quyền dùng dữ liệu riêng, gồm migration cũ, seed lặp, thu hồi/hết hạn, đa ngữ cảnh, chống nâng quyền, truy cập chéo tài khoản, cookie và audit. Manual, chatbot, Voice và OCR ở frontend gọi Intake Core; HCP review, hồ sơ và lịch nhắc vẫn là prototype.
 
 ## OCR và Core V4
 
@@ -127,7 +127,13 @@ Giữ các đối tượng còn được DB tham chiếu. Stateless `/api/v1/ocr
 trả kết quả OCR để xem lại, không ghi Core hoặc chạy đánh giá.
 
 `/messages`, `/manual`, `/manual/edit`, `/voice`, `/voice/edit`, `/voice/submit`
-dùng cùng dịch vụ Intake và owner guard. UI OCR đã nối luồng Core; form Manual,
-Web Speech và Chat từ nhánh UI vẫn là prototype, chưa gọi các API này.
+dùng cùng dịch vụ Intake và owner guard. UI bốn đường nhập dùng cùng workflow.
+GET `/workflows/{id}/details` trả hội thoại, nguồn từng thuốc và kết quả/evidence;
+GET `/workflows/{id}/voice` tải transcript nháp. `/entries/edit` lưu bản sửa
+cho mọi nguồn, giữ input/provenance; POST `/workflows/{id}/revise` với revision
+mở bản sửa sau xác nhận. `/voice/discard` bỏ transcript chưa gửi. Voice dùng
+Whisper thật, lưu TEXT nguồn VOICE với transcript gốc/bản sửa và digest;
+không lưu audio lâu dài hoặc tạo object locator giả. Manual gửi source ID và
+dataset build đã chọn, máy chủ xác minh và giữ đúng sản phẩm.
 `GET /api/reference/medications` chỉ đọc `msa_ref` theo build đã cấu hình, không
 truy vấn các bảng tham chiếu cũ trong DB Auth.

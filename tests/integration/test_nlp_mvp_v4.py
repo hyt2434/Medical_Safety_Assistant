@@ -78,6 +78,65 @@ def test_real_core_voice_review_provenance_and_retry(repo, monkeypatch):
     done = reloaded.confirm(ConfirmationRequest(workflow_id=result.workflow_id, revision=result.revision,
         request_key=uuid4(), explicit_confirmation=True))
     assert done.entries[0].confirmed
+    from module1_intake.nlp.interfaces.application import EntryEditRequest
+    revised = service.revise(done.workflow_id, expected_revision=done.revision)
+    changed = service.edit_entry(EntryEditRequest(workflow_id=revised.workflow_id, revision=revised.revision,
+        entry_version_id=done.entries[0].entry_version_id,
+        medication=done.entries[0].medication.model_copy(update={'dose_raw': 'ba viên', 'evidence_text': edited_text+'; sửa liều ba viên'})))
+    assert not changed.entries[0].confirmed and changed.entries[0].medication.dose_raw == 'ba viên'
+    details = service.details(changed.workflow_id)
+    assert details['entry_sources'][str(changed.entries[0].entry_version_id)]['input_source'] == 'VOICE'
+    row = repo._owned('medication_entry_versions', changed.entries[0].entry_version_id)
+    attempt = repo._owned('intake_extractions', row['source_extraction_id'])
+    retained_input = repo._owned('intake_inputs', attempt['input_id'])
+    assert retained_input['payload_or_locator']['voice']['raw_transcript'] == text
+    assert retained_input['payload_or_locator']['voice']['text'] == edited_text
+    assert repo._owned('medication_entry_versions', done.entries[0].entry_version_id)['confirmed_at'] is not None
+
+
+def test_real_core_ui_catalog_choice_revision_details_and_foreign_owner(repo):
+    from module1_intake.nlp.interfaces.application import ManualInputRequest, EntryEditRequest
+    products = repo._all("SELECT * FROM msa_ref.medications WHERE brand_name ILIKE %s ORDER BY brand_name,source_medication_id LIMIT 2", ('Lenalimid',))
+    assert len(products) == 2 and products[0]['id'] != products[1]['id']
+    selected = products[1]
+    service = ApplicationService(repo, MockProvider(), dataset_build=selected['dataset_build'])
+    current = service.start(task=Intent.ADD_MEDICATION)
+    med = Medication(name_raw=selected['brand_name'], strength_raw='5 mg', dosage_form_raw=selected['dosage_form'],
+                     dose_raw='một viên', evidence_text=selected['brand_name']+' 5 mg, một viên')
+    with pytest.raises(ValueError, match='Catalog version changed'):
+        service.save_manual(ManualInputRequest(workflow_id=current.workflow_id, revision=current.revision,
+            source_medication_id=selected['source_medication_id'], dataset_build='0'*64, medication=med))
+    current = service.save_manual(ManualInputRequest(workflow_id=current.workflow_id, revision=current.revision,
+        source_medication_id=selected['source_medication_id'], dataset_build=selected['dataset_build'], medication=med))
+    original = current
+    current = service.edit_entry(EntryEditRequest(workflow_id=current.workflow_id, revision=current.revision,
+        entry_version_id=current.entries[0].entry_version_id,
+        medication=med.model_copy(update={'dose_raw':'hai viên','evidence_text':med.evidence_text+'; sửa hai viên'})))
+    details = service.details(current.workflow_id)
+    choice = details['entry_sources'][str(current.entries[0].entry_version_id)]['selected_product']
+    assert choice['source_medication_id'] == selected['source_medication_id']
+    assert choice['medication_id'] == str(selected['id']) and choice['dataset_build'] == selected['dataset_build']
+    assert details['conversation_id'] == repo._owned('workflow_instances', current.workflow_id)['conversation_id']
+    with pytest.raises(ValueError, match='revision'):
+        service.edit_entry(EntryEditRequest(workflow_id=original.workflow_id, revision=original.revision,
+            entry_version_id=original.entries[0].entry_version_id, medication=med))
+    for table in ('entry_matches','medication_list_snapshots','safety_assessments'):
+        assert repo._one(f'SELECT count(*) AS n FROM msa.{table} WHERE user_id=%s', (repo.owner,))['n'] == 0
+    with isolated_core_owner(repo.db) as other:
+        foreign = ApplicationService(CoreRepository(repo.db, authenticated_owner=other), MockProvider())
+        with pytest.raises(PermissionError):
+            foreign.details(current.workflow_id)
+    done = service.confirm(ConfirmationRequest(workflow_id=current.workflow_id, revision=current.revision,
+        request_key=uuid4(), explicit_confirmation=True))
+    with pytest.raises(ValueError, match='revision|revise|completed|active',):
+        service.edit_entry(EntryEditRequest(workflow_id=done.workflow_id, revision=done.revision,
+            entry_version_id=done.entries[0].entry_version_id, medication=med))
+    revision = service.revise(done.workflow_id, expected_revision=done.revision)
+    assert revision.workflow_id != done.workflow_id
+    corrected = service.edit_entry(EntryEditRequest(workflow_id=revision.workflow_id, revision=revision.revision,
+        entry_version_id=done.entries[0].entry_version_id, medication=med))
+    assert not corrected.entries[0].confirmed
+    assert service.details(corrected.workflow_id)['assessment'] is None
 
 
 def test_real_core_pending_target_resume_and_owner_scoped_records(repo):

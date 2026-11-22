@@ -383,6 +383,7 @@ class Chatbot:
             workflow = self.repo.create_workflow(old["conversation_id"], "MEDICATION_INTAKE", intake=old["intake_session_id"])
             ctx = deepcopy(old["context"])
             ctx.update(draft=None, pending_confirmation=None, pending_questions=[], qa_results=[],
+                       revises_workflow_id=str(old['id']),
                        next_action='ASK_CLARIFICATION', dialogue_act='UNKNOWN', question_attempts={})
             ctx.pop("confirmation_request_key", None)
             ctx.pop('error_code', None)

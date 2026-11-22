@@ -16,7 +16,7 @@ from shared.db import CoreRepository
 from shared.intake_contracts import Medication
 from module1_intake.nlp.interfaces.application import (
     ApplicationService, TurnRequest, ConfirmationRequest, WorkflowActionRequest,
-    VoiceRequest, VoiceEditRequest, VoiceSubmitRequest, ManualInputRequest, ManualEditRequest,
+    VoiceRequest, VoiceEditRequest, VoiceSubmitRequest, VoiceDraftRequest, ManualInputRequest, ManualEditRequest, EntryEditRequest,
 )
 from module1_intake.nlp.models import Intent
 from module1_intake.nlp.understanding.providers import OllamaProvider
@@ -45,6 +45,10 @@ class HttpVoice(VoiceRequest):
 class HttpVoiceEdit(VoiceEditRequest):
     model_config = ConfigDict(extra='forbid', strict=False)
 class HttpVoiceSubmit(VoiceSubmitRequest):
+    model_config = ConfigDict(extra='forbid', strict=False)
+class HttpVoiceDraft(VoiceDraftRequest):
+    model_config = ConfigDict(extra='forbid', strict=False)
+class HttpEntryEdit(EntryEditRequest):
     model_config = ConfigDict(extra='forbid', strict=False)
 
 
@@ -116,6 +120,36 @@ def resume(workflow_id: UUID, app=Depends(current_application)):
 @router.post('/messages')
 def message(request: HttpTurn, app=Depends(current_application)):
     return app.send(request)
+
+
+@router.get('/workflows/{workflow_id}/details')
+def details(workflow_id: UUID, app=Depends(current_application)):
+    return app.details(workflow_id)
+
+
+class RevisionRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    revision: int = Field(ge=1)
+
+
+@router.post('/workflows/{workflow_id}/revise')
+def revise(workflow_id: UUID, request: RevisionRequest, app=Depends(current_application)):
+    return app.revise(workflow_id, expected_revision=request.revision)
+
+
+@router.post('/entries/edit')
+def edit_entry(request: HttpEntryEdit, app=Depends(current_application)):
+    return app.edit_entry(request)
+
+
+@router.get('/workflows/{workflow_id}/voice')
+def voice_draft(workflow_id: UUID, app=Depends(current_application)):
+    return app.resume_voice(workflow_id)
+
+
+@router.post('/voice/discard')
+def discard_voice(request: HttpVoiceDraft, app=Depends(current_application)):
+    return app.discard_voice(request)
 
 
 @router.post('/manual')

@@ -152,6 +152,8 @@ def test_postgres_migration_sessions_and_concurrent_grants(monkeypatch):
                         started=client.post('/api/v1/intake/workflows',json={})
                         assert started.status_code==200,started.text
                         workflow=started.json()['workflow_id']
+                        assert client.get(f'/api/v1/intake/workflows/{workflow}/details').status_code==200
+                        assert client.get(f'/api/v1/intake/workflows/{workflow}/voice').json()['draft'] is None
                         assert str(core.execute('SELECT user_id FROM msa.workflow_instances WHERE id=%s',(workflow,)).fetchone()[0])==identity
                         assert client.post('/api/v1/intake/workflows',json={'owner':other_patient}).status_code==422
                         with engine().connect() as db:
@@ -164,6 +166,8 @@ def test_postgres_migration_sessions_and_concurrent_grants(monkeypatch):
                             with TestClient(app,headers={'origin':'http://127.0.0.1:5173'},client=(peer,50000)) as other_client:
                                 assert other_client.post('/api/auth/login',json={'email':emails[2],'password':'Pg-test-2026'}).status_code==200
                                 assert other_client.get(f'/api/v1/intake/workflows/{workflow}').status_code==404
+                                assert other_client.get(f'/api/v1/intake/workflows/{workflow}/details').status_code==404
+                                assert other_client.get(f'/api/v1/intake/workflows/{workflow}/voice').status_code==404
                                 other_client.post('/api/auth/logout')
             client.post('/api/auth/logout')
             assert client.get('/api/auth/me').status_code == 401

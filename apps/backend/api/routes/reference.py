@@ -31,9 +31,12 @@ def medications(q: str = Query(default="", max_length=120), _session=Depends(cur
             counts = {table: connection.execute(
                 f'SELECT count(*) AS n FROM msa_ref.{table} WHERE dataset_build=%s', (build,)
             ).fetchone()['n'] for table in ('medications', 'ddinter_mappings')}
-            rows = connection.execute('''SELECT id, source_medication_id, brand_name, dosage_form,
-                manufacturer, product_details->>'registration_token' AS registration_token
-                FROM msa_ref.medications WHERE dataset_build=%s AND brand_name ILIKE %s
+            rows = connection.execute('''SELECT id, dataset_build, source_medication_id, brand_name, dosage_form,
+                manufacturer, product_details->>'registration_token' AS registration_token,
+                (SELECT coalesce(jsonb_agg(jsonb_build_object('ingredient_text_raw',c.ingredient_text_raw,
+                    'ingredient_name_raw',c.ingredient_name_raw) ORDER BY c.ordinal),'[]'::jsonb)
+                 FROM msa_ref.medication_ingredients c WHERE c.medication_id=m.id AND c.dataset_build=m.dataset_build) AS components
+                FROM msa_ref.medications m WHERE dataset_build=%s AND brand_name ILIKE %s
                 ORDER BY brand_name, source_medication_id LIMIT 50''', (build, pattern)).fetchall()
     except psycopg.Error:
         raise HTTPException(503, "Danh mục Core hiện chưa sẵn sàng") from None

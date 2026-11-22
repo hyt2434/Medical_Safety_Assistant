@@ -45,6 +45,6 @@ Offline NLP regression command, from the repository root with `.venv` ready:
 ```
 
 Persisted tests require an explicitly marked isolated database. Keep local DSNs,
-credentials, environments and runtime evidence out of Git. Existing CSVs under
-`data/datasets/` stay local; already tracked approved CSVs remain tracked.
+credentials, environments and runtime evidence out of Git. The six approved CSVs
+live only under `data/datasets/` and are versioned; other local datasets stay ignored.
 See the [cleanup verification and known blockers](docs/management/repository-cleanup-2026-11-10.md).

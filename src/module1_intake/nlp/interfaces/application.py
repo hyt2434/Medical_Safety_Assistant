@@ -22,6 +22,7 @@ from ..qa_pipeline.rag.documents import LocalDocumentRetriever
 from ..qa_pipeline.contracts import RetrievalQuery
 from ..models import EntryView, DialogueAct, Intent, Medication, Reply, StrictModel, Understanding
 from ..integration.persistence import medication, message_metadata, extraction, fields
+from ..integration.persistence import manual_selection
 from ..understanding.providers import OllamaProvider
 from ..understanding.providers import InferenceError, understand
 from ..understanding.routing import detect, explicit_backend_action
@@ -31,7 +32,7 @@ from ..understanding.validation import fold
 
 __all__ = [
     'ApplicationService', 'ApplicationResponse', 'TurnRequest', 'ConfirmationRequest',
-    'WorkflowActionRequest', 'ManualInputRequest', 'ManualEditRequest',
+    'WorkflowActionRequest', 'ManualInputRequest', 'ManualEditRequest', 'EntryEditRequest',
     'VoiceRequest', 'VoiceDraftRequest', 'VoiceEditRequest', 'VoiceSubmitRequest',
     'VoiceDraft', 'VoicePreview', 'EntryView',
 ]
@@ -79,11 +80,21 @@ class ManualInputRequest(StrictModel):
     workflow_id: UUID
     revision: int = Field(ge=1)
     source_medication_id: str = Field(min_length=1, max_length=120)
+    dataset_build: str | None = Field(default=None, pattern='^[0-9a-f]{64}$')
     medication: Medication
 
 
 class ManualEditRequest(ManualInputRequest):
     entry_version_id: UUID
+
+
+class EntryEditRequest(StrictModel):
+    workflow_id: UUID
+    revision: int = Field(ge=1)
+    entry_version_id: UUID
+    medication: Medication
+    source_medication_id: str | None = Field(default=None, min_length=1, max_length=120)
+    dataset_build: str | None = Field(default=None, pattern='^[0-9a-f]{64}$')
 
 
 class VoiceDraft(StrictModel):
@@ -322,7 +333,7 @@ class ApplicationService:
         return self._response(self.bot.confirm(request.workflow_id, expected_revision=request.revision,
             request_key=request.request_key, explicit_confirmation=request.explicit_confirmation))
 
-    def save_manual(self, request: ManualInputRequest):
+    def save_manual(self, request: ManualInputRequest, *, _allow_confirmed=False):
         """Persist an explicit catalog selection/form for review, never identify it."""
         with self.bot.store.turn(request.workflow_id):
             workflow = self.bot._check(request.workflow_id, request.revision)
@@ -333,6 +344,8 @@ class ApplicationService:
             if not self.dataset_build or not self.repo._one(
                     'SELECT msa.published(%s) AS ok', (self.dataset_build,))['ok']:
                 raise ValueError('Manual selection requires a published Core catalog build')
+            if request.dataset_build is not None and request.dataset_build != self.dataset_build:
+                raise ValueError('Catalog version changed; search and review the product again')
             products = self.repo._all('''SELECT * FROM msa_ref.medications
                 WHERE dataset_build=%s AND source_medication_id=%s''',
                 (self.dataset_build, request.source_medication_id))
@@ -351,7 +364,7 @@ class ApplicationService:
                     raise ValueError('Manual edit target is not in the current workflow review')
                 index = indexes[0]
                 self.bot.store.assert_latest(rows[index])
-                if rows[index]['confirmed_at'] is not None:
+                if rows[index]['confirmed_at'] is not None and not _allow_confirmed:
                     raise ValueError('Revise confirmed medication through the existing correction flow')
             med = request.medication
             if not med.name_raw or fold(med.name_raw) != fold(product['brand_name']):
@@ -376,8 +389,79 @@ class ApplicationService:
             ctx.pop('error_code', None)
             return self._response(self.bot._intake_progress(workflow, ctx, rows))
 
-    def revise(self, workflow_id):
-        return self._response(self.bot.revise(workflow_id))
+    def revise(self, workflow_id, *, expected_revision=None):
+        with self.bot.store.turn(workflow_id):
+            if expected_revision is not None:
+                self.bot._check(workflow_id, expected_revision)
+            return self._response(self.bot.revise(workflow_id))
+
+    def edit_entry(self, request: EntryEditRequest):
+        """Explicit form correction; retain the real source and catalog choice."""
+        with self.bot.store.turn(request.workflow_id):
+            workflow = self.bot._check(request.workflow_id, request.revision)
+            if workflow['state'] in {'COMPLETED', 'CANCELLED', 'FAILED'} or workflow['context'].get('voice_draft'):
+                raise ValueError('Start an explicit revision or finish transcript review before editing')
+            rows = self.bot.store.entries(workflow)
+            indexes = [i for i, row in enumerate(rows) if str(row['id']) == str(request.entry_version_id)]
+            if len(indexes) != 1:
+                raise PermissionError('Entry is outside the current owned review')
+            index = indexes[0]
+            prior = rows[index]
+            self.bot.store.assert_latest(prior)
+            if prior['confirmed_at'] is not None:
+                previous = workflow['context'].get('revises_workflow_id')
+                old = self.bot.store.workflow(previous) if previous else None
+                if not old or old['state'] != 'COMPLETED' or str(prior['id']) not in old['context'].get('entry_version_ids', []):
+                    raise ValueError('Confirmed entries require an explicit correction workflow')
+            selected = manual_selection(self.repo, prior)
+            source_id = request.source_medication_id or (selected or {}).get('source_medication_id')
+            if source_id:
+                return self.save_manual(ManualEditRequest(workflow_id=request.workflow_id, revision=request.revision,
+                    entry_version_id=request.entry_version_id, source_medication_id=source_id, medication=request.medication,
+                    dataset_build=request.dataset_build or (selected or {}).get('dataset_build')),
+                    _allow_confirmed=True)
+            attempt = self.repo._owned('intake_extractions', prior['source_extraction_id'])
+            inp = self.repo._owned('intake_inputs', attempt['input_id'])
+            source = inp['payload_or_locator'].get('input_source', 'TEXT')
+            result = extraction([request.medication])
+            result.update(original_extraction_id=str(attempt['id']), user_reviewed_fields=request.medication.model_dump(mode='json'))
+            correction = self.repo.record_extraction(inp['id'], 'user-form-review', 'intake-ui-v1', result)
+            rows[index] = self.repo.correct_entry(prior['id'], fields(request.medication), source_extraction=correction['id'])
+            self.repo.append_message(workflow['conversation_id'], 'USER', request.medication.model_dump_json(),
+                {'schema': 'message.v4', 'content_refs': [], 'input_source': source + '_REVIEW'})
+            ctx = deepcopy(workflow['context'])
+            ctx.update(entry_version_ids=[str(row['id']) for row in rows], pending_confirmation=None,
+                       active_intents=['ADD_MEDICATION'], dialogue_act='CORRECT', qa_results=[])
+            return self._response(self.bot._intake_progress(workflow, ctx, rows))
+
+    def details(self, workflow_id):
+        """Owner-only UI projection, never a client-supplied identity or selection."""
+        review = self.resume(workflow_id)
+        workflow = self.bot.store.workflow(workflow_id)
+        sources = {}
+        for row in self.bot.store.entries(workflow):
+            attempt = self.repo._owned('intake_extractions', row['source_extraction_id'])
+            inp = self.repo._owned('intake_inputs', attempt['input_id'])
+            sources[str(row['id'])] = {'input_source': inp['payload_or_locator'].get('input_source', 'TEXT'),
+                                       'selected_product': manual_selection(self.repo, row)}
+        messages = self.repo._all('''SELECT id,role,text_content,metadata,created_at FROM (
+            SELECT id,role,text_content,metadata,created_at,sequence_no FROM msa.conversation_messages
+            WHERE conversation_id=%s AND user_id=%s ORDER BY sequence_no DESC LIMIT 100
+            ) m ORDER BY sequence_no''', (workflow['conversation_id'], self.repo.owner))
+        for message in messages:
+            source = message['metadata'].get('input_source', 'TEXT')
+            if source == 'MANUAL' or source.endswith('_REVIEW'):
+                message['text_content'] = 'Đã lưu thông tin người dùng xem/sửa. Xem bản nháp hiện tại bên dưới.'
+            message['input_source'] = source
+            message.pop('metadata')
+        assessment = None
+        if review.assessment_id:
+            row = self.repo._owned('safety_assessments', review.assessment_id)
+            findings = self.repo._all('SELECT finding_type,severity,source_severity,explanation,evidence FROM msa.safety_findings WHERE assessment_id=%s AND user_id=%s ORDER BY recorded_at,id',
+                                     (row['id'], self.repo.owner))
+            assessment = {'execution_status': row['execution_status'], 'check_results': row['check_results'], 'findings': findings}
+        return {'review': review.model_dump(mode='json'), 'conversation_id': workflow['conversation_id'],
+                'messages': messages, 'entry_sources': sources, 'assessment': assessment}
 
     def handoff(self, workflow_id):
         return build_handoff(self.bot.store, self.bot.store.workflow(workflow_id))
