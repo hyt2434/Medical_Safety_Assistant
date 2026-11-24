@@ -73,10 +73,15 @@ const demoEmail = {
   multi: "multi.demo@example.com",
 } as const;
 
+const reminderHandlers = new WeakSet<Page>();
 async function login(
   page: Page,
   kind: keyof typeof demoEmail = "patient",
 ) {
+  if (!reminderHandlers.has(page)) {
+    await page.addLocatorHandler(page.getByRole('button', { name: 'Nhắc lại sau 7 ngày', exact: true }), locator => locator.click());
+    reminderHandlers.add(page);
+  }
   await page.goto("/login");
   await page.getByLabel("Email").fill(demoEmail[kind]);
   await page.getByLabel("Mật khẩu").fill(demoPassword[kind]);
@@ -99,9 +104,6 @@ async function login(
     multi: "/login",
   }[kind];
   await expect(page).toHaveURL(destination);
-  const later = page.getByRole("button", { name: "Nhắc lại sau 7 ngày", exact: true });
-  // UUID identities replaced the old u-patient key; the dialog may already be deferred.
-  if (kind === 'patient' && await later.isVisible()) await later.click();
 }
 
 async function completeProfile(page: Page) {

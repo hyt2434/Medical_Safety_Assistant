@@ -38,6 +38,8 @@ export default defineConfig({
       url: `http://127.0.0.1:${apiPort}/health`,
       reuseExistingServer: false,
       env: { AUTH_DB_PATH: authDb, AUTH_DATABASE_URL: realIntake ? process.env.E2E_AUTH_URL! : "", AUTH_ALLOWED_ORIGINS: `http://127.0.0.1:${port}`, AUTH_SEED_DEMO: realIntake ? "0" : "1",
+        // The suite repeatedly signs into shared fixtures. Throttle limits are tested by backend tests.
+        AUTH_LOGIN_ACCOUNT_LIMIT: "1000", AUTH_LOGIN_IP_LIMIT: "2000",
         CORE_DB_DSN: realIntake ? process.env.E2E_CORE_DSN! : "", CORE_REFERENCE_BUILD: realIntake ? process.env.E2E_REFERENCE_BUILD! : "", CORE_USER_BINDINGS: "{}", CORE_DATA_CONTEXT: "SYNTHETIC_TEST" },
     },
     {
