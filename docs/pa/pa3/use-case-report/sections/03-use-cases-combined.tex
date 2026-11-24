@@ -1,0 +1,1052 @@
+\renewcommand{\arraystretch}{1.05}
+\setlength{\parskip}{2pt}
+% Extend only the figure into the margins: 19 cm on a 21 cm portrait A4 page.
+\providecommand{\UCchange}[1]{\textcolor{blue}{#1}}
+\newcommand{\InlineUCModel}[1]{%
+  \par\noindent
+  \begin{minipage}{\linewidth}
+    \centering
+    \makebox[\linewidth][c]{%
+      \includegraphics[width=19cm,height=0.60\textheight,keepaspectratio]{sections/images/UC-#1.png}%
+    }
+    \captionsetup{hypcap=false}
+    \captionof{figure}{UC-#1: detailed use-case model.}
+    \label{fig:uc-model-#1}
+  \end{minipage}
+  \par
+}
+% ==================================================
+% 2. USE-CASE SPECIFICATIONS
+% ==================================================
+\section{Use-case Models and Specifications}
+This section describes the use cases of the
+Medication Safety Assistant research prototype.
+Each use case represents a user goal and an
+observable result.
+The use cases are organized by common user
+workflows and supporting roles. Their order
+does not imply a required execution sequence.
+HCP reviews are simulated.
+\UCchange{UC-19 is documented as a future feature and is not part of the current implementation scope.}
+% ==================================================
+% USE-CASE OVERVIEW
+% ==================================================
+\subsection*{Use-Case Overview}
+\begin{longtable}{|
+    p{0.13\textwidth}|
+    p{0.53\textwidth}|
+    p{0.24\textwidth}|
+}
+\hline
+\textbf{ID} &
+\textbf{Use-case Name} &
+\textbf{Actor(s)}
+\\ \hline
+\endfirsthead
+\hline
+\textbf{ID} &
+\textbf{Use-case Name} &
+\textbf{Actor(s)}
+\\ \hline
+\endhead
+UC-01
+& Sign In
+& All registered roles
+\\ \hline
+UC-02
+& Enter and Confirm Medication Information
+& Patient
+\\ \hline
+UC-03
+& Check Medication Safety
+& Patient
+\\ \hline
+UC-04
+& Request HCP Review
+& Patient
+\\ \hline
+UC-05
+& Review Medication Safety Case
+& Healthcare Professional (HCP); Patient / General User
+\\ \hline
+UC-06
+& Set Up Medication Reminders
+& Patient
+\\ \hline
+UC-07
+& Manage Medication Reminders
+& Patient
+\\ \hline
+UC-08
+& Record Dose Status
+& Patient
+\\ \hline
+UC-09
+& View Adherence History
+& Patient
+\\ \hline
+UC-10
+& View Medication and Safety History
+& Patient
+\\ \hline
+UC-11
+& Ask a Medication Question
+& Patient
+\\ \hline
+UC-12
+& Generate Patient Health Summary
+& Patient
+\\ \hline
+UC-13
+& Share Patient Health Summary with HCP
+& Patient
+\\ \hline
+\UCchange{UC-14}
+& \UCchange{Review Medication Reference Data}
+& Dataset Reviewer
+\\ \hline
+UC-15
+& Manage User Accounts and Roles
+& Administrator
+\\ \hline
+\UCchange{UC-16}
+& \UCchange{Report Technical Issue}
+& \UCchange{All registered roles}
+\\ \hline
+\UCchange{UC-17}
+& \UCchange{Handle Technical Support Request}
+& Technical Support
+\\ \hline
+\UCchange{UC-18}
+& \UCchange{Manage Patient Health Profile}
+& Patient / General User
+\\ \hline
+\UCchange{UC-19}
+& \UCchange{Manage Personal Medication Cabinet (Future Feature)}
+& Patient / General User
+\\ \hline
+\UCchange{UC-20}
+& \UCchange{Manage Personal Account}
+& Registered User (Patient / HCP)
+\\ \hline
+\end{longtable}
+% UC-01 to UC-05 - updated against Use-Case Specification v1.0 (1 Nov 2026)
+% Required packages in the MAIN document preamble:
+% \usepackage{xcolor}
+% \usepackage{graphicx}
+% \usepackage{float}
+% \usepackage{longtable}
+% Changes relative to the old specification are highlighted in blue.
+% Diagram images are PNG. The supplied use-case specification text is preserved.
+% Store UC-01.png ... UC-20.png in sections/images/ relative to main.tex.
+% ==================== UC-01 ====================
+% Optional overview diagram: enabled once the future PNG is present.
+\IfFileExists{sections/images/UC_00_Overview_Attached.png}{%
+  \clearpage
+  \begin{center}
+    \includegraphics[width=\textwidth,height=0.94\textheight,keepaspectratio]{sections/images/UC_00_Overview_Attached.png}
+  \end{center}
+}{}
+\clearpage
+\subsection{Use-case: Sign In}
+\label{uc:uc-01}
+\InlineUCModel{01}
+\begin{longtable}{|p{0.20\textwidth}|p{0.70\textwidth}|}
+\hline
+\textbf{Use case Name} & UC-01: Sign In \\ \hline
+\textbf{Brief description} & A registered user signs in and receives access to the features permitted by their role. \\ \hline
+\textbf{Actors} & Patient / General User; Healthcare Professional (HCP); Dataset Reviewer; Administrator; Technical Support \\ \hline
+\textbf{Basic Flow} &
+1. The user enters an account name and password.\par
+2. The system checks the credentials and account status.\par
+3. The system verifies the assigned role and permissions.\par
+4. The system creates an authenticated session and opens the permitted dashboard.\par
+\\ \hline
+\textbf{Alternative Flows} &
+\UCchange{\textbf{A1. Incorrect credentials (step 2)}}\par
+\UCchange{The system shows an error without creating a session. The user may retry or cancel.}\par
+\par
+\UCchange{\textbf{A2. Inactive or blocked account (step 2)}}\par
+\UCchange{The system denies access. No session is created.}\par
+\par
+\UCchange{\textbf{A3. Role permissions are unavailable (step 3)}}\par
+\UCchange{The system denies access rather than creating an unrestricted session.}\par
+\\ \hline
+\textbf{Pre-conditions} & The user has a registered account and can open the sign-in page. \\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} \UCchange{A session is created with verified role permissions.}\par
+\textbf{Failure:} No authenticated session is created. \\ \hline
+\end{longtable}
+% ==================== UC-02 ====================
+\clearpage
+\subsection{Use-case: Enter and Confirm Medication Information}
+\label{uc:uc-02}
+\InlineUCModel{02}
+\begin{longtable}{|p{0.20\textwidth}|p{0.70\textwidth}|}
+\hline
+\textbf{Use case Name} & UC-02: Enter and Confirm Medication Information \\ \hline
+\textbf{Brief description} & The patient enters medication information through a supported method and confirms the recorded details before further use. \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+\UCchange{1. The patient provides medication details by manual entry, OCR image, or chatbot text.}\par
+\UCchange{2. The system processes the input and clarifies the intended task when needed.}\par
+\UCchange{3. The system displays the recorded details and marks any missing or uncertain fields.}\par
+\UCchange{4. The patient corrects errors and explicitly confirms that the details match the source.}\par
+\UCchange{5. The system saves the confirmed entries and any remaining information gaps.}\par
+\\ \hline
+\textbf{Alternative Flows} &
+\UCchange{\textbf{A1. Input is unclear or incomplete (steps 2--3)}}\par
+\UCchange{The system asks for missing details or marks unresolved fields. The patient may correct them before confirming.}\par
+\par
+\UCchange{\textbf{A2. Input processing fails (step 2)}}\par
+\UCchange{The system offers a retry or another supported input method. No unconfirmed entry is released.}\par
+\par
+\UCchange{\textbf{A3. Patient does not confirm (step 4)}}\par
+\UCchange{The input remains unconfirmed and cannot be used for safety assessment or reminder activation.}\par
+\\ \hline
+\textbf{Pre-conditions} & The patient is signed in and can access medication entry. \\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} \UCchange{Confirmed input is saved for later identification and supported checks; confirmation does not prove medicine identity or safety.}\par
+\textbf{Failure:} Unconfirmed input is not used for safety checks or reminder activation. \\ \hline
+\end{longtable}
+% ==================== UC-03 ====================
+\clearpage
+\subsection{Use-case: Check Medication Safety}
+\label{uc:uc-03}
+\InlineUCModel{03}
+\begin{longtable}{|p{0.20\textwidth}|p{0.70\textwidth}|}
+\hline
+\textbf{Use case Name} & UC-03: Check Medication Safety \\ \hline
+\textbf{Brief description} & \UCchange{The patient receives supported medication risk findings, warnings, data limits, and next steps without automatic treatment changes.} \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+1. The patient requests a check using confirmed medication information.\par
+\UCchange{2. The system identifies assessable medicines and their active ingredients from supported reference data.}\par
+\UCchange{3. The system checks supported drug--drug interactions, duplicate ingredients, and applicable contraindication risks where data allow.}\par
+\UCchange{4. The system records findings, risk levels, and the coverage or limits of each check.}\par
+\UCchange{5. The system shows warnings and next steps, and offers UC-04 when severe or unresolved risks need HCP review.}\par
+6. The system saves the assessment, its status, and its time.\par
+\\ \hline
+\textbf{Alternative Flows} &
+\UCchange{\textbf{A1. Medicine or reference data is unavailable (steps 2--3)}}\par
+\UCchange{The system marks affected checks as unassessed, performs independent supported checks where possible, and does not claim the medicine is safe.}\par
+\par
+\UCchange{\textbf{A2. Severe interaction is found (step 3)}}\par
+\UCchange{The system records a severe warning and holds new reminders for affected medicines pending HCP review. Existing reminders and treatment stay unchanged.}\par
+\par
+\UCchange{\textbf{A3. Assessment fails (steps 2--4)}}\par
+\UCchange{The system reports an incomplete or failed check and retains any recorded warnings and reminder restrictions.}\par
+\\ \hline
+\textbf{Pre-conditions} & The patient is signed in and has at least one confirmed medication record. \\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} \UCchange{The saved assessment shows findings and limits. Severe risks keep affected new reminders on hold until an eligible, recorded HCP confirmation allows them.}\par
+\textbf{Failure:} \UCchange{No incomplete or failed check is presented as safe; treatment and existing reminders remain unchanged.} \\ \hline
+\end{longtable}
+% ==================== UC-04 ====================
+\clearpage
+\subsection{Use-case: \UCchange{Arrange HCP Review}}
+\label{uc:uc-04}
+\InlineUCModel{04}
+\begin{longtable}{|p{0.20\textwidth}|p{0.70\textwidth}|}
+\hline
+\textbf{Use case Name} & \UCchange{UC-04: Arrange HCP Review} \\ \hline
+\textbf{Brief description} & \UCchange{The patient arranges a simulated HCP review of a saved safety case, with case-specific sharing permission and authorized assignment.} \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+\UCchange{1. The patient opens a saved safety case that requires or is selected for HCP review.}\par
+\UCchange{2. The system shows the review case, available findings, missing details, and case-sharing scope.}\par
+\UCchange{3. If valid case permission is missing, the patient reviews the scope and authorizes sharing.}\par
+\UCchange{4. The system reuses an active request or creates a pending request and assigns an eligible, available, authorized HCP when possible.}\par
+\UCchange{5. The system displays the review status to the patient.}\par
+\\ \hline
+\textbf{Alternative Flows} &
+\UCchange{\textbf{A1. Sharing is not authorized (step 3)}}\par
+\UCchange{The case waits for permission. No HCP receives access, and no unauthorized review is started.}\par
+\par
+\UCchange{\textbf{A2. No eligible HCP is available (step 4)}}\par
+\UCchange{The request remains Pending Assignment; the system does not report it as reviewed.}\par
+\par
+\UCchange{\textbf{A3. An active request already exists (step 4)}}\par
+\UCchange{The system shows the existing request instead of creating a duplicate.}\par
+\par
+\UCchange{\textbf{A4. Request cannot be saved (step 4)}}\par
+\UCchange{The system reports the error; no new access or assignment is granted.}\par
+\\ \hline
+\textbf{Pre-conditions} & \UCchange{The patient is signed in and has a saved medication safety case. Review access requires valid case-sharing permission.} \\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} \UCchange{A case is waiting for authorization, pending assignment, or assigned to an eligible HCP; the patient can view its status.}\par
+\textbf{Failure:} \UCchange{No unauthorized case access or duplicate review is created; existing safety warnings and restrictions remain in place.} \\ \hline
+\end{longtable}
+% ==================== UC-05 ====================
+\clearpage
+\subsection{Use-case: Review Medication Safety Case}
+\label{uc:uc-05}
+\InlineUCModel{05}
+\begin{longtable}{|p{0.20\textwidth}|p{0.70\textwidth}|}
+\hline
+\textbf{Use case Name} & UC-05: Review Medication Safety Case \\ \hline
+\textbf{Brief description} & \UCchange{An authorized HCP reviews a shared safety case, exchanges information with the patient, and records a simulated review outcome.} \\ \hline
+\textbf{Actors} & Healthcare Professional (HCP); Patient / General User \\ \hline
+\textbf{Basic Flow} &
+\UCchange{1. The HCP selects an assigned case with valid patient sharing permission.}\par
+\UCchange{2. The system shows the permitted case details, safety warnings, available evidence, and case conversation.}\par
+\UCchange{3. The HCP reviews the case and records an outcome and comments, or requests more information.}\par
+\UCchange{4. The system saves the outcome, responsible HCP, time, and related replies.}\par
+\UCchange{5. The patient can view the outcome and replies; a valid recorded schedule confirmation triggers a recheck of affected pending new reminders.}\par
+\\ \hline
+\textbf{Alternative Flows} &
+\UCchange{\textbf{A1. More information is needed (step 3)}}\par
+\UCchange{The HCP asks in the same case conversation. The patient replies there, and the case returns to the HCP queue.}\par
+\par
+\UCchange{\textbf{A2. Patient sends a follow-up (after step 5)}}\par
+\UCchange{The system saves the reply in the same thread and returns the case to the authorized HCP queue.}\par
+\par
+\UCchange{\textbf{A3. Case remains unresolved (step 3)}}\par
+\UCchange{The HCP records the reason. Required safety warnings and new-reminder holds remain active.}\par
+\par
+\UCchange{\textbf{A4. Access is invalid or saving fails (steps 1 or 4)}}\par
+\UCchange{The system blocks the action or reports failure; no unrecorded outcome is treated as approval.}\par
+\\ \hline
+\textbf{Pre-conditions} & \UCchange{The HCP is signed in, assigned to the case, and authorized by the patient to view the shared details.} \\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} \UCchange{A traceable simulated outcome or case-conversation update is saved and visible to permitted participants.}\par
+\textbf{Failure:} \UCchange{No unauthorized information is disclosed, and no treatment or reminder restriction is changed by an unrecorded decision.} \\ \hline
+\end{longtable}
+% ---------- 04. Reminders and adherence ----------
+% UC-06 - Set Up Medication Reminders | from UC-07
+\clearpage
+\subsection{Use-case: Set Up Medication Reminders}
+\label{uc:uc-06}
+\InlineUCModel{06}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-06: Specification (continued)}} \\
+\hline
+\endhead
+\textbf{Use case Name} & UC-06: Set Up Medication Reminders \\ \hline
+\textbf{Brief description} & The patient activates reminders from an existing, confirmed medication schedule when the applicable safety rules allow it. \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+1. The patient selects a medication with existing prescription or recorded HCP instructions.\par
+2. The system displays the recorded schedule, its source, and relevant safety status.\par
+3. The patient confirms that the schedule matches the existing instructions.\par
+4. The system checks schedule verification, recorded risk warnings, and the new-reminder safety gate.\par
+5. The system activates eligible reminders and shows their status.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. Schedule is missing or unverified (steps 2--3)}\par
+1. The system does not activate a reminder without a verified schedule.\par
+2. The patient may correct the information or end the use case.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. Patient proposes new timing (step 3)}\par
+1. The system records a proposed change as Pending HCP Review.\par
+2. It does not activate that proposed schedule before the required simulated confirmation.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. Severe interaction affects the medicine (step 4)}\par
+1. The system keeps affected new reminders Pending HCP Review.\par
+2. Other eligible reminders may activate; existing reminders are not stopped automatically.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A4. Safety check is unavailable (step 4)}\par
+1. The system reports Unassessed rather than safe clearance.\par
+2. The reminder remains restricted when the applicable review policy requires confirmation.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A5. Browser notifications are unavailable (step 5)}\par
+1. The system reports the notification limitation and still shows eligible schedules in the application.
+\\ \hline
+\textbf{Pre-conditions} &
+The patient is signed in and has a saved
+medication record for which reminder setup
+can be requested.
+ \\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} A permitted reminder setting
+is saved, or a timing proposal is recorded
+as Pending HCP Review.\par
+\textbf{Failure:} No unconfirmed or failed change
+is applied. The previous reminder settings
+remain effective.
+\\ \hline
+\end{longtable}
+% UC-07 - Manage Medication Reminders | from UC-08
+\clearpage
+\subsection{Use-case: Manage Medication Reminders}
+\label{uc:uc-07}
+\InlineUCModel{07}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-07: Specification (continued)}} \\
+\hline
+\endhead
+\textbf{Use case Name} & UC-07: Manage Medication Reminders \\ \hline
+\textbf{Brief description} & The patient changes permitted reminder settings or disables notifications without changing prescribed treatment. \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+1. The patient opens an existing reminder and chooses to manage it.\par
+2. The system shows the current schedule, its source, and notification settings.\par
+3. The patient requests a notification change or a schedule update.\par
+4. The system checks whether the change is allowed by the verified instructions and safety rules.\par
+5. The patient confirms the request.\par
+6. The system saves an allowed setting or records a proposed timing change as Pending HCP Review.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. Patient disables notifications (step 3)}\par
+1. The system prepares to disable
+only the selected notification.\par
+2. Continue to step 5 for confirmation.
+The medication instructions remain unchanged.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{**A2. Timing differs from verified**
+**instructions (step 4)**}\par
+1. The system marks the proposed
+change as requiring HCP review.\par
+2. Continue to step 5 for patient
+confirmation. The existing schedule
+remains unchanged.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. Patient cancels or update fails (steps 5--6)}\par
+1. The system keeps the previous reminder settings and reports an error when relevant.
+\\ \hline
+\textbf{Pre-conditions} & The patient is signed in and owns an existing reminder. \\ \hline
+\textbf{Post-conditions} & \textbf{Success:} A permitted reminder setting is saved, or a timing proposal is Pending review.\par
+\textbf{Failure:} The prior reminder settings remain effective unless the patient explicitly disabled a notification. \\ \hline
+\end{longtable}
+% UC-08 - Record Dose Status | from UC-09
+\clearpage
+\subsection{Use-case: Record Dose Status}
+\label{uc:uc-08}
+\InlineUCModel{08}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-08: Specification (continued)}} \\
+\hline
+\endhead
+\textbf{Use case Name} & UC-08: Record Dose Status \\ \hline
+\textbf{Brief description} & The patient records whether a scheduled medication dose was Taken, Missed, or Skipped for adherence tracking. \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+1. The patient selects a scheduled dose from the reminder or adherence view.\par
+2. The system shows the medicine, scheduled time, and current dose status.\par
+3. The patient selects Taken, Missed, or Skipped.\par
+4. The patient confirms the entry.\par
+5. The system saves the dose status and recorded time.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. Existing entry is corrected (step 3)}\par
+1. The system shows the previous status for comparison.\par
+2. The patient confirms the correction; continue to step 5.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. Patient cancels (step 4)}\par
+1. The system keeps the previous entry and ends the use case.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. Dose event is unavailable or save fails (steps 2 or 5)}\par
+1. The system explains that the entry cannot be saved.\par
+2. No unsupported dose record is created.
+\\ \hline
+\textbf{Pre-conditions} & The patient is signed in and has an accessible scheduled dose or adherence entry. \\ \hline
+\textbf{Post-conditions} & \textbf{Success:} The confirmed dose status is saved and available in adherence history.\par
+\textbf{Failure:} No dose entry is changed; no treatment recommendation is produced. \\ \hline
+\end{longtable}
+% UC-09 - View Adherence History | from UC-10
+\clearpage
+\subsection{Use-case: View Adherence History}
+\label{uc:uc-09}
+\InlineUCModel{09}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-09: Specification (continued)}} \\
+\hline
+\endhead
+\textbf{Use case Name} & UC-09: View Adherence History \\ \hline
+\textbf{Brief description} & The patient reviews recorded medication use over time. \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+1. The patient opens Adherence History.\par
+2. The system shows available scheduled doses and recorded statuses.\par
+3. The patient may select a medicine
+or time period to filter the history.\par
+4. The system displays the available
+records matching the selected filter,
+or all permitted records if no
+filter is selected.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. No entries match (step 4)}\par
+1. The system shows an empty result and allows another filter.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. History is incomplete or unavailable (step 2)}\par
+1. The system displays available records and reports any unavailable period.
+\\ \hline
+\textbf{Pre-conditions} & The patient is signed in and can view their own adherence records. \\ \hline
+\textbf{Post-conditions} & \textbf{Success:} Permitted adherence history is displayed without modifying it.\par
+\textbf{Failure:} No record is changed. \\ \hline
+\end{longtable}
+% ---------- 05. Records and history ----------
+% UC-10 - View Medication and Safety History | from UC-06
+\clearpage
+\subsection{Use-case: View Medication and Safety History}
+\label{uc:uc-10}
+\InlineUCModel{10}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-10: Specification (continued)}} \\
+\hline
+\endhead
+\textbf{Use case Name} & UC-10: View Medication and Safety History \\ \hline
+\textbf{Brief description} & The patient reviews saved medication records, past safety results, review outcomes, and their dates. \\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+1. The patient opens Medication and Safety History.\par
+2. The system lists permitted medication records and past safety assessments.\par
+3. The patient selects a record or assessment.\par
+4. The system shows its date, findings, limitations, and linked HCP review status.\par
+5. The system clearly labels results that no longer match the current medication record.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. No history is available (step 2)}\par
+1. The system displays an empty-state message and ends the use case.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. A record is no longer available or access is denied (step 3)}\par
+1. The system reports the limitation without showing private data.\par
+2. The patient may select another permitted record.
+\\ \hline
+\textbf{Pre-conditions} & The patient is signed in and can view their own records. \\ \hline
+\textbf{Post-conditions} & \textbf{Success:} Historical information is displayed without changing stored data.\par
+\textbf{Failure:} No record or treatment is changed. \\ \hline
+\end{longtable}
+% ============================================================
+% 06. CHATBOT AND PATIENT HEALTH SUMMARY
+% ============================================================
+% UC-11 - Ask a Medication Question
+\clearpage
+\subsection{Use-case: Ask a Medication Question}
+\label{uc:uc-11}
+\InlineUCModel{11}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-11: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} & UC-11: Ask a Medication Question \\ \hline
+\textbf{Brief description} &
+The patient receives a supported medication-related answer from the chatbot with appropriate limits.
+\\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The patient enters a medication-related question in the chatbot.}\par
+\textcolor{blue}{2. The system identifies the question and retrieves relevant approved reference information and permitted patient context.}\par
+\textcolor{blue}{3. The system prepares an answer with supporting information and relevant limitations.}\par
+\textcolor{blue}{4. The system displays the answer or asks a follow-up question when clarification is needed.}\par
+\textcolor{blue}{5. The patient may open View Conversation History to review previous conversations.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A1. Question is unclear (step 2)}}\par
+\textcolor{blue}{1. The system asks a short follow-up question.}\par
+\textcolor{blue}{2. If clarified, return to step 2; otherwise, end the use case.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A2. Patient requests source details (step 3)}}\par
+\textcolor{blue}{1. The system displays the available supporting sources through View Supporting References.}\par
+\textcolor{blue}{2. The patient may return to the answer.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A3. Reliable information is unavailable (step 3)}}\par
+\textcolor{blue}{1. The system explains the information limit instead of generating unsupported medical claims.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A4. Request requires a clinical decision or another workflow (step 2)}}\par
+\textcolor{blue}{1. The chatbot does not diagnose, prescribe, or change treatment.}\par
+\textcolor{blue}{2. The system directs the patient to the appropriate supported workflow or qualified HCP when necessary.}\par
+\textcolor{blue}{3. No medication record is changed solely from an unconfirmed chatbot message.}
+\\ \hline
+\textbf{Pre-conditions} & The patient is signed in and the chatbot is available. \\ \hline
+\textbf{Post-conditions} & \textbf{Success:} The patient receives a supported answer, clarification, or clear limitation.\par
+\textbf{Failure:} No unsupported clinical decision or unconfirmed record change occurs. \\ \hline
+\end{longtable}
+% UC-12 - Generate Patient Health Summary
+\clearpage
+\subsection{Use-case: Generate Patient Health Summary}
+\label{uc:uc-12}
+\InlineUCModel{12}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-12: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} & UC-12: Generate Patient Health Summary \\ \hline
+\textbf{Brief description} &
+\textcolor{blue}{The patient generates a structured summary from confirmed medication records and patient health information for review and optional sharing.}
+\\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The patient requests a Patient Health Summary.}\par
+\textcolor{blue}{2. The system retrieves confirmed medication records, health conditions, allergies, and available safety assessment results.}\par
+\textcolor{blue}{3. The system prepares a draft summary with information sources, dates, medication status, and known information gaps.}\par
+\textcolor{blue}{4. The patient reviews the draft through Review and Confirm Draft Summary and corrects inaccurate information when necessary.}\par
+\textcolor{blue}{5. The patient confirms the summary, and the system saves it for later viewing or optional sharing.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A1. Confirmed information is incomplete (step 2)}}\par
+\textcolor{blue}{1. The system identifies missing information and prepares a limited draft using available confirmed data.}\par
+\textcolor{blue}{2. If no eligible information is available, the system asks the patient to provide or confirm the required information.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A2. The draft needs correction (step 4)}}\par
+\textcolor{blue}{1. The patient corrects the relevant information through the appropriate workflow.}\par
+\textcolor{blue}{2. The system updates the draft and returns to step 4.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. Patient cancels or saving fails (step 5)}\par
+1. No new confirmed summary is saved or shared.\par
+2. The patient may retry if saving failed.
+\\ \hline
+\textbf{Pre-conditions} &
+\textcolor{blue}{The patient is signed in and has at least one confirmed, permitted medication record or patient health detail.}
+\\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} A patient-reviewed summary is stored for later viewing or optional sharing; it is not a diagnosis.\par
+\textbf{Failure:} No unconfirmed summary is shared.
+\\ \hline
+\end{longtable}
+% UC-13 - Share Patient Health Summary with HCP
+\clearpage
+\subsection{Use-case: Share Patient Health Summary with HCP}
+\label{uc:uc-13}
+\InlineUCModel{13}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-13: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} & UC-13: Share Patient Health Summary with HCP \\ \hline
+\textbf{Brief description} &
+The patient grants an authorized HCP access to a selected, confirmed health summary.
+\\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The patient selects a saved, confirmed health summary and chooses to share it with an HCP.}\par
+\textcolor{blue}{2. The system displays the summary, its date, and the available authorized HCP recipients.}\par
+\textcolor{blue}{3. The patient selects an HCP and chooses which information to share.}\par
+\textcolor{blue}{4. The system displays the selected sharing scope and intended recipient.}\par
+\textcolor{blue}{5. The patient reviews the sharing scope and confirms permission through Review Sharing Scope and Confirm Permission.}\par
+\textcolor{blue}{6. The system validates the recipient and grants access only to the selected summary information.}\par
+\textcolor{blue}{7. The system displays the sharing status. The patient may later use Revoke Summary Sharing to withdraw access.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. Patient declines permission (step 5)}\par
+1. No new access is granted; the use case ends.
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A2. Recipient is unauthorized (step 6)}}\par
+\textcolor{blue}{1. The system denies sharing and informs the patient.}\par
+\textcolor{blue}{2. The patient may select another authorized HCP or cancel.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A3. Summary is unconfirmed or unavailable (steps 1--2)}}\par
+\textcolor{blue}{1. The system does not allow the summary to be shared.}\par
+\textcolor{blue}{2. The patient may return to Generate Patient Health Summary (UC-12).}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A4. Sharing fails (step 6)}\par
+1. The system reports the error and does not claim success or create unintended access.
+\\ \hline
+\textbf{Pre-conditions} &
+The patient is signed in and has a saved, reviewed summary; an authorized target can be selected.
+\\ \hline
+\textbf{Post-conditions} &
+\textcolor{blue}{\textbf{Success:} Only the selected summary information is accessible to the authorized HCP. The patient can revoke this permission later. HCP case-sharing permission remains separate from summary-sharing permission.}\par
+\textbf{Failure:} No new access is granted.
+\\ \hline
+\end{longtable}
+% ============================================================
+% 07. DATASET REVIEW
+% ============================================================
+% UC-14 - Review Medication Reference Data
+\clearpage
+\subsection{Use-case: Review Medication Reference Data}
+\label{uc:uc-14}
+\InlineUCModel{14}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-14: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} &
+\textcolor{blue}{UC-14: Review Medication Reference Data}
+\\ \hline
+\textbf{Brief description} &
+\textcolor{blue}{The Dataset Reviewer checks medication reference data against source evidence and records a traceable data-quality decision.}
+\\ \hline
+\textbf{Actors} & Dataset Reviewer \\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The reviewer opens the permitted medication reference data list and selects a record.}\par
+\textcolor{blue}{2. The system displays the record, ingredients, mappings, source references, dataset version, and review status.}\par
+\textcolor{blue}{3. The reviewer uses Compare Record with Evidence to compare the record with available source information.}\par
+\textcolor{blue}{4. The reviewer uses Record Data-Quality Review Decision to select Accept, Reject, or Needs Correction and provide a reason.}\par
+\textcolor{blue}{5. The system validates the review details and saves the decision, reviewer, time, and supporting evidence.}\par
+6. The system updates the dataset review status.\par
+\textcolor{blue}{7. The reviewer may open View Dataset Review History to inspect previous decisions.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A1. Source evidence is missing or inconsistent (steps 2--4)}}\par
+\textcolor{blue}{1. The reviewer selects Needs Correction or Reject and records the issue.}\par
+\textcolor{blue}{2. The system does not mark the record as clinically validated.}\par
+\textcolor{blue}{3. Continue to step 5 to save the review decision.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. Record changed during review (step 5)}\par
+1. The system asks the reviewer to reload the latest version before deciding.\par
+2. Return to step 2.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. Reviewer cancels or saving fails (steps 4--5)}\par
+1. No new decision is saved; the previous review status remains.
+\\ \hline
+\textbf{Pre-conditions} &
+The Dataset Reviewer is signed in and permitted to review the record.
+\\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} A source-linked data-quality decision and change history are recorded; no independent clinical validation is claimed.\par
+\textbf{Failure:} No new review decision is saved.
+\\ \hline
+\end{longtable}
+% ============================================================
+% 08. ADMINISTRATION
+% ============================================================
+% UC-15 - Manage User Accounts and Roles
+\clearpage
+\subsection{Use-case: Manage User Accounts and Roles}
+\label{uc:uc-15}
+\InlineUCModel{15}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-15: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} & UC-15: Manage User Accounts and Roles \\ \hline
+\textbf{Brief description} &
+The Administrator creates or updates accounts and assigns permitted roles under the system access policy.
+\\ \hline
+\textbf{Actors} & Administrator \\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The Administrator opens Manage User Accounts and Roles.}\par
+\textcolor{blue}{2. The system displays the account list, status, and permitted role options.}\par
+\textcolor{blue}{3. The Administrator selects an account-management operation.}\par
+4. The system validates the request against account and RBAC rules.\par
+5. The Administrator confirms the proposed change.\par
+6. The system saves the authorized change and records the administrative activity.\par
+\textcolor{blue}{7. The Administrator may open View Account Activity History to inspect account-related activities.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A1. Administrator creates a user account (step 3)}}\par
+\textcolor{blue}{1. The Administrator selects Create User Account and enters the required account details.}\par
+\textcolor{blue}{2. Continue to step 4.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A2. Administrator assigns a user role (step 3)}}\par
+\textcolor{blue}{1. The Administrator selects Assign User Role, chooses an account, and selects a permitted role.}\par
+\textcolor{blue}{2. Continue to step 4.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A3. Administrator deactivates a user account (step 3)}}\par
+\textcolor{blue}{1. The Administrator selects Deactivate User Account and chooses the target account.}\par
+\textcolor{blue}{2. The system deactivates account access without deleting the account's records.}\par
+\textcolor{blue}{3. Continue to step 5 for confirmation.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A4. Administrator resets a user password (step 3)}}\par
+\textcolor{blue}{1. The Administrator selects Reset User Password and chooses the target account.}\par
+\textcolor{blue}{2. The system prepares the approved password-reset process.}\par
+\textcolor{blue}{3. Continue to step 4.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A5. Request is invalid or not permitted (step 4)}}\par
+\textcolor{blue}{1. The system rejects the request without applying the change or granting unauthorized permissions.}\par
+\textcolor{blue}{2. The Administrator may correct the request or select another permitted operation.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A6. Administrator cancels or save fails (steps 5--6)}\par
+1. The previous account and role settings remain unchanged.\par
+2. The system reports a save error when relevant.
+\\ \hline
+\textbf{Pre-conditions} &
+The Administrator is signed in with account and role-management permission.
+\\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} The permitted account or role change is stored with an activity record.\par
+\textbf{Failure:} No unauthorized change is saved.
+\\ \hline
+\end{longtable}
+% ============================================================
+% 09. TECHNICAL SUPPORT
+% ============================================================
+% UC-16 - Report Technical Issue
+\clearpage
+\subsection{Use-case: Report Technical Issue}
+\label{uc:uc-16}
+\InlineUCModel{16}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-16: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} &
+\textcolor{blue}{UC-16: Report Technical Issue}
+\\ \hline
+\textbf{Brief description} &
+A registered user reports a technical problem and receives a support ticket status.
+\\ \hline
+\textbf{Actors} &
+\textcolor{blue}{Registered User (all registered roles)}
+\\ \hline
+\textbf{Basic Flow} &
+1. The user opens Report Technical Issue.\par
+2. The system shows the required issue fields and optional diagnostic details.\par
+3. The user describes the problem and reviews any attached information.\par
+\textcolor{blue}{4. The system displays the report details through Review Issue Details and Attachments.}\par
+5. The user submits the report.\par
+\textcolor{blue}{6. The system validates the required information and attachment rules.}\par
+\textcolor{blue}{7. The system saves the ticket and displays its identifier and initial status only after successful creation.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. Required information is missing (step 6)}\par
+1. The system highlights the missing information.\par
+2. Return to step 3 for correction.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. Attachment contains unnecessary patient information (step 3)}\par
+1. The system requests removal or masking of the private data before submission.\par
+2. Return to step 3.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. User cancels or ticket creation fails (steps 5--7)}\par
+1. No successful ticket submission is reported.\par
+2. The user may retry after an error or end the use case.
+\\ \hline
+\textbf{Pre-conditions} &
+The user is signed in and can open the technical support feature.
+\\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} A support ticket is stored and its identifier and initial status are displayed without unnecessary patient data.\par
+\textbf{Failure:} No ticket is created.
+\\ \hline
+\end{longtable}
+% UC-17 - Handle Technical Support Request
+\clearpage
+\subsection{Use-case: Handle Technical Support Request}
+\label{uc:uc-17}
+\InlineUCModel{17}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-17: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} &
+\textcolor{blue}{UC-17: Handle Technical Support Request}
+\\ \hline
+\textbf{Brief description} &
+Technical Support investigates a permitted ticket, records progress, and provides an outcome when available.
+\\ \hline
+\textbf{Actors} & Technical Support \\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. Support staff opens View Assigned Support Tickets and selects a ticket.}\par
+2. The system shows the issue description, status, and allowed technical details.\par
+3. Support staff investigates the issue and records relevant notes.\par
+4. Support staff records a resolution or updates the ticket status.\par
+\textcolor{blue}{5. The system saves the action, time, and responsible account and displays the updated ticket status to the reporting user.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. More information is required (step 3)}\par
+1. Support staff requests only necessary technical details through Request Additional Technical Information.\par
+2. The system records the request and marks the ticket Pending User Response.\par
+3. The reporting user may provide additional information through the same ticket.\par
+4. The system records the reply and returns the ticket to the support queue for continued handling.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. The issue is not resolved (step 4)}\par
+1. Support staff records progress and keeps the ticket Open or In Progress.\par
+2. Continue to step 5.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. Unauthorized patient data is present (step 2)}\par
+1. The system restricts access to medical content.\par
+2. Support staff works with permitted technical details only.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A4. Access is denied or saving fails (steps 1 or 5)}\par
+1. The system denies the action or reports the error.\par
+2. No unsupported resolution is recorded.
+\\ \hline
+\textbf{Pre-conditions} &
+Support staff is signed in and permitted to access the selected support ticket.
+\\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} The ticket status and troubleshooting history are saved; the reporting user can view the updated status.\par
+\textbf{Failure:} No unsupported ticket update or patient-data access occurs.
+\\ \hline
+\end{longtable}
+% ============================================================
+% 10. PATIENT HEALTH PROFILE
+% ============================================================
+% UC-18 - Manage Patient Health Profile
+\clearpage
+\subsection{Use-case: Manage Patient Health Profile}
+\label{uc:uc-18}
+\InlineUCModel{18}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\endfirsthead
+\multicolumn{2}{l}{\textbf{UC-18: Specification (continued)}}\\
+\hline
+\endhead
+\textbf{Use case Name} &
+UC-18: Manage Patient Health Profile
+\\ \hline
+\textbf{Brief description} &
+\textcolor{blue}{The patient manages personal health information, including medical conditions, allergies, and medication history, for use in supported system workflows.}
+\\ \hline
+\textbf{Actors} & Patient / General User \\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The patient opens Manage Patient Health Profile.}\par
+\textcolor{blue}{2. The system displays existing medical conditions, allergies, and medication history with their available sources and update information.}\par
+\textcolor{blue}{3. The patient selects a category and adds or updates the relevant health information.}\par
+\textcolor{blue}{4. The system validates the required information and prepares the changes for review.}\par
+\textcolor{blue}{5. The patient reviews and confirms the changes through Review and Confirm Health Information.}\par
+\textcolor{blue}{6. The system saves the confirmed information together with its source, status, and update time.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A1. Required information is incomplete or invalid (step 4)}}\par
+\textcolor{blue}{1. The system identifies the missing or invalid information.}\par
+\textcolor{blue}{2. The patient corrects the information and returns to step 4.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{\textbf{A2. Patient cancels the changes (step 5)}}\par
+\textcolor{blue}{1. The system discards the unconfirmed changes.}\par
+\textcolor{blue}{2. The previously saved information remains unchanged.}
+\\ \hline
+\textbf{Pre-conditions} &
+\textcolor{blue}{The patient is signed in and can access their own health profile.}
+\\ \hline
+\textbf{Post-conditions} &
+\textcolor{blue}{\textbf{Success:} Confirmed health information is stored with its available source, status, and update time. Patient-provided information is not automatically treated as clinically validated.}\par
+\textcolor{blue}{\textbf{Failure:} No unconfirmed changes are saved as confirmed health information.}
+\\ \hline
+\end{longtable}
+% ============================================================
+% 11. PERSONAL MEDICATION CABINET
+% ============================================================
+% UC-19 - Manage Personal Medication Cabinet
+\clearpage
+\subsection{Use-case: Manage Personal Medication Cabinet}
+\label{uc:uc-19}
+\InlineUCModel{19}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\textbf{Use case Name} &
+\textcolor{blue}{UC-19: Manage Personal Medication Cabinet}
+\\ \hline
+\textbf{Brief description} &
+\textcolor{blue}{The patient manages a personal collection of medication records, including medication details and usage status. This use case is reserved for future development.}
+\\ \hline
+\textbf{Actors} &
+Patient / General User
+\\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The patient opens Manage Personal Medication Cabinet.}\par
+\textcolor{blue}{2. The system displays the medications saved in the cabinet.}\par
+\textcolor{blue}{3. The patient selects an operation: add a medication, view its details, update its information, update its usage status, or view expired and expiring medications.}\par
+\textcolor{blue}{4. The system displays the relevant information or input fields.}\par
+\textcolor{blue}{5. The patient confirms the requested changes.}\par
+\textcolor{blue}{6. The system validates and saves the changes, then displays the updated information.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textcolor{blue}{A1. Required information is missing or invalid (step 5)}\par
+\textcolor{blue}{1. The system highlights the missing or invalid information.}\par
+\textcolor{blue}{2. The patient corrects the information and retries.}
+\\ \hline
+\textbf{Pre-conditions} &
+\textcolor{blue}{The patient is signed in and can access the personal medication cabinet.}
+\\ \hline
+\textbf{Post-conditions} &
+\textcolor{blue}{Success: Medication information and usage status are updated in the cabinet.}\par
+\textcolor{blue}{Failure: No invalid or unconfirmed changes are saved.}
+\\ \hline
+\end{longtable}
+\textcolor{blue}{\textbf{Scope note: This use case is reserved for future development and is not included in the current implementation scope.}}
+% ============================================================
+% 12. PERSONAL ACCOUNT
+% ============================================================
+% UC-20 - Manage Personal Account
+\clearpage
+\subsection{Use-case: Manage Personal Account}
+\label{uc:uc-20}
+\InlineUCModel{20}
+\begin{longtable}{|p{0.20\textwidth}|p{0.71\textwidth}|}
+\hline
+\textbf{Use case Name} &
+UC-20: Manage Personal Account
+\\ \hline
+\textbf{Brief description} &
+A registered user views and updates personal account information or changes their password.
+\\ \hline
+\textbf{Actors} &
+Registered User (Patient / HCP)
+\\ \hline
+\textbf{Basic Flow} &
+\textcolor{blue}{1. The user opens Manage Personal Account.}\par
+\textcolor{blue}{2. The system displays the current account information and available operations.}\par
+\textcolor{blue}{3. The user selects View Personal Account, Update Personal Account Details, or Change Password.}\par
+\textcolor{blue}{4. The system performs the selected operation according to the user's permissions.}\par
+\textcolor{blue}{5. The system displays the result and saves any successful changes.}
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A1. View personal account (step 3)}\par
+1. The system displays the user's account information, such as name and email.\par
+2. No account information is changed.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A2. Update personal account details (step 3)}\par
+1. The user edits the permitted personal information.\par
+2. The system validates and saves the changes.\par
+3. The system displays the updated information.
+\\ \hline
+\textbf{Alternative Flows} &
+\textbf{A3. Change password (step 3)}\par
+1. The user enters the current password and a new password with confirmation.\par
+2. The system verifies the current password and validates the new password.\par
+3. The system updates the password and confirms the change.
+\par
+\textcolor{blue}{\textbf{A4. Account information or password is invalid}}\par
+\textcolor{blue}{1. The system displays an error message.}\par
+\textcolor{blue}{2. No invalid changes are saved.}\par
+\textcolor{blue}{3. The user may correct the information and retry.}
+\\ \hline
+\textbf{Pre-conditions} &
+The user is signed in and can access their own personal account.
+\\ \hline
+\textbf{Post-conditions} &
+\textbf{Success:} The requested account information or password is updated. The user's assigned role and access permissions remain unchanged.\par
+\textbf{Failure:} No unauthorized or invalid account changes are saved.
+\\ \hline
+\end{longtable}

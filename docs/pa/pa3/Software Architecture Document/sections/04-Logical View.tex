@@ -1,0 +1,919 @@
+% ============================================================
+% SECTION 4 - LOGICAL VIEW (INTRODUCTION + COMPONENT OVERVIEW)
+% Medication Safety Assistant - PA3
+%
+% Paste this section before Component 4.1 (Web Frontend).
+% Requires: graphicx, caption, fancyhdr, tabularx.
+% Table column types L{...} and Y must be defined in main.tex.
+% Compile with XeLaTeX to use upright landscape pages.
+% Image: images/Component_Overview.png
+% The existing numbered component diagrams use images/01.png ...
+% and the \LogicalComponentPage macro below.
+% ============================================================
+
+\section{Logical View}
+\label{sec:logical-view}
+
+The Medication Safety Assistant uses a \textbf{three-tier layered modular monolith}.
+The frontend shows the user interface and the Python backend runs the business logic.
+Core DB V4 stores business data; separate Auth/RBAC storage keeps accounts and
+permissions. The twelve components are logical parts of one system, not separate
+microservices.
+
+\noindent\textbf{Architecture and communication.}\par\smallskip
+\begingroup\small
+\begin{tabularx}{\textwidth}{|L{0.24\textwidth}|Y|}
+\hline
+\textbf{Tier} & \textbf{Technology and responsibility} \\ \hline
+Presentation & TypeScript, HTML and CSS; display pages and collect user input. \\ \hline
+Application & Python API and services; validate requests, check permissions and run business logic. \\ \hline
+Data & Python repositories and separate business and Auth/RBAC stores; save records and audit events. \\ \hline
+\end{tabularx}
+\endgroup
+
+The frontend communicates with the API using \textbf{HTTPS/JSON} (HTTP may be
+used locally). Backend services communicate through \textbf{Python calls}
+and typed data objects. Repositories use \textbf{parameterized SQL} and
+transactions to access Core DB V4.
+
+\noindent\textbf{Component overview.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.43\textwidth}|Y|}
+\hline
+\textbf{Component} & \textbf{Main responsibility} \\ \hline
+Web Frontend & Show role-based pages and send user actions. \\ \hline
+API Controllers & Validate, authorize and route requests. \\ \hline
+Medication Intake and Chatbot (M1) & Collect, clarify and confirm medication information. \\ \hline
+Medication Identification (M2) & Find medication candidates and identify ingredients. \\ \hline
+Safety Assessment and Decision Support (M3) & Check supported risks and record safety findings. \\ \hline
+HCP Review and Patient Health Summary (M4) & Manage permitted reviews and patient-approved summaries. \\ \hline
+Reminders and Adherence (M5) & Manage eligible reminders and dose history. \\ \hline
+Patient Health Profile & Keep reported health information and medication-use status. \\ \hline
+Reference Data and Dataset Review & Provide versioned drug data and store review decisions. \\ \hline
+Account and Access Management & Manage accounts, sessions, roles and access rules. \\ \hline
+Technical Support & Handle technical support tickets and messages. \\ \hline
+Data Persistence and Audit & Provide database access, transactions and audit records. \\ \hline
+\end{tabularx}
+\endgroup
+
+\noindent\textbf{Main component communication.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.08}
+\begin{tabularx}{\textwidth}{|L{0.34\textwidth}|L{0.23\textwidth}|Y|}
+\hline
+\textbf{Connection} & \textbf{Means} & \textbf{Purpose} \\ \hline
+Frontend to API & HTTPS/JSON & Send user requests and return results. \\ \hline
+API to backend services & Python calls & Route validated and authorized requests. \\ \hline
+M1 to M2 to M3 & Typed data objects & Pass confirmed entries and identification results. \\ \hline
+M3 and M4 to M5 & Gate and review results & Check reminder eligibility before activation. \\ \hline
+M2/M3 to Reference Data & Python calls & Read drug, ingredient and DDI references. \\ \hline
+M3/M4 to Health Profile & Python calls & Read permitted health context and summary data. \\ \hline
+Services to Persistence & Repository calls & Read and save permitted records. \\ \hline
+Persistence to PostgreSQL & SQL/transactions & Access Core DB V4. \\ \hline
+\end{tabularx}
+\endgroup
+
+\noindent\textbf{Safety and access rules.}\par\smallskip
+Patient confirmation does not prove medication identity or clinical safety.
+Unknown medicines and unsupported checks remain \emph{Unassessed}.
+Severe drug interactions can hold new reminders for affected medicines;
+treatment and existing reminders are not changed automatically.
+An HCP review requires authorized case access. Sharing a health summary
+requires separate patient permission. UC-19 is planned for the future.
+
+% ------------------------------------------------------------
+% Page helpers: true landscape paper, no rotated PDF content.
+% These are also used by Components 4.1--4.12 below.
+% ------------------------------------------------------------
+\makeatletter
+\providecommand{\LogicalResetPageColumns}{%
+  \global\@colht\textheight
+  \global\@colroom\textheight
+  \global\vsize\textheight
+}
+\makeatother
+
+% Arguments: {component heading}{subsection label}{introduction}
+%            {PNG number}{figure label}
+\newcommand{\LogicalComponentPage}[5]{%
+  \par\clearpage
+  \begingroup
+  \setlength{\paperwidth}{297mm}%
+  \setlength{\paperheight}{210mm}%
+  \special{papersize=297mm,210mm}%
+  \setlength{\textwidth}{261mm}%
+  \setlength{\columnwidth}{\textwidth}%
+  \setlength{\linewidth}{\textwidth}%
+  \setlength{\hsize}{\textwidth}%
+  \setlength{\headwidth}{\textwidth}%
+  \setlength{\textheight}{153mm}%
+  \LogicalResetPageColumns
+  \setlength{\oddsidemargin}{-7.4mm}%
+  \setlength{\evensidemargin}{-7.4mm}%
+  \thispagestyle{fancy}%
+  \subsection{#1}\label{#2}%
+  \vspace{-1mm}%
+  {\small #3\par}%
+  \vspace{2mm}%
+  \begin{center}
+    \IfFileExists{images/#4.png}{%
+      \includegraphics[width=0.98\textwidth,height=0.70\textheight,keepaspectratio]{images/#4.png}%
+    }{%
+      \fbox{\parbox[c][0.48\textheight][c]{0.80\textwidth}{\centering Missing class diagram: images/#4.png}}%
+    }%
+    \par\smallskip
+    \captionof{figure}{#1 -- UML class diagram.}\label{#5}%
+  \end{center}
+  \par\clearpage
+  \endgroup
+  \LogicalResetPageColumns
+  \special{papersize=\the\paperwidth,\the\paperheight}%
+}
+
+% ------------------------------------------------------------
+% OVERALL COMPONENT DIAGRAM
+% One fixed landscape page: introduction, image and caption together.
+% No figure float; no extra caption-only page.
+% Keep this block before Component 4.1.
+% Image: images/Component_Overview.png
+% ------------------------------------------------------------
+\clearpage
+\begingroup
+  % Use a true landscape PDF page (no rotation in the PDF viewer).
+  \setlength{\paperwidth}{297mm}%
+  \setlength{\paperheight}{210mm}%
+  \special{papersize=297mm,210mm}%
+  \setlength{\textwidth}{261mm}%
+  \setlength{\columnwidth}{\textwidth}%
+  \setlength{\linewidth}{\textwidth}%
+  \setlength{\hsize}{\textwidth}%
+  \setlength{\headwidth}{\textwidth}%
+  \setlength{\textheight}{153mm}%
+  \LogicalResetPageColumns
+  \setlength{\oddsidemargin}{-7.4mm}%
+  \setlength{\evensidemargin}{-7.4mm}%
+  \thispagestyle{fancy}%
+
+  % A single, non-breaking block prevents a caption-only page.
+  \noindent\begin{minipage}[t]{\textwidth}
+    \textbf{Overall Component Diagram}\par\smallskip
+    {\small
+      Figure~\ref{fig:logical-component-overview} shows the twelve components
+      in three tiers and their main connections. The frontend uses HTTPS/JSON,
+      backend services use Python calls, and repositories use SQL transactions.\par
+    }
+    \vspace{2mm}%
+    \centering
+    \IfFileExists{images/Component_Overview.png}{%
+      \includegraphics[
+        width=0.97\linewidth,
+        height=0.82\textheight,
+        keepaspectratio
+      ]{images/Component_Overview.png}%
+    }{%
+      \fbox{\parbox[c][62mm][c]{0.8\linewidth}{%
+        \centering Missing diagram: images/Component\_Overview.png}}%
+    }%
+    \par\vspace{1mm}%
+    \captionof{figure}{Medication Safety Assistant -- Overall UML component diagram.}%
+    \label{fig:logical-component-overview}%
+  \end{minipage}%
+  \par\clearpage
+\endgroup
+\LogicalResetPageColumns
+
+% ============================================================
+% 4.1 - WEB FRONTEND
+% ============================================================
+\LogicalComponentPage{Component: Web Frontend}{subsec:logical-frontend}{%
+\textbf{Purpose.} Show role-based screens, collect user actions and display
+results from the backend. The frontend does not decide whether a medicine is safe.
+\textbf{Related use cases:} UC-01--UC-18 and UC-20 (role-dependent).
+}{01}{fig:logical-frontend-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{WebAppShell} & Coordinate role-based pages and feedback; \texttt{navigateTo()}, \texttt{showWorkflowResult()}, \texttt{showFeedback()}. \\ \hline
+\texttt{ApiClient} & Provide shared API access for the views; \texttt{submitAction()}, \texttt{fetchViewData()}. \\ \hline
+\texttt{MedicationEntryView} & Submit and confirm medication entries; \texttt{submitEntry()}, \texttt{confirmEntry()}. \\ \hline
+\texttt{SafetyResultsView} & Show warnings and allow a user to request review; \texttt{loadSafetyReport()}, \texttt{requestHCPReview()}. \\ \hline
+\texttt{ReminderView} & Display reminders and record dose status; \texttt{updateReminder()}, \texttt{recordDoseStatus()}. \\ \hline
+\texttt{HCPReviewView} & View permitted cases, send messages and submit review outcomes. \\ \hline
+\end{tabularx}
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{WebAppShell} depends on the four View classes (Dependency) to
+show the screen for each user task. Each View has an Association with
+\texttt{ApiClient} to send requests and display results without handling
+HTTP calls itself. \texttt{ApiClient} calls API Controllers using HTTPS/JSON.
+
+
+% ============================================================
+% 4.2 - API CONTROLLERS
+% ============================================================
+\LogicalComponentPage{Component: API Controllers}{subsec:logical-api}{%
+\textbf{Purpose.} Receive user requests, check their input and access rights,
+then send valid requests to the right backend service.
+\textbf{Related use cases:} All active use cases using the API.
+}{02}{fig:logical-api-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{ApiController} & Handle HTTP requests and route commands; \texttt{handleRequest()}, \texttt{dispatch()}. \\ \hline
+\texttt{RequestValidator} & Check request fields before service calls; \texttt{validate()}, \texttt{parseCommand()}. \\ \hline
+\texttt{AccessGuard} & Check roles and resource permissions; \texttt{authorizeRequest()}. \\ \hline
+\texttt{RequestContext} & Provide trusted user and request details for access checks; \texttt{isAuthenticated()}. \\ \hline
+\end{tabularx}
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{ApiController} has Associations with \texttt{RequestValidator}
+and \texttt{AccessGuard} so every request can be checked before routing.
+Both \texttt{ApiController} and \texttt{AccessGuard} depend on
+\texttt{RequestContext} for the authenticated user and request details.
+
+\noindent\textbf{Important rule.} User identity and roles come from server-side
+authentication, not from fields submitted by the user.
+
+
+% ============================================================
+% 4.3 - MEDICATION INTAKE AND CHATBOT (MODULE 1)
+% ============================================================
+\LogicalComponentPage{Component: Medication Intake and Chatbot (Module 1)}{subsec:logical-intake}{%
+\textbf{Purpose.} Collect medication details from manual, OCR, chat and voice
+input. Clarify missing details, prepare drafts and confirm entries before
+identification. Answer supported medication questions.
+\textbf{Related use cases:} UC-02 and UC-11.
+}{03}{fig:logical-intake-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{ManualInputAdapter} & Prepare medication drafts from form data; \texttt{parseForm()}. \\ \hline
+\texttt{OCRInputAdapter} & Prepare draft medicine data from images; \texttt{extractEntries()}. \\ \hline
+\texttt{ChatInputAdapter} & Detect intent and extract draft entries from text; \texttt{detectIntent()}, \texttt{extractEntries()}. \\ \hline
+\texttt{VoiceInputAdapter} & Transcribe audio and pass text to Chat; \texttt{transcribe()}, \texttt{processVoice()}. \\ \hline
+\texttt{IntakeService} & Start, clarify, confirm and cancel workflows; \texttt{startIntake()}, \texttt{clarifyEntry()}, \texttt{confirmEntry()}, \texttt{cancelWorkflow()}, \texttt{buildHandoffDTO()}. \\ \hline
+\texttt{IntakeValidator} & Check missing fields and uncertainty; \texttt{validate()}, \texttt{findMissingFields()}, \texttt{hasUncertainty()}. \\ \hline
+\texttt{MedicationQAService} & Handle medication questions separately from intake; \texttt{answerQuestion()}. \\ \hline
+\texttt{MedicationEntry} & Store raw medication fields, source and status; \texttt{updateDraft()}, \texttt{isConfirmed()}. \\ \hline
+\end{tabularx}
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{IntakeService} depends on the four input adapters to support
+different input methods. \texttt{VoiceInputAdapter} depends on
+\texttt{ChatInputAdapter} to process transcribed speech as text.
+\texttt{IntakeService} has Associations with \texttt{IntakeValidator}
+for clarification and \texttt{MedicationQAService} for questions.
+The input adapters, service and validator depend on \texttt{MedicationEntry}
+to work with the same draft information.
+
+\noindent\textbf{Important rule.} Every medication draft needs explicit user
+confirmation; confirmation does not prove its identity or safety.
+
+
+% ============================================================
+% 4.4 - MEDICATION IDENTIFICATION (MODULE 2)
+% ============================================================
+\LogicalComponentPage{Component: Medication Identification (Module 2)}{subsec:logical-identification}{%
+\textbf{Purpose.} Match confirmed medication entries with reviewed products
+and find their ingredients. Keep unknown or unclear matches unresolved.
+\textbf{Related use cases:} UC-02 and UC-03.
+}{04}{fig:logical-identification-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{MedicationIdentificationService} & Coordinate matching, user selection and ingredient lookup; \texttt{identifyConfirmedEntry()}, \texttt{confirmCandidate()}, \texttt{resolveIngredients()}. \\ \hline
+\texttt{MedicationMatcher} & Find products that match an entry; \texttt{findCandidates()}. \\ \hline
+\texttt{IngredientResolver} & Get linked active ingredients; \texttt{resolveIngredients()}. \\ \hline
+\texttt{MedicationCandidate} & Represent each possible product with confidence and source details. \\ \hline
+\texttt{IdentificationResult} & Group candidate products and the selected result; \texttt{isResolved()}, \texttt{needsConfirmation()}. \\ \hline
+\end{tabularx}
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{MedicationIdentificationService} has Associations with
+\texttt{MedicationMatcher} to find products and \texttt{IngredientResolver}
+to obtain their ingredients. It depends on \texttt{IdentificationResult}
+to return the outcome; \texttt{MedicationMatcher} depends on
+\texttt{MedicationCandidate} to create suggestions. An
+\texttt{IdentificationResult} owns zero or more candidates
+(Composition, 1 to 0..*) so each result groups its own suggestions.
+
+\noindent\textbf{Important rule.} A possible match is not a confirmed identity
+or a clinical safety decision.
+
+
+% ============================================================
+% 4.5 - SAFETY ASSESSMENT AND DECISION SUPPORT (MODULE 3)
+% ============================================================
+\LogicalComponentPage{Component: Safety Assessment and Decision Support (Module 3)}{subsec:logical-safety}{%
+\textbf{Purpose.} Check supported medication risks and return findings with
+evidence or an unassessed status. Severe or unresolved risks start a pending
+HCP review request; patient permission is needed before case sharing.
+\textbf{Related use cases:} UC-03, UC-06 and UC-10.
+}{05}{fig:logical-safety-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+
+\texttt{SafetyAssessmentService} &
+Coordinate checks, save results and flag review needs;
+\texttt{assessSafety()}, \texttt{requiresHCPReview()},
+\texttt{evaluateReminderGate()}, \texttt{getReport()}. \\ \hline
+
+\texttt{InteractionChecker} &
+Check DDI severity and duplicate ingredients;
+\texttt{checkInteractions()},
+\texttt{checkDuplicateIngredients()}. \\ \hline
+
+\texttt{PatientRiskChecker} &
+Check patient-specific risks using available health data. \\ \hline
+
+\texttt{SafetyGate} &
+Assess new-reminder eligibility using a report and verified
+schedule; \texttt{evaluate()}. \\ \hline
+
+\texttt{SafetyReport} &
+Keep evidence, missing checks and results for later review; \texttt{hasSevereDDI()},
+\texttt{hasUnassessedItems()}. \\ \hline
+
+\end{tabularx}
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{SafetyAssessmentService} has Associations with
+\texttt{InteractionChecker} and \texttt{PatientRiskChecker} to run
+different risk checks. It also uses \texttt{SafetyGate} to assess new
+reminder eligibility. The service depends on \texttt{SafetyReport} to
+return findings; \texttt{SafetyGate} depends on that report to use the
+same results instead of repeating risk checks.
+
+\noindent\textbf{Important rules.} Severe or unresolved findings create a request
+with status \texttt{PENDING\_CONSENT}. M4 may share and assign the case only
+after patient permission. Unsupported checks remain \emph{Unassessed}.
+The safety gate can hold affected new reminders, never treatment.
+
+
+% ============================================================
+% 4.6 - HCP REVIEW AND PATIENT HEALTH SUMMARY (MODULE 4)
+% ============================================================
+\LogicalComponentPage{Component: HCP Review and Patient Health Summary (Module 4)}{subsec:logical-review}{%
+\textbf{Purpose.} Manage permitted simulated HCP reviews and patient health
+summaries. Keep case access separate from summary-sharing permission.
+\textbf{Related use cases:} UC-04, UC-05, UC-12 and UC-13.
+}{06}{fig:logical-review-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\noindent\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{ReviewCaseService} & Open cases, assign reviewers, add messages and save outcomes; \texttt{openReviewCase()}, \texttt{assignReviewer()}, \texttt{addCaseMessage()}, \texttt{recordReviewOutcome()}. \\ \hline
+\texttt{ReviewConversation} & Keep the messages exchanged in a review case; \texttt{addMessage()}, \texttt{getMessages()}. \\ \hline
+\texttt{ReviewOutcome} & Store each review outcome for later checking; \texttt{isScheduleVerified()}. \\ \hline
+\texttt{HealthSummaryService} & Generate, confirm, share and revoke health summaries; \texttt{generateHealthSummary()}, \texttt{confirmSummary()}, \texttt{shareConfirmedSummary()}, \texttt{revokeSummarySharing()}. \\ \hline
+\texttt{SharingPermissionService} & Apply separate permission checks for cases and summaries; \texttt{grantCaseAccess()}, \texttt{canAccessCase()}, \texttt{grantSummarySharing()}, \texttt{revokeSummarySharing()}, \texttt{canViewSummary()}. \\ \hline
+\end{tabularx}\par
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{ReviewCaseService} has an Association with
+\texttt{SharingPermissionService} to check permission before HCP case
+access. \texttt{HealthSummaryService} has a separate Association with
+the same permission service because summary sharing needs its own consent.
+\texttt{ReviewCaseService} depends on \texttt{ReviewConversation} to
+manage messages and on \texttt{ReviewOutcome} to record decisions.
+
+\noindent\textbf{Important rules.} HCP case access and health-summary sharing
+need separate patient permissions. Review outcomes do not change treatment
+automatically.
+
+
+% ============================================================
+% 4.7 - REMINDERS AND ADHERENCE (MODULE 5)
+% ============================================================
+\LogicalComponentPage{Component: Reminders and Adherence (Module 5)}{subsec:logical-reminders}{%
+\textbf{Purpose.} Manage reminders based on verified medication schedules
+and safety eligibility. Record dose status and requests to change timing.
+\textbf{Related use cases:} UC-06--UC-09.
+}{07}{fig:logical-reminders-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\noindent\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{ReminderService} & Set up reminders, change notification settings, submit timing proposals and manage dose records; \texttt{setupReminder()}, \texttt{updateNotificationSettings()}, \texttt{proposeScheduleChange()}, \texttt{recordDoseStatus()}, \texttt{getAdherenceHistory()}. \\ \hline
+\texttt{ReminderEligibilityGate} & Check a verified schedule and the Module 3 gate result; \texttt{evaluate()}. \\ \hline
+\texttt{ScheduleChangeRequest} & Keep a proposed time, request status and date without applying the change; \texttt{isPending()}. \\ \hline
+\texttt{DoseStatusService} & Record confirmed \texttt{TAKEN}, \texttt{MISSED} or \texttt{SKIPPED} status; \texttt{recordDoseStatus()}. \\ \hline
+\texttt{AdherenceHistoryService} & Retrieve permitted dose history for adherence views; \texttt{getHistory()}. \\ \hline
+\end{tabularx}\par
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{ReminderService} has Associations with
+\texttt{ReminderEligibilityGate} to check whether a reminder can be
+activated, \texttt{DoseStatusService} to record doses, and
+\texttt{AdherenceHistoryService} to show dose history. It depends on
+\texttt{ScheduleChangeRequest} to store proposed timing changes without
+applying them immediately.
+
+\noindent\textbf{Important rules.} New reminders need a verified schedule and
+a valid safety result. Proposed timing changes need HCP review; treatment
+and existing reminders are not changed automatically.
+
+
+% ============================================================
+% 4.8 - PATIENT HEALTH PROFILE
+% ============================================================
+\LogicalComponentPage{Component: Patient Health Profile}{subsec:logical-profile}{%
+\textbf{Purpose.} Keep patient-reported health facts, allergies, conditions,
+previous adverse drug reactions, lifestyle details and medication-use history.
+Keep their sources so M3 and M4 can use the available health context.
+\textbf{Related use cases:} UC-18; supports UC-03 and UC-12.
+}{08}{fig:logical-profile-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\noindent\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{PatientProfileService} & Save and read health and medication-use entries; \texttt{updateHealthEntry()}, \texttt{updateMedicationUse()}, \texttt{getHealthEntries()}, \texttt{getMedicationHistory()}, \texttt{getRiskContext()}. \\ \hline
+\texttt{ProfileValidator} & Check reported health and medicine-use details; \texttt{validateHealthEntry()}, \texttt{validateMedicationUse()}. \\ \hline
+\texttt{HealthProfileEntry} & Keep entry type, raw value, source, reported time and patient confirmation; \texttt{isConfirmed()}. \\ \hline
+\texttt{MedicationUseEntry} & Keep medicine name, current/discontinued status, dates, source and patient confirmation; \texttt{isCurrentlyUsed()}, \texttt{isConfirmed()}. \\ \hline
+\end{tabularx}\par
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{PatientProfileService} has an Association with
+\texttt{ProfileValidator} to check reported information before saving it.
+It depends on \texttt{HealthProfileEntry} and \texttt{MedicationUseEntry}
+to keep health facts and medicine-use records separately.
+\texttt{ProfileValidator} also depends on these two entry classes to
+check the fields relevant to each type.
+
+\noindent\textbf{Important rule.} Patient confirmation is not clinical
+verification. Current and discontinued medicines remain separate.
+
+
+% ============================================================
+% 4.9 - REFERENCE DATA AND DATASET REVIEW
+% ============================================================
+\LogicalComponentPage{Component: Reference Data and Dataset Review}{subsec:logical-reference}{%
+\textbf{Purpose.} Provide reviewed, versioned medicine and ingredient data
+for identification and safety checks. Let Dataset Reviewers record decisions
+with supporting evidence.
+\textbf{Related use cases:} UC-14; supports UC-02, UC-03 and UC-11.
+}{09}{fig:logical-reference-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\noindent\begin{tabularx}{\textwidth}{|L{0.34\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{DatasetReviewService} & Open records, propose corrections and save review decisions; \texttt{openRecord()}, \texttt{proposeCorrection()}, \texttt{decide()}. \\ \hline
+\texttt{ReferenceCatalog} & Find products, read source and DDI evidence, and keep review history; \texttt{findCandidates()}, \texttt{getRecord()}, \texttt{getInteractionEvidence()}, \texttt{appendDecision()}. \\ \hline
+\texttt{ReviewDecision} & Keep who reviewed which record, the decision and its evidence; \texttt{isAccepted()}, \texttt{getRationale()}. \\ \hline
+\end{tabularx}\par
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{DatasetReviewService} has an Association with
+\texttt{ReferenceCatalog} to open source-linked records and check their
+evidence. It depends on \texttt{ReviewDecision} to record the review result.
+\texttt{ReferenceCatalog} has an Association (1 to 0..*) with
+\texttt{ReviewDecision} so one catalog can keep many review decisions.
+
+\noindent\textbf{Important rule.} A dataset review decision does not directly
+change released reference records or prove clinical safety.
+
+
+% ============================================================
+% 4.10 - ACCOUNT AND ACCESS MANAGEMENT
+% ============================================================
+\LogicalComponentPage{Component: Account and Access Management}{subsec:logical-accounts}{%
+\textbf{Purpose.} Manage accounts, login sessions, passwords and roles.
+Check access rights before protected actions and prevent unauthorized
+account changes.
+\textbf{Related use cases:} UC-01, UC-15 and UC-20.
+}{10}{fig:logical-accounts-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\noindent\begin{tabularx}{\textwidth}{|L{0.34\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+
+\texttt{AccountService} &
+Manage sign-in, accounts, passwords and roles;
+\texttt{login()}, \texttt{logout()}, \texttt{switchContext()},
+\texttt{createAccount()}, \texttt{deactivateAccount()},
+\texttt{resetPassword()}, \texttt{updatePersonalDetails()},
+\texttt{changePassword()}, \texttt{grantRole()},
+\texttt{revokeRole()}. \\ \hline
+
+\texttt{RBACPolicy} &
+Check permissions, account ownership and admin-role rules;
+\texttt{hasPermission()}, \texttt{requireOwner()},
+\texttt{canRevokeAdmin()}. \\ \hline
+
+\texttt{UserAccount} &
+Keep account details and assigned roles;
+\texttt{verifyPassword()}, \texttt{isActive()},
+\texttt{getActiveRoles()}, \texttt{addGrant()},
+\texttt{revokeGrant()}. \\ \hline
+
+\texttt{AuthSession} &
+Keep login sessions and the selected role;
+\texttt{isValid()}, \texttt{selectContext()},
+\texttt{rotateToken()}, \texttt{invalidate()}. \\ \hline
+
+\texttt{Role} &
+Define permissions shared by users with a role;
+\texttt{hasPermission()}. \\ \hline
+
+\texttt{RoleGrant} &
+Keep the history and validity of each role assignment;
+\texttt{isActive()}, \texttt{revoke()}. \\ \hline
+
+\end{tabularx}\par
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{AccountService} has an Association with \texttt{RBACPolicy}
+to check allowed account actions and depends on \texttt{UserAccount} and
+\texttt{AuthSession} to manage users and sign-in. \texttt{RBACPolicy}
+depends on \texttt{AuthSession} to check the selected role.
+\texttt{AuthSession} is associated with \texttt{UserAccount} and
+\texttt{Role}. \texttt{UserAccount} owns its \texttt{RoleGrant}
+records (Composition, 1 to 0..*); each \texttt{RoleGrant} is associated
+with a \texttt{Role} to identify the granted permissions.
+
+\noindent\textbf{Important rule.} A role alone does not grant access to patient
+health data. Ownership and case-specific permission must also be checked.
+
+
+% ============================================================
+% 4.11 - TECHNICAL SUPPORT
+% ============================================================
+\LogicalComponentPage{Component: Technical Support}{subsec:logical-support}{%
+\textbf{Purpose.} Let users report technical problems and track requests.
+Let authorized support staff handle assigned tickets and replies.
+\textbf{Related use cases:} UC-16 and UC-17.
+}{11}{fig:logical-support-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\noindent\begin{tabularx}{\textwidth}{|L{0.34\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{SupportTicketService} & Create, assign and update tickets, and add replies; \texttt{createTicket()}, \texttt{listAssignedTickets()}, \texttt{assignTicket()}, \texttt{addReply()}, \texttt{updateTicketStatus()}. \\ \hline
+\texttt{TicketAccessPolicy} & Check permission to view, reply to or update a ticket; \texttt{canView()}, \texttt{canReply()}, \texttt{canUpdateStatus()}. \\ \hline
+\texttt{SupportConversation} & Keep messages related to a support ticket; \texttt{addMessage()}, \texttt{getMessages()}. \\ \hline
+\texttt{SupportTicket} & Keep the requester, assigned staff, subject, status and times; \texttt{assignStaff()}, \texttt{changeStatus()}, \texttt{isClosed()}. \\ \hline
+\end{tabularx}\par
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{SupportTicketService} has Associations with
+\texttt{TicketAccessPolicy} to check ticket permissions and
+\texttt{SupportConversation} to manage replies. It depends on
+\texttt{SupportTicket} to create and update ticket details.
+\texttt{TicketAccessPolicy} and \texttt{SupportConversation} also depend
+on \texttt{SupportTicket} to check ownership and attach messages to the
+correct ticket.
+
+\noindent\textbf{Important rule.} Support staff can only see permitted tickets.
+Patient health details stay hidden unless access is explicitly allowed.
+
+
+% ============================================================
+% 4.12 - DATA PERSISTENCE AND AUDIT
+% ============================================================
+\LogicalComponentPage{Component: Data Persistence and Audit}{subsec:logical-persistence}{%
+\textbf{Purpose.} Provide shared data access, transactions and audit
+recording for backend services. Core DB V4 holds business records, while
+separate Auth/RBAC storage holds accounts and access data.
+\textbf{Related use cases:} Supports active use cases across the system.
+}{12}{fig:logical-persistence-classes}
+
+\noindent\textbf{Main classes and operations.}\par\smallskip
+\begingroup\small
+\begin{tabularx}{\textwidth}{|L{0.37\textwidth}|Y|}
+\hline
+\textbf{Class} & \textbf{Role and main operations} \\ \hline
+\texttt{RepositoryInterface} & Define data access operations: \texttt{saveDomainRecord()}, \texttt{loadDomainRecord()}, \texttt{appendAuditEvent()}. \\ \hline
+\texttt{PostgresRepositoryAdapter} & Access stored records using the shared repository contract. \\ \hline
+\texttt{UnitOfWork} & Manage transactions: \texttt{begin()}, \texttt{commit()}, \texttt{rollback()}. \\ \hline
+\texttt{AuditRecorder} & Save traceable actions through a repository: \texttt{recordEvent()}. \\ \hline
+\end{tabularx}\par
+\endgroup
+
+\noindent\textbf{Key relationships and their purposes.}\par\smallskip
+\texttt{PostgresRepositoryAdapter} implements
+\texttt{RepositoryInterface} (Realization) so services can use a common
+data-access contract. \texttt{UnitOfWork} has an Association with the
+interface to save related changes in one transaction.
+\texttt{AuditRecorder} has an Association with the same interface to
+record important actions alongside business operations.
+
+\noindent\textbf{Important rule.} Core DB V4 business audit records and Auth/RBAC
+authentication audit records belong to separate data stores; they are not
+the same table.
+
+
+% ------------------------------------------------------------
+% 4.12.1 - SYSTEM-WIDE DATABASE DESIGN
+% It is a subsection of the DB/Persistence component for PA3
+% reporting purposes, NOT nine separate persistence components.
+% ------------------------------------------------------------
+\setcounter{secnumdepth}{3}
+\subsubsection{Database Design (System-wide)}
+\label{subsubsec:system-database-design}
+\setcounter{secnumdepth}{2}
+
+The database design is organized into \textbf{10 ERDs},
+covering the main components and functions of the
+Medication Safety Assistant. Each ERD shows the key
+entities, attributes, and relationships needed to
+support its related functions.
+
+\noindent\textbf{ERD coverage and proposed additions.}\par\smallskip
+\begingroup\small\renewcommand{\arraystretch}{1.04}
+\begin{tabularx}{\textwidth}{|L{0.13\textwidth}|Y|L{0.22\textwidth}|}
+\hline
+\textbf{ERD} & \textbf{Data area} & \textbf{New tables} \\ \hline
+01 & Reference Data and Dataset Review & 1 \\ \hline
+02 & Medication Intake and Chatbot & 0 \\ \hline
+03 & Medication Identification & 0 \\ \hline
+04 & Safety Assessment & 0 \\ \hline
+05 & Patient Health Profile & 2 \\ \hline
+06 & HCP Review and Health Summary & 5 \\ \hline
+07 & Reminders and Adherence & 4 \\ \hline
+08 & Technical Support & 2 \\ \hline
+09 & Data Persistence and Audit & 1 \\ \hline
+10 & Account, Authentication and RBAC & 0 \\ \hline
+\textbf{Total proposed} & & \textbf{15} \\ \hline
+\end{tabularx}\par
+\endgroup
+
+% ------------------------------------------------------------
+% ERD PAGE HELPERS - explanatory text + figure on ONE page.
+% Landscape sheets change the actual PDF page size; no PDF rotation.
+% The page reset macro is defined earlier in Section 4.
+% ------------------------------------------------------------
+% ============================================================
+% DATABASE DESIGN - ERD 01 TO ERD 10
+% Replace the old ERD PAGE HELPERS and ERD 01--10 calls with this block.
+% Required: graphicx, caption, fancyhdr, and \LogicalResetPageColumns
+% defined earlier in Section 4. Compile with XeLaTeX.
+% Image paths: images/ERD_01.png ... images/ERD_10.png.
+% Each ERD: Purpose -> Core attributes -> Core relationships.
+% ============================================================
+
+% Landscape A4: page content is NOT rotated. The text and figure stay together.
+\newcommand{\LogicalERDLandscapePage}[4]{%
+  \par\clearpage
+  \begingroup
+  \setlength{\paperwidth}{297mm}%
+  \setlength{\paperheight}{210mm}%
+  \special{papersize=297mm,210mm}%
+  \setlength{\textwidth}{261mm}%
+  \setlength{\columnwidth}{\textwidth}%
+  \setlength{\linewidth}{\textwidth}%
+  \setlength{\hsize}{\textwidth}%
+  \setlength{\headwidth}{\textwidth}%
+  \setlength{\textheight}{153mm}%
+  \LogicalResetPageColumns
+  \setlength{\oddsidemargin}{-7.4mm}%
+  \setlength{\evensidemargin}{-7.4mm}%
+  \thispagestyle{fancy}%
+  \noindent\begin{minipage}[t]{\textwidth}
+    \raggedright
+    \textbf{#2}\par\smallskip
+    {\small\setlength{\parskip}{2pt}#3\par}%
+    \smallskip
+    \centering
+    \IfFileExists{images/#1.png}{%
+      \includegraphics[width=0.98\linewidth,height=0.66\textheight,keepaspectratio]{images/#1.png}%
+    }{%
+      \fbox{\parbox[c][0.35\textheight][c]{0.8\linewidth}{\centering Missing ERD: \texttt{\detokenize{images/#1.png}}}}%
+    }%
+    \par\smallskip
+    \captionof{figure}{#2 -- ER diagram.}\label{#4}%
+  \end{minipage}%
+  \par\clearpage
+  \endgroup
+  \LogicalResetPageColumns
+  \special{papersize=\the\paperwidth,\the\paperheight}%
+}
+
+% Portrait A4: same title/explanation/caption layout as landscape ERDs.
+\newcommand{\LogicalERDPortraitPage}[4]{%
+  \par\clearpage
+  \thispagestyle{fancy}%
+  \noindent\begin{minipage}[t]{\textwidth}
+    \raggedright
+    \textbf{#2}\par\smallskip
+    {\small\setlength{\parskip}{2pt}#3\par}%
+    \smallskip
+    \centering
+    \IfFileExists{images/#1.png}{%
+      \includegraphics[width=0.97\linewidth,height=0.65\textheight,keepaspectratio]{images/#1.png}%
+    }{%
+      \fbox{\parbox[c][0.35\textheight][c]{0.8\linewidth}{\centering Missing ERD: \texttt{\detokenize{images/#1.png}}}}%
+    }%
+    \par\smallskip
+    \captionof{figure}{#2 -- ER diagram.}\label{#4}%
+  \end{minipage}%
+  \par\clearpage
+}
+
+% ------------------------------------------------------------
+% ERD 01 - REFERENCE DATA AND DATASET REVIEW (Component 4.9)
+% ------------------------------------------------------------
+\LogicalERDLandscapePage{ERD_01}{ERD 01: Reference Data and Dataset Review}{%
+\textbf{Purpose.} Supports Component 4.9, M2 and M3. It stores versioned
+medicine data, ingredient links and available DDInter evidence, and records
+dataset review decisions.\par
+\textbf{Core attributes.} \texttt{medications.brand\_name} names a product;
+\texttt{ingredients.name\_original} names an ingredient.
+\texttt{dataset\_build} identifies the source version.
+\texttt{ddinter\_mappings.retrieval\_evidence} keeps DDI evidence;
+\texttt{dataset\_review\_decisions.decision} and \texttt{reviewer\_user\_id}
+record a review result and its reviewer.\par
+\textbf{Core relationships.} \texttt{medications} and \texttt{ingredients}
+connect through \texttt{medication\_ingredients}; ingredient components link to
+\texttt{ddinter\_mappings}. Review decisions use source identifiers rather than
+a direct foreign key to released reference records.\par
+}{fig:db-erd-01}
+
+% ------------------------------------------------------------
+% ERD 02 - MEDICATION INTAKE AND CHATBOT (M1, Component 4.3)
+% ------------------------------------------------------------
+\LogicalERDLandscapePage{ERD_02}{ERD 02: Medication Intake and Chatbot (M1)}{%
+\textbf{Purpose.} Supports Component 4.3. Eight existing tables keep user
+conversations, intake inputs, extracted medicine details and confirmed entry
+versions for Manual, OCR, Chat and voice-to-chat input.\par
+\textbf{Core attributes.} \texttt{conversation\_messages.role} identifies the
+speaker; \texttt{workflow\_instances.state} tracks the intake step.
+\texttt{intake\_inputs.modality} identifies the input method;
+\texttt{intake\_extractions.result} stores extracted data.
+\texttt{medication\_entry\_versions.medication\_fields} stores a version,
+and \texttt{confirmed\_at} marks explicit confirmation.\par
+\textbf{Core relationships.} A conversation has messages and can have intake
+sessions and workflows. An intake session has inputs; inputs have extractions;
+extractions produce items; each item can have multiple entry versions.\par
+}{fig:db-erd-02}
+
+% ------------------------------------------------------------
+% ERD 03 - MEDICATION IDENTIFICATION (M2, Component 4.4)
+% ------------------------------------------------------------
+\LogicalERDPortraitPage{ERD_03}{ERD 03: Medication Identification (M2)}{%
+\textbf{Purpose.} Supports Component 4.4. It stores product candidates found
+for a confirmed medication entry, so the user can choose the correct medicine.\par
+\textbf{Core attributes.} \texttt{entry\_matches.entry\_version\_id} identifies
+the input version; \texttt{match\_status}, \texttt{candidate\_rank} and
+\texttt{confidence} describe a match. \texttt{product\_id} and
+\texttt{reference\_build} identify the suggested catalog product and version.\par
+\textbf{Core relationships.} One \texttt{medication\_entry\_versions} record can
+have many \texttt{entry\_matches}. Each candidate may refer to one versioned
+\texttt{medications} record.\par
+}{fig:db-erd-03}
+
+% ------------------------------------------------------------
+% ERD 04 - SAFETY ASSESSMENT (M3, Component 4.5)
+% ------------------------------------------------------------
+\LogicalERDLandscapePage{ERD_04}{ERD 04: Safety Assessment (M3)}{%
+\textbf{Purpose.} Supports Component 4.5. Five existing tables save a fixed
+medicine list, safety-check runs, risk findings and the medicines affected.
+This lets users review results and supporting evidence.\par
+\textbf{Core attributes.} \texttt{medication\_list\_snapshots.status} identifies
+the list state; \texttt{snapshot\_entries.entry\_version\_id} points to an
+intake version. \texttt{safety\_assessments.check\_results} stores check outcomes;
+\texttt{safety\_findings.finding\_type}, \texttt{severity} and \texttt{evidence}
+explain reported risks.\par
+\textbf{Core relationships.} One snapshot has many \texttt{snapshot\_entries}
+and assessment runs. Each assessment has findings;
+\texttt{finding\_entries} connects findings to the affected snapshot entries.\par
+}{fig:db-erd-04}
+
+% ------------------------------------------------------------
+% ERD 05 - PATIENT HEALTH PROFILE (Component 4.8)
+% ------------------------------------------------------------
+\LogicalERDLandscapePage{ERD_05}{ERD 05: Patient Health Profile}{%
+\textbf{Purpose.} Supports Component 4.8 and provides health context to M3 and
+M4. It stores patient-reported conditions, allergies, previous ADRs, health
+measurements and medicine-use history with their sources.\par
+\textbf{Core attributes.} \texttt{patient\_health\_sources.source\_content}
+and \texttt{verification\_status} keep the original report and its status.
+\texttt{patient\_health\_facts.fact\_type}, \texttt{value\_json} and
+\texttt{uncertainty\_raw} describe a health fact.
+\texttt{patient\_medication\_uses.use\_status} marks current or discontinued use.\par
+\textbf{Core relationships.} One \texttt{patient\_health\_sources} record can
+provide many \texttt{patient\_health\_facts}. A medication-use entry can link
+to its source-backed health fact through \texttt{health\_fact\_id}.\par
+}{fig:db-erd-05}
+
+% ------------------------------------------------------------
+% ERD 06 - HCP REVIEW AND HEALTH SUMMARY (M4, Component 4.6)
+% ------------------------------------------------------------
+\LogicalERDPortraitPage{ERD_06}{ERD 06: HCP Review and Health Summary (M4)}{%
+\textbf{Purpose.} Supports Component 4.6. It manages simulated HCP review cases,
+case messages and outcomes, and patient-confirmed health summaries with
+separate sharing permission.\par
+\textbf{Core attributes.} \texttt{review\_cases.case\_type} and \texttt{status}
+track a case; \texttt{assigned\_hcp\_id} stores its reviewer.
+\texttt{review\_outcomes.decision} stores a result.
+\texttt{review\_case\_permissions.revoked\_at} tracks case access;
+\texttt{summary\_shares.scope} and \texttt{revoked\_at} control summary sharing.\par
+\textbf{Core relationships.} A \texttt{review\_cases} record can refer to a
+\texttt{safety\_assessments} run and have permissions, messages and outcomes.
+\texttt{summary\_shares} links to \texttt{patient\_health\_summaries}, which
+can refer to a safety assessment.\par
+}{fig:db-erd-06}
+
+% ------------------------------------------------------------
+% ERD 07 - REMINDERS AND ADHERENCE (M5, Component 4.7)
+% ------------------------------------------------------------
+\LogicalERDPortraitPage{ERD_07}{ERD 07: Reminders and Adherence (M5)}{%
+\textbf{Purpose.} Supports Component 4.7. It keeps verified medicine schedules,
+reminder preferences, requests to change timing and records of Taken, Missed
+or Skipped doses.\par
+\textbf{Core attributes.} \texttt{medication\_schedules.verification\_status}
+and \texttt{schedule\_details} define a schedule.
+\texttt{reminder\_settings.enabled} and \texttt{eligibility\_status} control
+reminders. \texttt{schedule\_change\_requests.proposed\_timing} stores a
+request; \texttt{dose\_records.dose\_status} stores a recorded dose result.\par
+\textbf{Core relationships.} A schedule refers to an
+\texttt{medication\_entry\_versions} record and can supersede an earlier
+schedule. It links to reminder settings, change requests and dose records.
+\texttt{review\_cases} can track a proposed timing change.\par
+}{fig:db-erd-07}
+
+% ------------------------------------------------------------
+% ERD 08 - TECHNICAL SUPPORT (Component 4.11)
+% ------------------------------------------------------------
+\LogicalERDLandscapePage{ERD_08}{ERD 08: Technical Support}{%
+\textbf{Purpose.} Supports Component 4.11. It lets users report technical
+problems and lets authorized support staff reply and track progress.\par
+\textbf{Core attributes.} \texttt{support\_tickets.requester\_user\_id}
+identifies the reporter; \texttt{assigned\_support\_user\_id} identifies the
+staff member. \texttt{subject} and \texttt{status} describe the issue.
+\texttt{support\_messages.content} and \texttt{created\_at} keep replies.\par
+\textbf{Core relationships.} One \texttt{support\_tickets} record can have
+many \texttt{support\_messages} through \texttt{ticket\_id}. User IDs identify
+people in Auth/RBAC but are not shown as cross-database foreign keys.\par
+}{fig:db-erd-08}
+
+% ------------------------------------------------------------
+% ERD 09 - DATA PERSISTENCE AND AUDIT (Component 4.12)
+% ------------------------------------------------------------
+\LogicalERDPortraitPage{ERD_09}{ERD 09: Data Persistence and Audit}{%
+\textbf{Purpose.} Supports Component 4.12 and other backend services. A shared
+business audit log records important actions and results for traceability.\par
+\textbf{Core attributes.} \texttt{audit\_events.actor\_user\_id} identifies the
+actor when known; \texttt{subject\_user\_id} identifies the affected person.
+\texttt{action}, \texttt{resource\_type}, \texttt{resource\_id}, \texttt{outcome}
+and \texttt{occurred\_at} describe what happened and when.
+\texttt{details} holds limited supporting information.\par
+\textbf{Core relationships.} Resource and user identifiers are logical
+references; this table has no direct foreign keys to every business table
+or to the separate Auth/RBAC database.\par
+}{fig:db-erd-09}
+
+% ------------------------------------------------------------
+% ERD 10 - ACCOUNT, AUTHENTICATION AND RBAC (Component 4.10)
+% ------------------------------------------------------------
+\LogicalERDPortraitPage{ERD_10}{ERD 10: Account, Authentication and RBAC}{%
+\textbf{Purpose.} Supports Component 4.10 and access checks used by API
+Controllers and other services. Eight shared tables manage accounts, roles,
+permissions, login sessions and authentication events.\par
+\textbf{Core attributes.} \texttt{users.user\_id} identifies an account;
+\texttt{roles.role\_code} and \texttt{permissions.code} define roles and rights.
+\texttt{user\_roles} keeps role grant and revoke dates.
+\texttt{auth\_sessions.token\_hash} and \texttt{active\_context} support sign-in
+and role selection. \texttt{login\_throttles} limits repeated login attempts.\par
+\textbf{Core relationships.} \texttt{users} and \texttt{roles} connect through
+\texttt{user\_roles} (many-to-many); \texttt{roles} and \texttt{permissions}
+connect through \texttt{role\_permissions} (many-to-many). One user may have
+many \texttt{auth\_sessions}.\par
+}{fig:db-erd-10}

@@ -1,0 +1,3 @@
+# Optional CPU benchmark environment (Python 3.11), separate from the API venv.
+paddlepaddle==3.2.0
+paddleocr==3.3.2
