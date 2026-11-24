@@ -263,13 +263,14 @@ test("filters, local upload, profile, guard and empty dates", async ({
   await expect(page.getByRole('button', { name: 'Gửi tin nhắn', exact: true })).toBeDisabled();
 });
 
-test("all routes render without errors or horizontal overflow at supported sizes", async ({
+// Each viewport gets a fresh browser context instead of retaining 100 page loads in one tab.
+for (const width of [320, 375, 414, 768, 1440]) {
+test(`all routes render without errors or horizontal overflow at ${width}px`, async ({
   page,
 }) => {
   test.setTimeout(120000);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  for (const width of [320, 375, 414, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const path of ["/", "/login", "/policy"]) {
       await page.goto(path);
@@ -295,7 +296,7 @@ test("all routes render without errors or horizontal overflow at supported sizes
       "/review-request",
     ]) {
       await page.goto(path);
-      await expect(page.locator("main h1, main h2").first()).toBeVisible();
+      await expect(page.locator("main h1, main h2").first(), `${width}: ${path}; ${errors.join('; ')}`).toBeVisible();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
@@ -315,7 +316,7 @@ test("all routes render without errors or horizontal overflow at supported sizes
       "/hcp/database",
     ]) {
       await page.goto(path);
-      await expect(page.locator("main h1, main h2").first()).toBeVisible();
+      await expect(page.locator("main h1, main h2").first(), `${width}: ${path}; ${errors.join('; ')}`).toBeVisible();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
@@ -323,9 +324,9 @@ test("all routes render without errors or horizontal overflow at supported sizes
         `${width}: ${path}`,
       ).toBe(true);
     }
-  }
   expect(errors).toEqual([]);
 });
+}
 
 test("mobile menu, accessible dialog and admin navigation", async ({
   page,
