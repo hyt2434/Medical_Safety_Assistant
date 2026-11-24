@@ -1,4 +1,26 @@
-.vscode/
+# Shared ignore rules for the repository (maintain this file only).
+/.vscode/
+
+# Local configuration; keep distributable examples
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# JavaScript dependencies and caches, including archived prototypes
+node_modules/
+.npm-cache/
+.vite/
+*.tsbuildinfo
 
 # LaTeX build artifacts
 *.aux
@@ -29,77 +51,62 @@
 # Keep generated PDFs under version control when needed for submission.
 
 # Frontend dependencies and generated output
-/src/frontend/node_modules/
-/src/frontend/dist/
-/src/frontend/test-results/
-/src/frontend/playwright-report/
-/src/frontend/artifacts/
-/src/frontend/*.tsbuildinfo
-
-# DB local runtime and Python caches; source remains trackable.
-/artifacts/
-__pycache__/
-*.py[cod]
-
-# DB local-only material; publication of the existing CSVs needs separate review.
-/data/datasets/
-.venv/
-venv/
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-*.p12
-*.pfx
-.aws/
-.ssh/
-credentials.json
-service-account*.json
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-*.egg-info/
-**/pgdata/
-**/node_modules/
-*.sqlite
-*.sqlite3
-*.sqlite-wal
-*.sqlite-shm
-*.db
-*.tmp
-*.temp
-
-# Current frontend caches, browser profiles, and generated test output
-/apps/frontend/.npm-cache/
-/apps/frontend/artifacts/
-/apps/frontend/test-results/
-/apps/frontend/playwright-report/
 /apps/frontend/dist/
-/apps/frontend/*.tsbuildinfo
+/apps/frontend/test-results/
+/apps/frontend/test-results-*/
+/apps/frontend/playwright-report/
+/apps/frontend/artifacts/
+/apps/frontend/coverage/
 
-# DB local runtime and Python caches; source remains trackable.
-/artifacts/
-__pycache__/
-*.py[cod]
+# Test output
+/tests/artifacts/
 
-# DB local-only material; publication of the existing CSVs needs separate review.
-/data/datasets/
-
-# Local OCR inputs, evidence, run artifacts, and test output
-/data/local/
-
-# Tesseract language models are downloaded runtime dependencies
-/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/*.traineddata
-/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/*.traineddata.gz
-
-# Repository-local scratch and generated previews
+# Document-specific output (other report PDFs/images remain trackable)
+/docs/pa/pa0/project-proposal/main.pdf
+/docs/pa/pa0/project-proposal/**/*.acn
+/docs/pa/pa0/project-proposal/**/*.acr
+/docs/pa/pa0/project-proposal/**/*.alg
+/docs/pa/pa0/project-proposal/**/*.dvi
+/docs/pa/pa0/project-proposal/**/*.ps
+/docs/pa/pa1/vision-document/**/preview-*.png
+/docs/pa/pa1/project-plan/**/preview-*.png
+# Temporary files and local datasets
 /tmp/
-.venv/
+# Local Module 1 OCR inputs and outputs may contain personal/medical data.
+/data/local/
+/data/rag/index/
+
+# Local runtime and evidence; keep canonical source and approved tracked data.
+/artifacts/
+/data/datasets/
+/data/DDInter/
 venv/
-.env
-.env.*
-!.env.example
+env/
+ENV/
+.tox/
+.nox/
+__pypackages__/
+*.egg-info/
+.coverage
+.coverage.*
+coverage/
+htmlcov/
+coverage.xml
+junit*.xml
+pytest*.xml
+**/pgdata/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
 *.pem
 *.key
 *.p12
@@ -108,19 +115,13 @@ venv/
 .ssh/
 credentials.json
 service-account*.json
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-*.egg-info/
-**/pgdata/
-**/node_modules/
-*.sqlite
-*.sqlite3
-*.sqlite-wal
-*.sqlite-shm
-*.db
-*.tmp
-*.temp
+**/.hallmark/
 
-# Tesseract runtime cache; language packages are restored by npm install.
-/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/
+# Locally materialized OCR language weights.
+/src/module1_intake/ocr/node/ocr/tessdata/
+
+# Preserved standalone PA1 React prototype: generated output stays local.
+/docs/pa/pa1/react-prototype/dist/
+/docs/pa/pa1/react-prototype/test-results/
+/docs/pa/pa1/react-prototype/playwright-report/
+/docs/pa/pa1/react-prototype/artifacts/

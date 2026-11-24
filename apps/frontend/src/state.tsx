@@ -38,6 +38,9 @@ export const welcomeChatMessage: ChatMessage = {
   text: "Chào bạn, tôi là Tiểu Bạch. Tôi có thể hướng dẫn sử dụng bản mẫu, giải thích trạng thái dữ liệu và giúp bạn chuẩn bị câu hỏi cho bác sĩ hoặc dược sĩ. Bạn muốn tìm hiểu điều gì?",
 };
 export type Medicine = {
+  dosageForm?: string;
+  dose?: string;
+  timing?: string;
   ocrOriginalInstruction?: string;
   instructionCorrections?: { from: string; to: string; at: string; action: "apply" | "undo"; ruleVersion: string }[];
   ocrOriginalName?: string;

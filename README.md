@@ -1,63 +1,90 @@
 # Medication Safety Assistant
 
-## Repository layout
+Vietnamese medication intake, reference lookup and interaction assessment. Intake
+confirmation verifies transcription; it does not establish medication identity or
+clinical safety.
 
-| Folder | Purpose |
-| --- | --- |
-| `apps/frontend/` | Frontend React hiện tại, cổng 5173. Bản PA1/PA2 cũ nằm trong `legacy/`. |
-| `apps/backend/` | Backend source. |
-| `data/` | Data documentation; local datasets in ignored `data/local/`. |
-| `docs/design/` | Canonical ERD and PlantUML sources and diagram images. |
-| `docs/management/` | Planning and weekly reports. |
-| `pa/pa0/project-proposal/` | Initial proposal and LaTeX template. |
-| `pa/pa1/` | PA1 deliverables and original UI screenshots. |
-| `pa/pa2/` | PA2 use-case, database and UI reports. |
-| `scripts/`, `tests/` | Development utilities and tests. |
-| `tmp/` | Ignored working files and local recovery backups. |
+## Kiểm tra UI trên branch tích hợp
 
-## Main entry points
+Branch `integration/ui-intake-dev` hợp nhất `origin/dev` (`1268b73c`) và
+`NLP-ChatBot` (`451be27c`). UI dùng `apps/frontend`; API dùng `apps/backend/api`,
+Auth dùng `src/shared/auth`, module nghiệp vụ dùng `src/`. Bản backend cũ trong
+`apps/backend/src` đã được hợp nhất, không chạy song song hai bộ API.
 
-- Backend OCR: [setup, API testing, and code structure](apps/backend/src/module1_intake/ocr/README.md).
-- Frontend: [hướng dẫn chạy](apps/frontend/README.md). Bản PA2 cũ: [legacy](apps/frontend/legacy/README-PA2.md).
-- Use-case diagrams: [PlantUML](<docs/design/use-cases/plantuml>).
-- Use-case report: [main.tex](pa/pa2/use-case-report/main.tex).
-- UI report: [main.tex](pa/pa2/ui-report/main.tex).
-- Database report: [main.tex](pa/pa2/database-design/main.tex).
-- Cleanup record: [2026-11-02](docs/management/repository-cleanup-2026-11-02.md).
+Tại gốc worktree, chạy bằng Python đã cài `requirements.txt`:
 
-## PA and documentation map
-
-```text
-docs/
-  design/
-    database/
-      simplified-35-tables/    Current draft schema
-      legacy-64-tables/        Historical schema and images
-    use-cases/plantuml/        Diagram sources, SVGs and traceability
-  management/weekly-reports/
-  requirements/               Reserved
-  test/                       Reserved
-pa/
-  pa0/project-proposal/
-  pa1/
-    project-plan/
-    vision-document/
-    templates/                Original assignment templates
-    ui-prototype/screenshots/ Original PA1 reference images
-  pa2/
-    database-design/reports/  Database report documents
-    use-case-report/          Selected current specifications
-    ui-report/                Current illustrated UI report
-    ui-prototype/             Historical standalone HTML prototype
-  pa3/ ... pa5/               Reserved
+```powershell
+python scripts/preview-ui.py
 ```
 
-The 35-table schema is a draft with unified, module and domain views. The legacy database LaTeX report still describes the 64-table version. Do not treat them as interchangeable.
+Lệnh mở frontend tại `http://127.0.0.1:5173`, backend tại cổng 8000; `Ctrl+C`
+dừng cả hai. Có thể chọn `--port` và `--api-port` nếu cổng đang bận. Auth preview
+dùng riêng `artifacts/auth/ui-preview.sqlite`, không dùng database Auth đang có.
+Chạy `npm.cmd ci` trong `apps/frontend` trước nếu chưa có dependencies.
 
-Compile reports from their own directories using `xelatex main.tex`. The database report requires `enumitem`. For use-case SVG conversion, first install the root `requirements.txt`, then run `build.ps1`. Report-specific README files are retained only where they contain build or usage instructions; diagram links and alternative-flow guidance remain in `docs/design/use-cases/plantuml/README.md`.
+Tài khoản local để kiểm tra: `mai.demo@example.com` / `Mai-patient-2026`.
+Các tài khoản HCP/admin và role khác nằm trong [backend README](apps/backend/README.md).
 
-## File ownership
+Kiểm tra `/login` → `/dashboard` → `/intake` hoặc `/chat`, cùng các trang HCP/admin.
+Để **lưu bản nháp và đánh giá thật**, cần cấu hình `CORE_DB_DSN`,
+`CORE_REFERENCE_BUILD`, cấp UUID của tài khoản preview vào Core theo
+[hợp đồng Auth/Core](db/auth/README.md), và chuẩn bị Qwen/Ollama, Whisper,
+Tesseract cùng DDInter index. Nếu chưa cấu hình, UI báo không có liên kết Core
+và không cho lưu; không thay kết quả thật bằng dữ liệu mẫu. Launcher không tự
+migrate hoặc nạp dữ liệu Core. HCP review, hồ sơ và lịch nhắc vẫn là prototype.
 
-Keep one canonical copy of each source image. Reports reference it using relative paths; compile from the report directory with the complete repository available. Uploading only a report folder to an external LaTeX service requires bundling its referenced images first.
+Trong Intake: chọn nguồn → nhập/upload → sửa và **Lưu thay đổi** từng thuốc →
+đồng ý xác nhận → **Xác nhận danh sách** → **Nhận diện và đánh giá tương tác**.
+Gợi ý tên thuốc/cách trình bày chỉ thay form sau khi người dùng chọn; có thể
+hoàn tác trước khi lưu. Sau khi lưu, Core giữ phiên bản entry mới, không dùng
+lịch sử chỉnh sửa trong sessionStorage của prototype cũ.
 
-PDFs are deliverables, not duplicate source files. Different PA stages and legacy ERD versions are retained for comparison. Maintain ignore rules only in the root `.gitignore`; do not commit dependencies, local datasets, credentials or temporary build files.
+Kiểm thử UI: `npm.cmd run test:e2e` trong `apps/frontend`; đặt `E2E_PYTHON`
+đến Python có dependencies. Auth test dùng SQLite riêng; Intake thường dùng
+HTTP fixtures để kiểm tra hợp đồng UI/API. Bài `intake-real.spec.ts` chỉ chạy
+khi có đủ database test và model thật, xem [hướng dẫn frontend](apps/frontend/README.md).
+
+| Path | Responsibility |
+| --- | --- |
+| `apps/frontend/` | Canonical React/TypeScript UI, Auth client and OCR review flow. |
+| `apps/backend/` | Auth/RBAC and Core V4 Intake HTTP API. |
+| `src/module1_intake/` | Intake adapters, OCR and the layered NLP MVP V2. |
+| `src/module2_medications/` | Medication identification and reference services. |
+| `src/module3_interactions/` | Interaction assessment and official-source adapters. |
+| `src/module4_hcp/`, `src/module5_reminders/` | Existing package contracts for future HCP/reminder services. |
+| `src/shared/` | Shared intake contracts, import utilities and Core V4 application adapters. |
+| `db/` | Canonical Core Database V4 migrations, management tools, contracts and DB tests. |
+| `data/` | Approved original/processed medication data and documentation; preserve source bytes. |
+| `docs/` | Project requirements, design and management; `docs/pa/` holds submission sources and deliverables. |
+| `tests/` | Unit, integration and end-to-end coverage; DB-specific tests remain in `db/tests/`. |
+| `scripts/` | Shared setup, data provisioning, CLI and test utilities. |
+| `artifacts/` | Ignored local runtimes, databases, caches, manifests and development evidence. |
+
+Start with the [NLP setup and launchers](src/module1_intake/nlp/README.md),
+[frontend DTO/API contract](src/module1_intake/nlp/API.md), and
+[Core V4 setup](db/README.md). NLP uses structured-first Q&A and local BM25 document
+retrieval. Backend/UI adapters import `module1_intake.nlp.interfaces.application`;
+implementation imports use the canonical layer folders. Root compatibility
+wrappers have been removed; launchers live in `scripts/nlp/`.
+
+Run the [canonical React frontend](apps/frontend/README.md) with `npm ci` and
+`npm run dev` from `apps/frontend/`. The original team-authored
+[React PA1 prototype](docs/pa/pa1/react-prototype/README.md) remains independently
+runnable with its unique speech/chat behavior, assets and tests. Historical UI
+implementations under `docs/pa/` belong to their submissions. The backend launcher
+is `apps/backend/app.py`; reusable Python business modules live in root `src/`.
+See [backend setup and Core bindings](apps/backend/README.md). Reports build from their own directories
+and use canonical assets under `docs/design/` and `docs/pa/pa1/ui-prototype/screenshots/`.
+Historical 35/64-table database diagrams describe earlier designs; Core V4 lives in `db/`.
+`src/shared/schema.sql` is the separate SQLite DAV import staging schema.
+
+Offline NLP regression command, from the repository root with `.venv` ready:
+
+```powershell
+& ./scripts/nlp/test_mvp.ps1 -Dsn ''
+```
+
+Persisted tests require an explicitly marked isolated database. Keep local DSNs,
+credentials, environments and runtime evidence out of Git. The six approved CSVs
+live only under `data/datasets/` and are versioned; other local datasets stay ignored.
+See the [cleanup verification and known blockers](docs/management/repository-cleanup-2026-11-10.md).

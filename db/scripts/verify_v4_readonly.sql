@@ -9,7 +9,7 @@ SELECT current_database() AS database_name, current_user AS username,
        current_setting('data_directory') AS data_directory,
        current_setting('transaction_read_only') AS transaction_read_only;
 
--- 2. Every expected Core table: 20 OK rows, 193 columns in total.
+-- 2. Every expected Core table: 36 OK rows, 326 columns; V4 baseline preserved.
 WITH expected(schema_name, table_name) AS (VALUES
  ('msa_ref','medications'), ('msa_ref','ingredients'),
  ('msa_ref','medication_ingredients'), ('msa_ref','ddinter_mappings'),
@@ -19,7 +19,15 @@ WITH expected(schema_name, table_name) AS (VALUES
  ('msa','medication_entry_versions'), ('msa','entry_matches'),
  ('msa','medication_list_snapshots'), ('msa','snapshot_entries'),
  ('msa','safety_assessments'), ('msa','safety_findings'), ('msa','finding_entries'),
- ('msa','patient_health_sources'), ('msa','patient_health_summaries')
+ ('msa','patient_health_sources'), ('msa','patient_health_summaries'),
+ ('msa','dataset_review_decisions'), ('msa','patient_health_facts'),
+ ('msa','patient_medication_uses'), ('msa','review_cases'),
+ ('msa','review_case_permissions'), ('msa','review_case_messages'),
+ ('msa','review_outcomes'), ('msa','summary_shares'),
+ ('msa','medication_schedules'), ('msa','reminder_settings'),
+ ('msa','schedule_change_requests'), ('msa','dose_records'),
+ ('msa','medication_cabinet_items'), ('msa','support_tickets'),
+ ('msa','support_messages'), ('msa','audit_events')
 ), actual AS (
  SELECT table_schema AS schema_name, table_name
  FROM information_schema.tables
@@ -91,7 +99,7 @@ SELECT 'TOTAL',sum(expected_records)::bigint,sum(actual_records)::bigint,
 FROM checked
 ORDER BY dataset;
 
--- 6. PK/FK totals: 20 PKs; 40 validated FKs, all RESTRICT on UPDATE and DELETE.
+-- 6. PK/FK totals: 36 PKs; 71 validated FKs, all RESTRICT on UPDATE and DELETE.
 SELECT count(*) FILTER(WHERE contype='p') AS primary_keys,
        count(*) FILTER(WHERE contype='f') AS foreign_keys,
        count(*) FILTER(WHERE contype='f' AND convalidated) AS validated_foreign_keys,

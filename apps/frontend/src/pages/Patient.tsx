@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { IntakeWorkspace } from "../IntakeWorkspace";
 import {
   ArrowRight,
   Bell,
@@ -7,17 +8,13 @@ import {
   Check,
   Clock3,
   HeartHandshake,
-  History,
   Pill,
   Plus,
   Search,
-  Send,
   ShieldCheck,
   SlidersHorizontal,
   Stethoscope,
-  Trash2,
   UserRound,
-  Volume2,
 } from "lucide-react";
 import {
   Badge,
@@ -30,9 +27,8 @@ import {
   PageHeading,
   TextLink,
 } from "../components";
-import { formatDate, today, useDemo, welcomeChatMessage } from "../state";
+import { formatDate, today, useDemo } from "../state";
 import { DesignAsset } from "../design";
-import { TieuBachAvatar } from "../TieuBach";
 import type { Medicine } from "../state";
 
 export { PatientDashboard as Dashboard } from "./PatientDashboard";
@@ -734,275 +730,5 @@ export function Profile() {
 }
 
 export function Chat() {
-  const { state, update, addChatExchange } = useDemo();
-  const messages = state.chatMessages;
-  const [historySearch, setHistorySearch] = useState("");
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-  const [clearHistory, setClearHistory] = useState(false);
-  const questions = messages.filter((m) => m.speaker === "user");
-  const filteredQuestions = questions
-    .filter((m) =>
-      m.text
-        .toLocaleLowerCase("vi")
-        .includes(historySearch.toLocaleLowerCase("vi")),
-    )
-    .reverse();
-  const [input, setInput] = useState("");
-  const [voiceStatus, setVoiceStatus] = useState("");
-  const scroll = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    scroll.current?.scrollTo({
-      top: scroll.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages]);
-  function send(text: string) {
-    if (!text.trim()) return;
-    const lower = text.toLocaleLowerCase("vi");
-    let answer =
-      "Bản mẫu chưa kết nối chatbot AI. Bạn có thể ghi lại tên thuốc, hàm lượng, cách dùng và triệu chứng để hỏi bác sĩ hoặc dược sĩ. Không tự đổi liều, thay hoặc ngưng thuốc.";
-    if (lower.includes("nguồn"))
-      answer =
-        "Dự án dự kiến nhận dạng thuốc Việt Nam bằng dữ liệu DAV và đối chiếu tương tác qua DDInter. Frontend này chưa kết nối hai nguồn, nên không có kết luận an toàn thực tế hoặc dữ liệu nguồn đã xác minh.";
-    else if (lower.includes("kết quả"))
-      answer = state.assessment
-        ? `Kết quả gần nhất đang ở trạng thái “${state.assessment.state === "review" ? "Tình huống mẫu cần review" : state.assessment.state === "incomplete" ? "Thiếu thông tin" : "Chưa được đánh giá"}”. Đây là trạng thái mô phỏng; hãy xem chi tiết tại trang Kết quả. Không suy ra thuốc an toàn từ việc chưa thấy cảnh báo.`
-        : "Bạn chưa hoàn tất bước xác nhận toa trong phiên này. Mở Nhập toa thuốc, kiểm tra từng trường rồi xác nhận trước khi xem kết quả.";
-    else if (lower.includes("nhập") || lower.includes("toa"))
-      answer =
-        "Mở trang Nhập toa thuốc. Bạn có thể chọn ảnh để xem cục bộ, nhập tay, hoặc nạp bộ dữ liệu mẫu. Bản mẫu chưa chạy OCR: ảnh bạn chọn không tự tạo ra danh sách thuốc. Tiếp theo, hãy kiểm tra lại thông tin ở trang Xác nhận.";
-    else if (lower.includes("hỏi"))
-      answer =
-        "Bạn có thể hỏi: “Tên và hoạt chất trong toa đã đúng chưa?”, “Tôi cần lưu ý điều gì với các thuốc đang dùng?”, “Nếu quên một cữ tôi nên làm gì theo toa này?”. Hãy mang danh sách đầy đủ gồm cả thuốc không kê đơn và thông tin dị ứng khi hỏi chuyên gia.";
-    setSelectedQuestion(addChatExchange(text.trim(), answer));
-    setInput("");
-  }
-  function read(text: string) {
-    if (!("speechSynthesis" in window)) {
-      setVoiceStatus(
-        "Trình duyệt chưa hỗ trợ đọc văn bản. Bạn vẫn có thể đọc nội dung bên trên.",
-      );
-      return;
-    }
-    speechSynthesis.cancel();
-    const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "vi-VN";
-    speech.onerror = () =>
-      setVoiceStatus(
-        "Không thể đọc nội dung. Vui lòng đọc trực tiếp trên màn hình.",
-      );
-    speechSynthesis.speak(speech);
-  }
-  useEffect(
-    () => () => {
-      if ("speechSynthesis" in window) speechSynthesis.cancel();
-    },
-    [],
-  );
-  return (
-    <>
-      <PageHeading
-        title="Trò chuyện cùng Tiểu Bạch"
-      />
-      <div className="chat-layout">
-        <aside className="chat-sidebar">
-          <Card>
-            <span className="chat-avatar">
-              <TieuBachAvatar />
-            </span>
-            <h2>Tiểu Bạch</h2>
-            <Badge tone="neutral">Trợ lý mô phỏng</Badge>
-            <p>
-              Những hỏi thường gặp
-            </p>
-            <div className="chat-topics">
-              {[
-                "Giải thích kết quả của tôi",
-                "Tôi nên hỏi dược sĩ gì?",
-                "Nguồn dữ liệu ở đâu?",
-                "Cách nhập toa thuốc",
-              ].map((prompt) => (
-                <button key={prompt} onClick={() => send(prompt)}>
-                  {prompt}
-                  <ArrowRight size={16} />
-                </button>
-              ))}
-            </div>
-          </Card>
-          <Card className="chat-history-card">
-            <CardHeading
-              icon={<History size={21} />}
-              title="Lịch sử câu hỏi"
-              detail={`${questions.length} câu hỏi trong phiên này`}
-              action={
-                <button
-                  className="icon-button"
-                  disabled={!questions.length}
-                  aria-label="Xóa lịch sử chat"
-                  onClick={() => setClearHistory(true)}
-                >
-                  <Trash2 size={17} />
-                </button>
-              }
-            />
-            {questions.length > 0 && (
-              <div className="search-input">
-                <Search size={17} />
-                <input
-                  aria-label="Tìm trong lịch sử câu hỏi"
-                  placeholder="Tìm câu đã hỏi..."
-                  value={historySearch}
-                  onChange={(e) => setHistorySearch(e.target.value)}
-                />
-              </div>
-            )}
-            <nav className="question-history" aria-label="Lịch sử câu hỏi">
-              {filteredQuestions.map((m) => (
-                <button
-                  key={m.id}
-                  className={selectedQuestion === m.id ? "selected" : ""}
-                  aria-current={selectedQuestion === m.id ? "true" : undefined}
-                  onClick={() => {
-                    setSelectedQuestion(m.id);
-                    const element = document.getElementById(`chat-${m.id}`);
-                    if (element && scroll.current) {
-                      scroll.current.scrollTo({
-                        top: scroll.current.scrollTop + element.getBoundingClientRect().top - scroll.current.getBoundingClientRect().top - scroll.current.clientHeight / 2 + element.clientHeight / 2,
-                        behavior: window.matchMedia(
-                          "(prefers-reduced-motion: reduce)",
-                        ).matches
-                          ? "instant"
-                          : "smooth",
-                      });
-                      element.focus({ preventScroll: true });
-                    }
-                  }}
-                >
-                  <span>{m.text}</span>
-                  <small>{formatDate(m.createdAt)}</small>
-                </button>
-              ))}
-            </nav>
-            {!questions.length ? (
-              <p className="history-empty">
-                Các câu bạn hỏi sẽ xuất hiện ở đây để dễ tìm lại.
-              </p>
-            ) : (
-              !filteredQuestions.length && (
-                <p className="history-empty">Không tìm thấy câu hỏi phù hợp.</p>
-              )
-            )}
-
-          </Card>
-          <Notice>
-            Chưa kết nối AI. Trợ lý không chẩn đoán, kê đơn hoặc thay đổi thuốc.
-          </Notice>
-        </aside>
-        <section className="chat-panel">
-          <div className="chat-panel-header">
-            <span className="icon-tile">
-              <TieuBachAvatar compact />
-            </span>
-            <div>
-              <strong>Tiểu Bạch · Trợ lý thuốc</strong>
-            </div>
-            <ShieldCheck size={22} />
-          </div>
-          <div
-            className="chat-messages"
-            ref={scroll}
-            role="log"
-            aria-label="Nội dung trò chuyện"
-            aria-live="polite"
-          >
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                id={`chat-${m.id}`}
-                tabIndex={-1}
-                className={`chat-message ${m.speaker}${selectedQuestion === m.id ? " selected" : ""}`}
-              >
-                <small>{m.speaker === "assistant" ? "Tiểu Bạch" : "Bạn"}</small>
-                <p>{m.text}</p>
-                {m.speaker === "assistant" && (
-                  <button className="text-button" onClick={() => read(m.text)}>
-                    <Volume2 size={15} /> Nghe nội dung
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <form
-            className="chat-compose"
-            onSubmit={(e) => {
-              e.preventDefault();
-              send(input);
-            }}
-          >
-            <label className="sr-only" htmlFor="chat-input">
-              Nhập câu hỏi cho Tiểu Bạch
-            </label>
-            <textarea
-              id="chat-input"
-              value={input}
-              maxLength={1500}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Bạn muốn hỏi điều gì?"
-              rows={2}
-            />
-            <button
-              className="button"
-              disabled={!input.trim()}
-              aria-label="Gửi câu hỏi"
-              type="submit"
-            >
-              <Send size={20} />
-              <span>Gửi</span>
-            </button>
-          </form>
-          <p className="chat-footnote" role="status">
-            {voiceStatus ||
-              "Câu trả lời mô phỏng, không thay thế tư vấn y khoa."}
-          </p>
-        </section>
-      </div>
-      {clearHistory && (
-        <Modal
-          title="Xóa lịch sử trò chuyện?"
-          onClose={() => setClearHistory(false)}
-        >
-          <p>
-            Các câu hỏi và câu trả lời trong phiên này sẽ được xóa. Bạn có thể
-            bắt đầu hỏi lại Tiểu Bạch.
-          </p>
-          <div className="actions">
-            <button
-              className="button secondary"
-              onClick={() => setClearHistory(false)}
-            >
-              Giữ lịch sử
-            </button>
-            <button
-              className="button"
-              onClick={() => {
-                update({
-                  chatMessages: [
-                    {
-                      ...welcomeChatMessage,
-                      createdAt: new Date().toISOString(),
-                    },
-                  ],
-                });
-                setSelectedQuestion(null);
-                setHistorySearch("");
-                setClearHistory(false);
-              }}
-            >
-              Xóa lịch sử
-            </button>
-          </div>
-        </Modal>
-      )}
-    </>
-  );
+  return <IntakeWorkspace initialMode="chat" />;
 }

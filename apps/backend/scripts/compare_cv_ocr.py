@@ -55,7 +55,7 @@ def main():
     if image is None:
         raise ValueError('Cannot decode input image')
     args.output.mkdir(parents=True, exist_ok=True)
-    script = Path(__file__).resolve().parents[1] / 'src/module1_intake/ocr/node/local_ocr.cjs'
+    script = Path(__file__).resolve().parents[3] / 'src/module1_intake/ocr/node/local_ocr.cjs'
     report = []
     # Preserve the exact input encoding for the baseline.
     for name, processed, metadata in [('original', None, {}), *variants(image)]:

@@ -1,5 +1,13 @@
-"""Synthetic product facts and official terminology fixtures; networking is forbidden."""
+"""Legacy public-reference compatibility and the current official DDInter loader.
+
+Products/import grants are explicitly synthetic, never Core reference writes.
+Terminology and interaction expectations use the sealed, current local collection;
+no assertions depend on the retired download manifest/first-ten inspection files.
+Core V4 product-selection assertions live alongside these in test_core.py.
+"""
+from collections import defaultdict
 from copy import deepcopy
+import csv
 import json
 from shared.paths import ProjectPath as Path, PROJECT_ROOT
 import socket
@@ -8,7 +16,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from shared.dav_import.common import file_hash, digest
-from module3_interactions.engine import BoundedDataset, load_existing_dataset
+from module3_interactions.engine import BoundedDataset, HEADERS
 from module2_medications.audit import audit_dataset
 from module2_medications.ingredients import parse_ingredients
 from module2_medications.reference import (
@@ -18,7 +26,14 @@ from module2_medications.terminology import DirectDDInter, load_ddinter
 from module2_medications.fixtures import synthetic_rows, fixture_db
 
 ROOT = PROJECT_ROOT
+COLLECTION = ROOT / 'data/DDInter'
 EVIDENCE = [{'locator': 'synthetic://independently-authored-test-expectation', 'sha256': '0'*64}]
+
+
+def current_dataset():
+    # Explicit current loader/index: do not fall back to a historical sample or
+    # let another test's environment select a different reference collection.
+    return load_ddinter(ROOT, 'official-all', index_path=COLLECTION / 'official.sqlite')
 
 
 class ParserTests(unittest.TestCase):
@@ -80,12 +95,9 @@ class ReferenceTests(unittest.TestCase):
     def setUpClass(cls):
         cls.network = patch.object(socket, 'socket', side_effect=AssertionError('Network disabled'))
         cls.network.start()
-        cls.dataset = load_existing_dataset(ROOT)
+        cls.addClassCleanup(cls.network.stop)
+        cls.dataset = current_dataset()
         cls.terminology = DirectDDInter(cls.dataset)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.network.stop()
 
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -289,20 +301,63 @@ class ReferenceTests(unittest.TestCase):
 class DictionaryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.dataset = load_ddinter(ROOT, 'category-a')
+        cls.network = patch.object(socket, 'socket', side_effect=AssertionError('Network disabled'))
+        cls.network.start()
+        cls.addClassCleanup(cls.network.stop)
+        cls.dataset = current_dataset()
         cls.mapper = DirectDDInter(cls.dataset)
+        cls.manifest = json.loads((COLLECTION / 'manifest.json').read_text(encoding='utf-8'))
+        # Independent source oracle, not expectations copied from index metadata.
+        cls.source_ids, cls.source_counts = defaultdict(set), {}
+        for artifact in cls.manifest['artifacts']:
+            path = COLLECTION / artifact['filename']
+            if file_hash(path) != artifact['sha256']:
+                raise AssertionError('Current source artifact changed: ' + path.name)
+            count = 0
+            with path.open(encoding='utf-8-sig', newline='') as stream:
+                reader = csv.DictReader(stream)
+                if reader.fieldnames != HEADERS:
+                    raise AssertionError('Unexpected current DDInter CSV schema')
+                for row in reader:
+                    count += 1
+                    for side in ('A', 'B'):
+                        cls.source_ids[row['DDInterID_' + side]].add(row['Drug_' + side])
+            cls.source_counts[path.name] = count
 
-    def test_actual_category_scope(self):
-        self.assertEqual(self.dataset.coverage['loaded_rows'], 56367)
-        self.assertEqual(len(self.dataset.identities), 1757)
+    def test_current_collection_scope_matches_original_csvs(self):
+        coverage = self.dataset.coverage
+        self.assertEqual(set(self.source_counts), {f'ddinter_downloads_code_{c}.csv' for c in 'ABDHLPRV'})
+        self.assertEqual(coverage['loaded_rows'], sum(self.source_counts.values()))
+        self.assertEqual({f['filename']: f['source_rows'] for f in coverage['files']}, self.source_counts)
+        self.assertEqual(set(self.dataset.identities), set(self.source_ids))
+        for identifier, names in self.source_ids.items():
+            self.assertIn(self.dataset.identities[identifier]['name'], names)
+        self.assertEqual(coverage['dataset_verdict'], 'PARTIAL')
         self.assertFalse(self.dataset.coverage['complete_database_loaded'])
+        self.assertFalse(coverage['interaction_coverage_complete'])
 
-    def test_default_still_bounded(self):
-        self.assertEqual(load_ddinter(ROOT).coverage['loaded_rows'], 10)
+    def test_legacy_bounded_dispatch_keeps_explicit_fixture_scope(self):
+        # The legacy public default remains supported, but its dispatch test
+        # needs no historical acquisition files or invented official evidence.
+        sample = BoundedDataset([{'DDInterID_A': 'DDInter900001', 'Drug_A': 'Synthetic One',
+            'DDInterID_B': 'DDInter900002', 'Drug_B': 'Synthetic Two', 'Level': 'Minor'}],
+            {'loaded_rows': 1, 'synthetic_fixture': True, 'source_url': 'synthetic://bounded-dispatch',
+             'complete_database_loaded': False, 'scope': 'Single invented row for legacy loader dispatch only'})
+        with patch('module2_medications.terminology.load_existing_dataset', return_value=sample) as bounded:
+            self.assertIs(load_ddinter(ROOT), sample)
+            bounded.assert_called_once_with(ROOT)
+        self.assertEqual(sample.coverage['loaded_rows'], 1)
+        self.assertFalse(sample.coverage['complete_database_loaded'])
 
     def test_diabetes_exact_dictionary_not_fuzzy(self):
-        for name in ('Metformin', 'Sitagliptin', 'Empagliflozin', 'Dapagliflozin', 'Linagliptin', 'Glimepiride'):
-            self.assertEqual(self.mapper.match(name)['mapping_status'], 'VERIFIED')
+        expected = {'Metformin': 'DDInter1164', 'Sitagliptin': 'DDInter1679', 'Empagliflozin': 'DDInter636',
+                    'Dapagliflozin': 'DDInter474', 'Linagliptin': 'DDInter1070', 'Glimepiride': 'DDInter825'}
+        for name, identifier in expected.items():
+            self.assertIn(name, self.source_ids[identifier])
+            result = self.mapper.match(name)
+            self.assertEqual(result['mapping_status'], 'VERIFIED')
+            self.assertEqual(result['ddinter_id'], identifier)
+            self.assertEqual(result['match_method'], 'EXACT_NORMALIZED_GENERIC')
         self.assertEqual(self.mapper.match('Metforminn')['mapping_status'], 'UNRESOLVED')
         self.assertEqual(self.mapper.match('Metformin hydrochloride')['mapping_status'], 'UNRESOLVED')
         self.assertEqual(self.mapper.match('Vildagliptin')['mapping_status'], 'UNRESOLVED')
@@ -327,14 +382,24 @@ class DictionaryTests(unittest.TestCase):
         self.assertEqual(DirectDDInter(d).match('conflicting name')['mapping_status'], 'REVIEW_REQUIRED')
 
     def test_default_constructor_refuses_full_rows(self):
-        rows = [r['raw_source_row'] for values in self.dataset.records.values() for r in values]
-        with self.assertRaises(ValueError):
-            BoundedDataset(rows, self.dataset.coverage)
+        # Exercise the constructor's default ten-row ceiling with the smallest
+        # over-limit fixture; loading the real dictionary does not require it.
+        row = {'DDInterID_A': 'DDInter900001', 'Drug_A': 'Synthetic One',
+               'DDInterID_B': 'DDInter900002', 'Drug_B': 'Synthetic Two', 'Level': 'Minor'}
+        with self.assertRaisesRegex(ValueError, 'Rows exceed'):
+            BoundedDataset([row] * 11, {'loaded_rows': 11, 'synthetic_fixture': True})
 
     def test_crosswalk_has_source_evidence(self):
         c = self.mapper.crosswalk()
-        self.assertEqual(len(c['entries']), 1757)
+        self.assertEqual({e['ddinter_id'] for e in c['entries']}, set(self.source_ids))
+        self.assertEqual(len(c['entries']), len(self.source_ids))
         self.assertTrue(all(e['evidence'] for e in c['entries']))
+        hashes = {a['filename']: a['sha256'] for a in self.manifest['artifacts']}
+        for entry in c['entries']:
+            evidence = entry['evidence']
+            self.assertEqual(evidence['csv_sha256'], hashes[evidence['filename']])
+            self.assertGreaterEqual(evidence['csv_record_1_based'], 1)
+            self.assertLessEqual(evidence['csv_record_1_based'], self.source_counts[evidence['filename']])
 
 
 class AuditTests(unittest.TestCase):
@@ -342,7 +407,7 @@ class AuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             p = Path(temp) / 'input.jsonl'
             p.write_text('{"brand_name":"A","brand_name":"B"}\n{"brand_name":NaN}\n[]\n', encoding='utf-8')
-            r = audit_dataset(p, DirectDDInter(load_existing_dataset(ROOT)), as_of='2026-10-13')
+            r = audit_dataset(p, DirectDDInter(current_dataset()), as_of='2026-10-13')
             self.assertEqual(r['counts']['invalid_source_observations'], 3)
 
     def test_review_queue_contains_brand_and_registration_ambiguity(self):
@@ -358,7 +423,7 @@ class AuditTests(unittest.TestCase):
                     'row_sha256': digest({'fields': fields, 'cells': [], 'verification_status': 'REVIEW_REQUIRED'})}
             source, queue = Path(temp) / 'input.jsonl', Path(temp) / 'queue.jsonl'
             source.write_text(''.join(json.dumps(r, ensure_ascii=False)+'\n' for r in rows), encoding='utf-8')
-            result = audit_dataset(source, DirectDDInter(load_existing_dataset(ROOT)), as_of='2026-10-13', review_queue=queue)
+            result = audit_dataset(source, DirectDDInter(current_dataset()), as_of='2026-10-13', review_queue=queue)
             items = [json.loads(line) for line in queue.read_text().splitlines()]
             self.assertEqual(result['counts']['brand_ambiguous_observations'], 3)
             self.assertEqual(result['counts']['registration_conflicting_observations'], 2)

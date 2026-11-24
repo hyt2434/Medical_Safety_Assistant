@@ -20,7 +20,7 @@ test("server context persists and client storage cannot escalate privileges", as
     sessionStorage.setItem("tieu-bach-demo-v1", JSON.stringify(stored));
   });
   await page.goto("/admin/accounts");
-  await expect(page).toHaveURL("/hcp");
+  await expect(page).toHaveURL("/reviewer");
   expect((await page.request.get("/api/admin/accounts")).status()).toBe(403);
   expect((await page.request.post("/api/auth/switch-context", { data: { context: "admin" } })).status()).toBe(403);
 });

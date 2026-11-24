@@ -1,0 +1,248 @@
+"""Source grounding and conservative slot-role checks, independent of inference."""
+import re
+import unicodedata
+
+from ..models import Intent, Medication, Understanding
+
+
+def fold(text: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFD", text.casefold().replace("đ", "d"))
+                   if unicodedata.category(c) != "Mn")
+
+
+def _vietnamese_forms(words):
+    """Match original NFC text as well as folded text, without rewriting either."""
+    forms = {variant for word in words for variant in (word, fold(word))}
+    return '(?:' + '|'.join(re.escape(word).replace(r'\ ', r'\s+')
+                           for word in sorted(forms, key=lambda word: (-len(word), word))) + ')'
+
+
+_NUMBER_WORD = _vietnamese_forms(
+    ('không', 'một', 'mốt', 'hai', 'ba', 'bốn', 'tư', 'năm', 'lăm', 'sáu',
+     'bảy', 'tám', 'chín', 'mười', 'mươi', 'trăm', 'nghìn', 'ngàn', 'triệu',
+     'tỷ', 'linh', 'lẻ', 'nửa'))
+_WORD_INTEGER = rf'{_NUMBER_WORD}(?:\s+{_NUMBER_WORD}){{0,15}}'
+_WORD_NUMBER = rf'\b{_WORD_INTEGER}(?:\s+{_vietnamese_forms(("phẩy", "chấm"))}\s+{_WORD_INTEGER})?'
+_STRENGTH_UNIT = _vietnamese_forms(
+    ('mcg', 'µg', 'μg', 'mg', 'g', 'iu', 'ui', '%', 'miligam', 'miligram',
+     'milligram', 'mi-li-gam', 'mili gam', 'microgam', 'microgram', 'micrôgam', 'gam', 'gram'))
+# An explicit mass/unit phrase is still required. Tablet count/timing cannot
+# supply a strength. The matched source span remains verbatim, not a number conversion.
+STRENGTH = re.compile(rf'(?:\d+(?:[.,]\d+)?|{_WORD_NUMBER})\s*{_STRENGTH_UNIT}(?!\w)', re.I)
+DOSE = re.compile(r"(?:\d+(?:[.,/]\d+)?|mot|hai|nua)\s*(?:vien|ml|giot|nhat|ong|goi)\b")
+QUANTITY = re.compile(r"(?:\d+|mot|hai)\s*(?:hop|vi|chai|lo|goi|ong|vien|tui)\b")
+NEGATION = re.compile(r"\b(?:khong (?:con )?(?:uong|dung)|chua (?:uong|dung)|da ngung|ngung uong)\b")
+UNCERTAINTY = re.compile(r"\b(?:co le|hinh nhu|khong chac|khong nho|khong ro)\b")
+FREQUENCY = re.compile(r"\b(?:moi|hang|ngay|tuan|lan|cach)\b")
+TIMING = re.compile(r"\b(?:sang|trua|chieu|toi|dem|an|ngu|luc|gio)\b|\d{1,2}:\d{2}")
+RECORD_REQUEST = re.compile(
+    r"^(?:(?:vui long|hay|giup toi|toi muon|toi can)\s+)?"
+    r"(?:luu(?: lai)?|them thuoc|them vao (?:danh sach|ho so)|ghi nhan|ghi thuoc|nhap thuoc)\b")
+DAYPART = re.compile(r"\b(?:sang|trua|chieu|toi|dem)\b")
+CONJOINED_DAYPARTS = re.compile(r"(?:sang|trua|chieu|toi|dem)(?:\s+va\s+(?:sang|trua|chieu|toi|dem))+")
+GROUPED_DAYPARTS = re.compile(
+    r"\b(?:sang|trua|chieu|toi|dem)\s+(?:va|hoac|den)\s+(?:sang|trua|chieu|toi|dem)\b")
+DURATION = re.compile(r'\b(?:trong|lien tuc)\s+\d+\s+(?:ngay|tuan|thang)\b')
+SHARED_SCOPE = re.compile(r'\b(?:ca (?:hai|ba|bon|\d+)|moi thuoc|tat ca (?:cac )?thuoc)\b')
+
+
+class EvidenceError(ValueError):
+    pass
+
+
+def _present(value: str | None, evidence: str, key: str) -> None:
+    if value is not None and (not value.strip() or value not in evidence):
+        raise EvidenceError(f"Unsupported source span: {key}")
+
+
+def _dose_role(value: str, evidence: str) -> bool:
+    normalized = fold(value)
+    if re.search(r"\b(?:hop|vi|chai|lo|tui)\b", normalized):
+        return False
+    if STRENGTH.search(normalized):
+        prefix = fold(evidence[:evidence.find(value)])[-35:]
+        return re.search(r"\b(?:moi lan|lieu(?: dung)?)\s*[:=]?\s*$", prefix) is not None or re.search(r"\b(?:moi lan|lieu)\b", normalized) is not None
+    return DOSE.search(normalized) is not None
+
+
+def raw_marker(text: str, pattern: re.Pattern) -> str | None:
+    """Return original Unicode bytes' text, including decomposed Vietnamese accents."""
+    match = pattern.search(fold(text))
+    if not match:
+        return None
+    offsets = [len(fold(text[:i])) for i in range(len(text) + 1)]
+    start = offsets.index(match.start())
+    end = max(i for i, size in enumerate(offsets) if size == match.end())
+    return text[start:end]
+
+
+def record_request_marker(source: str) -> str | None:
+    """Conservative affirmative request prefix; reports/questions/negation do not match."""
+    return raw_marker(source.lstrip(), RECORD_REQUEST)
+
+
+def timing_slots(timing_raw: str | None) -> list[str]:
+    """Split only an explicit conjunction of bare dayparts, never alternatives/ranges.
+
+    Keep the parent phrase and dose intact. This is a source-span projection,
+    not a daily-dose calculation or an interpretation of complex instructions.
+    """
+    if timing_raw is None:
+        return []
+    normalized = fold(timing_raw)
+    if CONJOINED_DAYPARTS.fullmatch(normalized):
+        names = [match.group() for match in DAYPART.finditer(normalized)]
+        if len(set(names)) == len(names):
+            return [raw_marker(timing_raw, re.compile(r"\b" + name + r"\b")) for name in names]
+    return [timing_raw]
+
+
+def validate_medication(med: Medication, source: str) -> Medication:
+    _present(med.evidence_text, source, "evidence_text")
+    # An explicitly labelled, quoted name is a bounded source field. Keep its
+    # complete content, even if inference splits off formulation words or copies
+    # the quote delimiters. This never expands a name from reference knowledge.
+    labels = list(re.finditer(
+        rf'\b{_vietnamese_forms(("tên", "tên thuốc", "thuốc tên"))}\s*[:=]?\s*'
+        r'(?:"([^"\n]+)"|“([^”\n]+)”)', med.evidence_text, re.I))
+    if med.name_raw and len(labels) == 1:
+        label = next(value for value in labels[0].groups() if value is not None)
+        candidate = med.name_raw.strip('"“”')
+        if candidate == label or label.startswith(candidate + ' '):
+            med = med.model_copy(update={'name_raw': label})
+    start = source.find(med.evidence_text)
+    preceding = re.split(r"[;\n]", source[:start])[-1]
+    if (NEGATION.search(fold(preceding)) or UNCERTAINTY.search(fold(preceding))):
+        raise EvidenceError("Evidence omitted preceding negation/uncertainty; include the full clause")
+    for key, value in med.model_dump().items():
+        if key.endswith("_raw"):
+            _present(value, med.evidence_text, key)
+    for admin in med.administrations:
+        _present(admin.timing_raw, med.evidence_text, "timing_raw")
+        _present(admin.dose_raw, med.evidence_text, "administration.dose_raw")
+        if admin.timing_raw and not TIMING.search(fold(admin.timing_raw)):
+            raise EvidenceError("Invalid timing role")
+        if admin.timing_raw and DAYPART.fullmatch(fold(admin.timing_raw)):
+            if any(re.search(r"\b" + re.escape(fold(admin.timing_raw)) + r"\b", group.group())
+                   for group in GROUPED_DAYPARTS.finditer(fold(med.evidence_text))):
+                raise EvidenceError("Grouped timing evidence must be retained")
+        if admin.dose_raw and not _dose_role(admin.dose_raw, med.evidence_text):
+            raise EvidenceError("Invalid administration dose role")
+        expected_slots = timing_slots(admin.timing_raw)
+        for slot in admin.timing_slots_raw:
+            _present(slot, admin.timing_raw or "", "timing_slots_raw")
+        if admin.timing_slots_raw and admin.timing_slots_raw != expected_slots:
+            raise EvidenceError("Unsupported administration timing slots")
+    for key, pattern in (("strength_raw", STRENGTH),
+                         ("quantity_raw", QUANTITY), ("frequency_raw", FREQUENCY)):
+        value = getattr(med, key)
+        if value and not pattern.search(fold(value)):
+            raise EvidenceError(f"Invalid slot role: {key}")
+    for key in ("dose_raw", "quantity_raw"):
+        value = getattr(med, key)
+        if value:
+            prefix = fold(med.evidence_text[:med.evidence_text.find(value)])[-35:]
+            if key == "dose_raw" and re.search(r"(?:so luong|sl|cap|tong)\s*[:=]?\s*$", prefix):
+                raise EvidenceError("Dispensed quantity mislabeled as dose")
+            if key == "quantity_raw" and re.search(r"(?:moi lan|lieu|uong)\s*[:=]?\s*$", prefix):
+                raise EvidenceError("Dose mislabeled as dispensed quantity")
+    if med.dose_raw and not _dose_role(med.dose_raw, med.evidence_text):
+        raise EvidenceError("Strength/package quantity cannot be a dose")
+    if med.strength_raw:
+        prefix = fold(med.evidence_text[:med.evidence_text.find(med.strength_raw)])[-35:]
+        if re.search(r"\b(?:moi lan|lieu(?: dung)?)\s*[:=]?\s*$", prefix):
+            raise EvidenceError("Explicit administered amount mislabeled as strength")
+    if med.strength_raw and med.strength_raw == med.dose_raw:
+        raise EvidenceError("One amount cannot establish both strength and dose")
+    if med.duration_raw and not re.search(r"\b(?:ngay|tuan|thang|nam)\b", fold(med.duration_raw)):
+        raise EvidenceError("Invalid duration role")
+    allowed = set(Medication.model_fields) - {"uncertain_fields", "evidence_text"}
+    if not set(med.uncertain_fields) <= allowed:
+        raise EvidenceError("Unknown uncertain field")
+    result = med.model_copy(deep=True)
+    # Preserve a single explicit raw duration if inference omitted it. Use only
+    # this medication's grounded clause, as for timing/negation projections;
+    # alternatives and ranges remain unknown instead of choosing one duration.
+    durations = list(DURATION.finditer(fold(med.evidence_text)))
+    if result.duration_raw is None and len(durations) == 1:
+        tail = fold(med.evidence_text)[durations[0].end():]
+        if not re.match(r'\s*(?:hoac\b|den\b|[-–])', tail):
+            result.duration_raw = raw_marker(med.evidence_text, DURATION)
+    for admin in result.administrations:
+        admin.timing_slots_raw = timing_slots(admin.timing_raw)
+    for pattern, key in ((NEGATION, "negation_raw"), (UNCERTAINTY, "uncertainty_raw")):
+        marker = raw_marker(med.evidence_text, pattern)
+        if marker and getattr(result, key) is None:
+            setattr(result, key, marker)
+        if getattr(result, key) and not pattern.search(fold(getattr(result, key))):
+            raise EvidenceError(f"Unsupported {key}")
+    if result.uncertainty_raw:
+        # Model annotations may add uncertainty, but must never suppress the
+        # backend's conservative flags by returning a nonempty, incomplete list.
+        result.uncertain_fields = list(dict.fromkeys(result.uncertain_fields + [
+            key for key in ("name_raw", "strength_raw", "dose_raw")
+            if getattr(result, key) is not None
+        ]))
+    return result
+
+
+def align_medication_evidence(value: Understanding, source: str) -> Understanding:
+    """Narrow broad model evidence only to independently attributable clauses.
+
+    Every named medication must belong to one distinct semicolon/newline clause.
+    All supplied raw fields must already occur there and inside the original
+    model span. Explicit shared scope requires restatement under the current
+    single-span DTO; ambiguous names stay untouched for strict validation.
+    """
+    if len(value.medications) < 2:
+        return value
+    if SHARED_SCOPE.search(fold(source)):
+        # Preserve the complete message in dialogue, but do not silently lose a
+        # shared instruction if the model omitted it or assigned it to one drug.
+        return value.model_copy(update={'ambiguous': True, 'medications': []})
+    clauses = [part.strip() for part in re.split(r'[;\n]+', source) if part.strip()]
+    if len(clauses) < 2:
+        return value
+    aligned, assigned = [], set()
+    for med in value.medications:
+        if not med.name_raw or med.evidence_text not in source:
+            return value
+        candidates = [i for i, clause in enumerate(clauses) if med.name_raw in clause]
+        if len(candidates) != 1 or candidates[0] in assigned:
+            return value
+        index = candidates[0]
+        clause = clauses[index]
+        # Narrow only: never expand truncated evidence, fabricate source text,
+        # erase an own-clause qualifier or discard an ungrounded raw field.
+        if clause in med.evidence_text:
+            bounded = clause
+        elif med.evidence_text in clause:
+            bounded = med.evidence_text  # Already bounded; the validator checks omitted qualifiers.
+        else:
+            return value
+        raw = [v for k, v in med.model_dump().items() if k.endswith('_raw') and v is not None]
+        raw += [v for admin in med.administrations for v in (admin.timing_raw, admin.dose_raw) if v is not None]
+        if any(not field.strip() or field not in bounded for field in raw):
+            return value
+        assigned.add(index)
+        aligned.append(med.model_copy(update={'evidence_text': bounded}))
+    return value.model_copy(update={'medications': aligned})
+
+
+def validate_understanding(value: Understanding, source: str) -> Understanding:
+    for candidate in value.intents:
+        _present(candidate.evidence_text, source, "intent evidence")
+        _present(candidate.record_request_raw, candidate.evidence_text, "record_request_raw")
+        if candidate.record_request_raw:
+            marker = record_request_marker(source)
+            if (candidate.intent != Intent.ADD_MEDICATION or marker is None or
+                    marker not in candidate.evidence_text or
+                    record_request_marker(candidate.record_request_raw) is None):
+                raise EvidenceError("Unsupported explicit record request")
+    meds = [validate_medication(med, source) for med in value.medications]
+    if len({m.evidence_text for m in meds}) != len(meds):
+        raise EvidenceError("Duplicate medication evidence")
+    spans = sorted((source.find(m.evidence_text), source.find(m.evidence_text) + len(m.evidence_text)) for m in meds)
+    if any(a[1] > b[0] for a, b in zip(spans, spans[1:])):
+        raise EvidenceError("Overlapping medication evidence; separate the medication clauses")
+    return value.model_copy(update={"medications": meds})

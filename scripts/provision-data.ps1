@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Supply explicitly selected, reviewed reference files for local runtime use.
 .DESCRIPTION
@@ -13,7 +13,7 @@ the included approved_download_manifest.json. Example:
 For official-all, supply the eight original CSVs named in
 data/reference/ddinter2/official_20261013/manifest.json. Rebuild locally:
   $env:PYTHONPATH=(Join-Path (Get-Location) 'src')
-  & .\scripts\.venv\Scripts\python.exe -B -m module3_interactions.official_ddinter build --collection data/reference/ddinter2/official_20261013 --output data/reference/ddinter2/official_20261013/official.sqlite
+  & .\.venv\Scripts\python.exe -B -m module3_interactions.official_ddinter build --collection data/reference/ddinter2/official_20261013 --output data/reference/ddinter2/official_20261013/official.sqlite
 The included DDInter14 page summary is used by default. Full historical synonym
 coverage also needs official_synonyms.json and all its linked page evidence.
 
