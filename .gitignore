@@ -119,6 +119,7 @@ service-account*.json
 
 # Locally materialized OCR language weights.
 /src/module1_intake/ocr/node/ocr/tessdata/
+/apps/backend/src/module1_intake/ocr/node/ocr/tessdata/
 
 # Preserved standalone PA1 React prototype: generated output stays local.
 /docs/pa/pa1/react-prototype/dist/
