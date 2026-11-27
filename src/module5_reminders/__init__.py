@@ -1,1 +1,1 @@
-"""module5_reminders package; planned packages expose no implementation."""
+"""Verified schedules, in-app reminders and dose history."""
