@@ -30,11 +30,17 @@ class CoreRepository:
             raise ValueError("Autocommit connection required; public operations own independent transactions")
 
     def _one(self, query, params=()):
+        if self.db.info.transaction_status == TransactionStatus.IDLE:
+            with self.transaction():
+                return self._one(query, params)
         with self.db.cursor(row_factory=dict_row) as cursor:
             cursor.execute(query, params)
             return cursor.fetchone()
 
     def _all(self, query, params=()):
+        if self.db.info.transaction_status == TransactionStatus.IDLE:
+            with self.transaction():
+                return self._all(query, params)
         with self.db.cursor(row_factory=dict_row) as cursor:
             cursor.execute(query, params)
             return cursor.fetchall()
@@ -43,8 +49,11 @@ class CoreRepository:
     def transaction(self):
         if self.db.info.transaction_status != TransactionStatus.IDLE:
             raise RuntimeError("Do not wrap Core public operations in an outer transaction; warnings must commit independently")
+        # Establish a harmless session baseline before SET LOCAL. A reused pool
+        # connection must not inherit an older request's identity/permissions.
+        self.db.execute("SELECT set_config('msa.authenticated_owner','',false),set_config('msa.authenticated_permissions','[]',false)")
         with self.db.transaction():
-            self.db.execute("SELECT set_config('msa.authenticated_owner',%s,true)", (str(self.owner),))
+            self.db.execute("SELECT set_config('msa.authenticated_owner',%s,true),set_config('msa.authenticated_permissions','[]',true),set_config('TimeZone','UTC',true)", (str(self.owner),))
             yield
 
     def _insert(self, table, **values):

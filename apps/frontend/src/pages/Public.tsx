@@ -7,7 +7,7 @@ export function Policy() {
     <PageHeading title="Dữ liệu và quyền riêng tư" />
     <Card>
       <h2>Dữ liệu được lưu ở đâu?</h2>
-      <p>Tài khoản và quyền truy cập được lưu trên máy chủ. Bản nháp toa thuốc, lịch dùng thuốc và lịch sử câu hỏi hiện được lưu trong phiên trình duyệt.</p>
+      <p>Tài khoản và quyền truy cập được lưu trên máy chủ. Khi luồng OCR được bật cho tài khoản, ảnh và bản nháp đối chiếu cũng được lưu trên máy chủ. Các màn hình minh họa, lịch dùng thuốc và lịch sử câu hỏi còn lưu trong phiên trình duyệt.</p>
       <h2>Ảnh toa thuốc</h2>
       <p>Khi bấm đọc thông tin, ảnh được gửi đến máy chủ để nhận dạng OCR. Bạn cần kiểm tra kết quả với toa gốc trước khi xác nhận.</p>
       <h2>Nguồn tham khảo</h2>

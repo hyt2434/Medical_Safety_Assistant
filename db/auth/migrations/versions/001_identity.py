@@ -1,4 +1,4 @@
-﻿"""Adopt existing identity records without resetting grants or passwords."""
+"""Adopt existing identity records without resetting grants or passwords."""
 from alembic import op
 import sqlalchemy as sa
 revision = "auth_001"

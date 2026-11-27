@@ -19,7 +19,7 @@ from module3_interactions.official_ddinter.acquire import statistics
 from module3_interactions.official_ddinter.evaluate import FORM_CUE
 
 ROOT = PROJECT_ROOT
-COLLECTION = ROOT / 'data/reference/ddinter2/official_20261013'
+COLLECTION = ROOT / 'data/DDInter'
 
 
 def med(dataset, identifier, ordinal):
@@ -109,6 +109,8 @@ class OfficialTests(unittest.TestCase):
 
     def test_actual_cli_fixture_handoff(self):
         path = ROOT / 'data/reference/test_fixtures/module2_api_quicktest/medication_reference/private_runs/20261013_003/reference.sqlite'
+        if not path.exists():
+            self.skipTest('Archived research-only synthetic reference is not installed')
         reference = MedicationReference(path, allow_synthetic=True)
         try:
             data = json.loads((ROOT / 'data/reference/provenance/module2_api_quicktest/medication_reference/examples/pipeline.synthetic.json').read_text())

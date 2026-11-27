@@ -9,16 +9,17 @@ import uvicorn
 
 
 def main() -> None:
-    source = Path(__file__).resolve().parent / "src"
-    sys.path.insert(0, str(source))
-    import settings  # Load backend .env before reading the default port.
+    root = Path(__file__).resolve().parents[2]
+    source = root / 'src'
+    sys.path[:0] = [str(root), str(source)]
+    from shared.auth import settings
 
     parser = argparse.ArgumentParser(description="Run the local backend")
     parser.add_argument("--port", type=int, default=int(os.environ.get("BACKEND_PORT", "8000")))
     parser.add_argument("--no-reload", action="store_true", help="Disable development file watcher")
     args = parser.parse_args()
     uvicorn.run(
-        "api.app:app",
+        "apps.backend.api.app:app",
         host="127.0.0.1",
         port=args.port,
         reload=not args.no_reload,

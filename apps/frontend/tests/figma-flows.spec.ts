@@ -5,24 +5,27 @@ async function login(page: Page, email: string, password: string) {
     data: { email: `${email}.demo@example.com`, password },
   });
   expect(response.status()).toBe(200);
+  await page.goto("/dashboard");
+  const later = page.getByRole("button", { name: "Nhắc lại sau 7 ngày", exact: true });
+  if (email === 'mai' && !await page.evaluate(() => localStorage.getItem('profile-reminder:u-patient'))) await later.click();
 }
 test("patient can create and revoke local sharing, create reminders, and keep caregiver invitations", async ({
   page,
 }) => {
   await login(page, "mai", "Mai-patient-2026");
   await page.goto("/share-summary");
-  await page.getByRole("button", { name: "Tạo quyền chia sẻ mẫu" }).click();
+  await page.getByRole("button", { name: "Tạo quyền chia sẻ" }).click();
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Thu hồi bản chia sẻ mẫu" }),
+    page.getByRole("button", { name: "Thu hồi bản chia sẻ" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Thu hồi bản chia sẻ mẫu" }).click();
+  await page.getByRole("button", { name: "Thu hồi bản chia sẻ" }).click();
   await expect(
-    page.getByRole("button", { name: "Thu hồi bản chia sẻ mẫu" }),
+    page.getByRole("button", { name: "Thu hồi bản chia sẻ" }),
   ).toHaveCount(0);
   await page.goto("/caregivers");
   await page.getByLabel("Email / số liên hệ").fill("nguoi-than@example.com");
-  await page.getByRole("button", { name: "Lưu lời mời mẫu" }).click();
+  await page.getByRole("button", { name: "Lưu lời mời" }).click();
   await page.reload();
   await expect(page.getByRole("main")).toContainText("nguoi-than@example.com");
   await expect(page.getByRole("main")).toContainText("Chưa gửi");
@@ -50,7 +53,7 @@ test("reviewer records a decision with a reason and finds it in history", async 
   await page
     .getByLabel("Lý do", { exact: true })
     .fill("Cần bổ sung bằng chứng nguồn cho bản ghi thử nghiệm.");
-  await page.getByRole("button", { name: "Lưu quyết định mẫu" }).click();
+  await page.getByRole("button", { name: "Lưu quyết định" }).click();
   await expect(page.getByRole("status")).toContainText("Đã lưu quyết định");
   await page.getByRole("link", { name: "Xem lịch sử duyệt" }).click();
   await expect(page.getByRole("main")).toContainText(
@@ -71,7 +74,7 @@ test("support creates a ticket and saves its response and status", async ({
   await page
     .getByLabel("Mô tả và bước tái hiện")
     .fill("Mở trang lịch, chọn ngày và kiểm tra thông báo.");
-  await page.getByRole("button", { name: "Tạo ticket mẫu" }).click();
+  await page.getByRole("button", { name: "Tạo ticket" }).click();
   await expect(page).toHaveURL(/\/staff\/tickets\/SUP-/);
   await page
     .getByRole("combobox", { name: "Trạng thái", exact: true })
@@ -79,7 +82,7 @@ test("support creates a ticket and saves its response and status", async ({
   await page
     .getByLabel("Phản hồi", { exact: true })
     .fill("Đã tái hiện, đang kiểm tra giao diện lịch.");
-  await page.getByRole("button", { name: "Lưu phản hồi mẫu" }).click();
+  await page.getByRole("button", { name: "Lưu phản hồi" }).click();
   await page.reload();
   await expect(
     page.getByRole("combobox", { name: "Trạng thái", exact: true }),

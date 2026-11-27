@@ -2,7 +2,7 @@
 
 ## 1. Mục đích tài liệu
 
-Tài liệu này mô tả sáu file CSV hiện có trong thư mục [`data`](../../data). Nội dung tập trung vào:
+Tài liệu này mô tả sáu file CSV hiện có trong thư mục chuẩn [`data/datasets/`](datasets/). Nội dung tập trung vào:
 
 - Mỗi file lưu loại dữ liệu gì.
 - Một dòng trong file đại diện cho đối tượng nào.
@@ -17,12 +17,12 @@ Tài liệu chưa mô tả cách chuyển dữ liệu sang physical database. Ph
 
 Bộ dữ liệu gồm 42.903 dòng trong sáu file:
 
-- [`medications.csv`](../../data/medications.csv): 10.670 sản phẩm thuốc, 30 cột.
-- [`ingredients.csv`](../../data/ingredients.csv): 1.940 danh tính hoạt chất cục bộ, 16 cột.
-- [`medication_ingredients.csv`](../../data/medication_ingredients.csv): 12.899 thành phần của sản phẩm thuốc, 25 cột.
-- [`medication_indications.csv`](../../data/medication_indications.csv): 5.614 phát biểu chỉ định ứng viên, 16 cột.
-- [`medication_priorities.csv`](../../data/medication_priorities.csv): 6.105 bản ghi ưu tiên thu thập dữ liệu, 15 cột.
-- [`ddinter_mappings.csv`](../../data/ddinter_mappings.csv): 5.675 ánh xạ ứng viên từ thành phần thuốc sang DDInter, 17 cột.
+- [`medications.csv`](datasets/medications.csv): 10.670 sản phẩm thuốc, 30 cột.
+- [`ingredients.csv`](datasets/ingredients.csv): 1.940 danh tính hoạt chất cục bộ, 16 cột.
+- [`medication_ingredients.csv`](datasets/medication_ingredients.csv): 12.899 thành phần của sản phẩm thuốc, 25 cột.
+- [`medication_indications.csv`](datasets/medication_indications.csv): 5.614 phát biểu chỉ định ứng viên, 16 cột.
+- [`medication_priorities.csv`](datasets/medication_priorities.csv): 6.105 bản ghi ưu tiên thu thập dữ liệu, 15 cột.
+- [`ddinter_mappings.csv`](datasets/ddinter_mappings.csv): 5.675 ánh xạ ứng viên từ thành phần thuốc sang DDInter, 17 cột.
 
 Các file này là dữ liệu đã qua một pipeline biến đổi. Chúng không phải các file nguồn thô ban đầu và cũng chưa phải toàn bộ dữ liệu đã được phê duyệt để sử dụng trong production.
 
