@@ -4,14 +4,17 @@ Branch: `feature/module4-hcp-module5-reminders`.
 
 ## Validation
 
+- Current committed source, after archiving G4: `venv/Scripts/python -m pytest tests/backend tests/unit -q`: **568 passed, 8 failed, 12 skipped, 85 errors**. Comparison with the original baseline found **no new failing test names**. The latency test now passes.
+- Current integration skeleton: `venv/Scripts/python -m pytest tests/integration/test_module4_5_api.py -q`: **1 skipped** because `MODULE2_TEST_DSN` is unset.
+
 - Before implementation: `venv/Scripts/python -m pytest tests/backend tests/unit -q`: **557 passed, 9 failed, 12 skipped, 85 errors**. The extra failure compared with the handoff was the latency test.
-- After implementation (including the local G4 draft): **578 passed, 8 failed, 12 skipped, 85 errors**. No new failing test names. Missing reference/DDInter data and the existing CLI subprocess failure remain.
-- Latest targeted run: `venv/Scripts/python -m pytest tests/backend/test_module4_5_api.py tests/unit/module5 tests/integration/test_module4_5_api.py -q`: **22 passed, 1 skipped**.
+- Historical run including the now-archived G4 draft: **578 passed, 8 failed, 12 skipped, 85 errors**. No new failing test names. Missing reference/DDInter data and the existing CLI subprocess failure remain.
+- Historical targeted run (includes now-archived draft backend tests): `venv/Scripts/python -m pytest tests/backend/test_module4_5_api.py tests/unit/module5 tests/integration/test_module4_5_api.py -q`: **22 passed, 1 skipped**.
 - Frontend baseline: build passed; **34 passed, 1 skipped**.
 - Frontend revalidated after archiving G4: build passed; **37 passed, 1 skipped**. Existing specs were not edited. New browser tests use HTTP fixtures plus real local authentication; they do not establish PostgreSQL behavior.
-- PostgreSQL integration is skipped without `MODULE2_TEST_DSN`. It requires an existing marked loopback test database migrated through the proposed 006 migration; it does not migrate databases or import clinical/reference data.
+- The PostgreSQL integration skeleton targets the full G4 review/closure contract, which remains blocked. Do not enable it as proof of a working flow until G4 is resolved within the approved scope. It requires a marked loopback database and performs no migrations or reference-data imports.
 
-Logs are in ignored `artifacts/baseline-module45-*` and `artifacts/module45-*` files. The clean-source rerun uses `artifacts/module45-resume-build.log` and `artifacts/module45-resume-playwright.log`.
+Logs are in ignored `artifacts/baseline-module45-*` and `artifacts/module45-*` files. The clean-source rerun uses `artifacts/module45-resume-build.log`, `artifacts/module45-resume-playwright.log`, `artifacts/module45-resume-python.log`, and `artifacts/module45-resume-integration.log`.
 
 ## G4 restriction
 
