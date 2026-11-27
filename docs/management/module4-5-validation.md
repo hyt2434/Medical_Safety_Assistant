@@ -8,10 +8,10 @@ Branch: `feature/module4-hcp-module5-reminders`.
 - After implementation (including the local G4 draft): **578 passed, 8 failed, 12 skipped, 85 errors**. No new failing test names. Missing reference/DDInter data and the existing CLI subprocess failure remain.
 - Latest targeted run: `venv/Scripts/python -m pytest tests/backend/test_module4_5_api.py tests/unit/module5 tests/integration/test_module4_5_api.py -q`: **22 passed, 1 skipped**.
 - Frontend baseline: build passed; **34 passed, 1 skipped**.
-- Frontend final: build passed; **37 passed, 1 skipped**. Existing specs were not edited. New browser tests use HTTP fixtures plus real local authentication; they do not establish PostgreSQL behavior.
+- Frontend revalidated after archiving G4: build passed; **37 passed, 1 skipped**. Existing specs were not edited. New browser tests use HTTP fixtures plus real local authentication; they do not establish PostgreSQL behavior.
 - PostgreSQL integration is skipped without `MODULE2_TEST_DSN`. It requires an existing marked loopback test database migrated through the proposed 006 migration; it does not migrate databases or import clinical/reference data.
 
-Logs are in ignored `artifacts/baseline-module45-*` and `artifacts/module45-*` files.
+Logs are in ignored `artifacts/baseline-module45-*` and `artifacts/module45-*` files. The clean-source rerun uses `artifacts/module45-resume-build.log` and `artifacts/module45-resume-playwright.log`.
 
 ## G4 restriction
 
