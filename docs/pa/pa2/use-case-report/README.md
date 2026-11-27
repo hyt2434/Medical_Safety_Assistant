@@ -1,4 +1,4 @@
-> Canonical SVGs: `docs/design/use-cases/plantuml/` (repository root). Build with the complete repository and install `requirements.txt` before converting SVGs.
+> Canonical SVGs: `docs/design/use-cases/plantuml/` (repository root). Build with the complete repository and install `../../../requirements.txt` before converting SVGs.
 
 # Use-Case Specification
 
@@ -26,7 +26,7 @@ latexmk -xelatex -interaction=nonstopmode -halt-on-error -file-line-error main.t
 Khi thay đổi SVG, cài dependency Python một lần rồi chạy script để chuyển ảnh và biên dịch:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -r ../../../requirements.txt
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 

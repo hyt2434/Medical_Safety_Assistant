@@ -1,5 +1,41 @@
 # Database V4
 
+## Unified local deployment
+
+Auth, existing OCR reference rows and Core can share one PostgreSQL database.
+Auth stays in `public`; Core uses `identity`, `msa` and `msa_ref`. OCR, Voice,
+manual input and NLP persist through the same Core workflows. Retained OCR images
+remain in `data/local/module1/runs`; the database stores their provenance.
+
+Configure `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` (or
+`DATABASE_URL`) in `apps/backend/.env`. Remove SQLite `AUTH_DB_PATH` and conflicting
+`AUTH_DATABASE_URL` settings. From the repository root:
+
+```powershell
+python db/setup_system.py          # read-only preflight
+python db/setup_system.py --apply  # backup, migrate, import, link
+```
+
+The database must already exist. Setup verifies a `pg_dump` backup before writing,
+preserves accounts/passwords/grants/sessions and legacy OCR rows, applies Core
+migrations and imports the six approved CSVs idempotently. An insert trigger
+registers new Auth UUIDs in `identity.users`; existing accounts are backfilled
+without granting permissions. A separately configured Core database is never
+silently abandoned. Backups/reports stay in ignored `artifacts/system-db`.
+
+After success `.env` contains `DATABASE_MODE=unified` and `CORE_REFERENCE_BUILD`.
+Restart backend. Core uses the Auth connection automatically. Explicit
+`CORE_DB_DSN` overrides, including an empty value in tests, retain priority.
+SQLite test/preview overrides never implicitly reach the shared Core database.
+
+Install OCR dependencies with `npm.cmd ci` in `src/module1_intake/ocr/node/ocr`
+and place English/Vietnamese Tesseract models in its `tessdata` folder. DDInter is
+needed for assessment, not saving drafts. Qwen, Whisper and the RAG index remain
+separate runtime dependencies. Missing interaction data never means a safe result.
+
+`tests/integration/test_unified_system.py` accepts only a marked loopback test DB
+through `UNIFIED_POSTGRES_TEST_DSN`; set `RUN_UNIFIED_OCR=1` to exercise real OCR.
+
 PostgreSQL 18 system schema: 36 Core tables, 326 columns and 71 restrictive
 foreign keys, plus eight tables / 33 columns in the separate [Auth database](auth/README.md).
 The original Core V4 baseline (20 tables / 193 columns / 40 FKs) is preserved.
@@ -64,7 +100,8 @@ testing only. Use `-Action Status` or `-Action Stop` with the same runtime path.
 For an authorized deployment with the agreed identity contract, set its DSN and
 run `db/manage.py provision-identity` if the local registry has not been installed,
 then `db/manage.py migrate` and `db/manage.py import`. Existing registry data is
-validated and never rewritten; the command rejects an Auth database. This does not authorize
+validated and never rewritten; the separate-store command rejects an Auth database
+(use `setup_system.py --apply` for deliberate unified deployment). This does not authorize
 synthetic tests there. The migration runner rejects the retired Phase 2 schema;
 no automatic prototype-to-V4 conversion is supplied.
 

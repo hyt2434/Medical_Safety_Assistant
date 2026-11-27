@@ -127,6 +127,14 @@ class LocalOcrService:
                 if not selection_blockers and q2[1] > q1[1]:
                     chosen = second
             label, image, raw, extraction = chosen
+            if 'item_count_changed' in selection_blockers:
+                counts = [len(result[3].medications) for result in results]
+                warning = (f'Hai phiên bản ảnh tách được số thuốc khác nhau ({counts[0]} và {counts[1]}). '
+                           'Bản nháp có thể thiếu thuốc; hãy đối chiếu toàn bộ toa, bổ sung thuốc còn thiếu hoặc tải ảnh rõ hơn.')
+                extraction.warnings.append(warning)
+                extraction.review_guidance = {
+                    'action': 'REUPLOAD_OR_MANUAL_REVIEW', 'reason': 'INCONSISTENT_ITEM_COUNT',
+                    'message': warning}
             if len(results) == 2:
                 original_parsed, cv_parsed = results[0][3], results[1][3]
                 for original_item, cv_item in zip(original_parsed.medications, cv_parsed.medications):

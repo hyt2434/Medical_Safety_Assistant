@@ -55,6 +55,7 @@ async function addProduct(page:Page,query:string,id:string,strength:string) {
 }
 async function confirmAndAssess(page:Page,review:{workflow_id:string},baseline:unknown,control=true) {
   const before=oracle(review.workflow_id);expect(before.counts).toEqual(baseline);
+  await page.getByRole('button',{name:'Tiếp tục xác nhận',exact:false}).click();
   await page.getByRole('region',{name:'Bản nháp đã lưu trên máy chủ'}).getByRole('checkbox').check();
   const confirmation=page.waitForResponse(r=>r.url().endsWith('/api/v1/intake/confirm'));
   await page.getByRole('button',{name:'Xác nhận danh sách',exact:true}).dblclick();

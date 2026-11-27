@@ -1,0 +1,35 @@
+6133d012 2026-11-15T13:21:56+07:00 Hoàng Yến Trang Merge pull request #70 from hyt2434/OCR-&-User-Interface
+44144aeb 2026-11-15T13:21:40+07:00 Hoàng Yến Trang Merge pull request #71 from hyt2434/OCR
+5695a2a8 2026-11-15T12:49:30+07:00 Hoang Yen Trang add tracking
+aec1634a 2026-11-15T11:49:23+07:00 Hoang Yen Trang Make UI - design report
+05a7667f 2026-11-15T10:12:55+07:00 Hoang Yen Trang Merge OCR & User Interface into pa3 for report preparation
+0df368f8 2026-11-15T10:00:34+07:00 Hoàng Yến Trang Merge pull request #60 from hyt2434/db
+e41a745c 2026-11-15T09:46:19+07:00 Hoang Yen Trang feat: enhance OCR extraction and medication confirmation workflow
+3422c29a 2026-11-15T02:59:56+07:00 lochithanh160905@gmail.com feat: voice & manual input
+64ad9da2 2026-11-15T02:34:27+07:00 Hoang Yen Trang chore: snapshot current application before OCR improvements
+b172f8e6 2026-11-15T00:57:48+07:00 Hoang Yen Trang refactor(ui): dựng lại landing xen kẽ, thêm preview toa thuốc và hiệu ứng cuộn
+86816b61 2026-11-14T13:32:25+07:00 Cao Hoang Long docs(pa3): update logical view to 12 components
+398fc8a2 2026-11-14T13:06:26+07:00 Cao Hoang Long docs(pa3): add use-case and software architecture reports
+9762b3c9 2026-11-11T20:21:11+07:00 Cao Hoang Long feat(shared): add shared intake contracts
+1b257034 2026-11-11T20:13:17+07:00 Cao Hoang Long feat: complete medication identification and DDInter safety MVP
+b3071052 2026-11-10T21:19:35+07:00 Cao Hoang Long feat(module2): complete medication identification and matching
+dc7ca22c 2026-11-10T15:22:22+07:00 Cao Hoang Long chore: finalize repository structure and NLP chatbot MVP V2
+5a0362c2 2026-11-10T09:19:56+07:00 Hoang Yen Trang Merge branch 'db' into OCR
+69b76eef 2026-11-10T09:14:47+07:00 Hoang Yen Trang Merge branch 'dev' into db
+ff798f7c 2026-11-10T09:03:31+07:00 Hoang Yen Trang update gitignore
+4b5519ba 2026-11-10T08:55:57+07:00 Hoang Yen Trang feat(ocr): expand prescription parsing and organize OCR pipeline
+3d5e5ce8 2026-11-10T00:15:39+07:00 Cao Hoang Long WIP: backup NLP chatbot MVP
+54dc487b 2026-11-09T17:20:05+07:00 Hoang Yen Trang feat(ocr): support printed prescriptions and pharmacy receipts
+a67d8cf1 2026-11-09T16:35:43+07:00 Cao Hoang Long feat(db): integrate verified Database V4
+8a99b592 2026-11-03T14:19:21+07:00 Hoàng Yến Trang Merge pull request #58 from hyt2434/dev
+f2e4c20e 2026-11-03T14:09:04+07:00 Hoàng Yến Trang Merge pull request #57 from hyt2434/module1-intake
+14b8702f 2026-11-03T14:03:09+07:00 Hoang Yen Trang Merge origin/dev into module1-intake
+3bcc659c 2026-11-03T13:55:43+07:00 Hoàng Yến Trang Merge pull request #56 from hyt2434/dragon-medication-safety
+751fe71f 2026-11-03T13:53:17+07:00 Hoang Yen Trang Merge remote-tracking branch 'origin/dev' into dragon-medication-safety
+2dbd06b7 2026-11-02T11:30:34+07:00 Hoàng Yến Trang Merge pull request #54 from hyt2434/design-database
+f7197fc2 2026-11-02T11:28:48+07:00 Hoàng Yến Trang Merge pull request #53 from hyt2434/dev to design database
+6746aea7 2026-11-02T11:18:16+07:00 Hoang Yen Trang arrange structure
+d076e9c8 2026-11-02T00:29:06+07:00 DRAGON docs: Project_plan and Vision completed
+8d7502b6 2026-11-01T20:02:09+07:00 Hoang Yen Trang clean structure repo
+15697f8f 2026-11-01T19:42:16+07:00 Hoang Yen Trang make UI protoype report
+06d9ec79 2026-11-01T16:49:01+07:00 Hoang Yen Trang make report use case for PA 2

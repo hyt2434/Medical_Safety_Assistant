@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Prototype PA2 — Medication Safety Assistant, UC-01 đến UC-18."
+    />
+    <title>Medication Safety Assistant · PA2</title>
+  </head>
+  <body>
+    <a class="skip" href="#main">Đến nội dung chính</a>
+    <div id="app"></div>
+    <div id="notice" role="status" aria-live="polite"></div>
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+      <form method="dialog">
+        <p class="eyebrow">Xác nhận thao tác</p>
+        <h2 id="confirm-title"></h2>
+        <p id="confirm-body"></p>
+        <div class="actions">
+          <button value="cancel" class="secondary">Hủy</button
+          ><button value="ok">Xác nhận</button>
+        </div>
+      </form>
+    </dialog>
+    <script type="module" src="/src/pa2/app.ts"></script>
+  </body>
+</html>

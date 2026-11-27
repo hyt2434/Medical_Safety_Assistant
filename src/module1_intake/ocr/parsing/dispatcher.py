@@ -5,6 +5,7 @@ from module1_intake.ocr.parsing.strength_table import extract_strength_table
 from module1_intake.ocr.parsing.tables import extract_quantity_table
 from module1_intake.ocr.parsing.numbered import extract_numbered_prescription
 from module1_intake.ocr.parsing.headerless import extract_headerless
+from module1_intake.ocr.parsing.usage_list import extract_usage_list
 
 def extract_printed_prescription(raw):
     words = raw.get('words') or []
@@ -13,4 +14,10 @@ def extract_printed_prescription(raw):
         result = parser(words)
         if result is not None:
             return result
-    return extract_legacy_prescription(words)
+    try:
+        return extract_legacy_prescription(words)
+    except ValueError:
+        result = extract_usage_list(words)
+        if result is not None:
+            return result
+        raise

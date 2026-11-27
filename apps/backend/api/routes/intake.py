@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError, Field
 
 from apps.backend.api.deps import require_permission, current_session
 from shared.auth.core_owner import core_owner
+from shared.auth.settings import core_database_dsn
 from shared.auth.db import transaction
 from shared.auth.sessions import audit
 from shared.db import CoreRepository
@@ -55,14 +56,15 @@ class HttpEntryEdit(EntryEditRequest):
 @router.get('/capabilities')
 def capabilities(session=Depends(current_session)):
     linked = False
+    dsn = core_database_dsn()
     try:
         owner = core_owner(session['account']['id'])
-        if os.environ.get('CORE_DB_DSN'):
-            with psycopg.connect(os.environ['CORE_DB_DSN'], autocommit=True, connect_timeout=3) as connection:
+        if dsn:
+            with psycopg.connect(dsn, autocommit=True, connect_timeout=3) as connection:
                 linked = bool(connection.execute('SELECT 1 FROM identity.users WHERE id=%s', (owner,)).fetchone())
     except (PermissionError, ValueError, TypeError, psycopg.Error):
         pass
-    return {'persistent_intake': bool(linked and os.environ.get('CORE_DB_DSN') and
+    return {'persistent_intake': bool(linked and dsn and
         os.environ.get('CORE_REFERENCE_BUILD') and 'patient.workspace' in session['contextPermissions'])}
 
 
@@ -83,7 +85,7 @@ def current_application(session=Depends(require_permission('patient.workspace'))
         raise HTTPException(403, 'Tài khoản chưa được liên kết với hồ sơ Core') from None
     except (ValueError, TypeError):
         raise HTTPException(503, 'Cấu hình liên kết tài khoản Core không hợp lệ') from None
-    dsn, build = os.environ.get('CORE_DB_DSN'), os.environ.get('CORE_REFERENCE_BUILD')
+    dsn, build = core_database_dsn(), os.environ.get('CORE_REFERENCE_BUILD')
     if not dsn or not build:
         raise HTTPException(503, 'Chưa cấu hình PostgreSQL Core và phiên bản danh mục')
     try:
@@ -92,8 +94,14 @@ def current_application(session=Depends(require_permission('patient.workspace'))
                 _deny_missing_core_link(session)
                 raise HTTPException(403, 'Liên kết Core chưa được cấp phát')
             repo = CoreRepository(connection, authenticated_owner=owner)
+            # Reference snapshots are optional for intake persistence. Missing/corrupt
+            # DDInter must disable assessment, not prevent saving an OCR/manual draft.
+            try:
+                dataset = OfficialDataset()
+            except (OSError, ValueError, KeyError):
+                dataset = None
             yield ApplicationService(repo, OllamaProvider(os.environ.get('NLP_OLLAMA_MODEL', 'qwen3.5:9b')),
-                dataset_build=build, dataset=OfficialDataset(), composer=GroundedComposer(),
+                dataset_build=build, dataset=dataset, composer=GroundedComposer(),
                 data_context=os.environ.get('CORE_DATA_CONTEXT', 'PATIENT'))
     except PermissionError:
         raise HTTPException(404, 'Không tìm thấy tài nguyên của tài khoản') from None

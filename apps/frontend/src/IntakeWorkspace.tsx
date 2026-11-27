@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { FileImage, Mic, PencilLine, Upload, ImagePlus, Camera, ArrowRight, FileCheck2, ShieldAlert, X } from "lucide-react";
 import { api, ApiError } from "./api";
 import type { CatalogProduct, IntakeDetails, IntakeEntry, IntakeReview, MedicationFields, VoicePreview } from "./api";
 import { useDemo } from "./state";
-import { Card, Notice, PageHeading } from "./components";
+import { Badge, Card, CardHeading, EmptyState, Notice, PageHeading, Stepper } from "./components";
+import { IntakeChat } from "./IntakeChat";
 import { CoreOcrReview, ProductPicker } from "./CoreOcrReview";
 import { RegionPicker } from "./OcrReview";
 import type { ImageRegion } from "./OcrReview";
@@ -45,6 +47,11 @@ export function IntakeWorkspace({ initialMode = "image" }: { initialMode?: Mode 
 }
 
 function Workspace({ account, initialMode }: { account: string; initialMode: Mode }) {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const stage = pathname === "/verify" ? "verify" : pathname === "/results" ? "results" : "intake";
+  const chatPage = initialMode === "chat";
+  const fileInput = useRef<HTMLInputElement>(null), cameraInput = useRef<HTMLInputElement>(null);
   const [params] = useSearchParams();
   const requested = params.get("mode");
   const [mode, setMode] = useState<Mode>(["manual", "chat", "voice", "image"].includes(requested || "") ? requested as Mode : initialMode);
@@ -60,6 +67,7 @@ function Workspace({ account, initialMode }: { account: string; initialMode: Mod
   const [audio, setAudio] = useState<File | null>(null), [recording, setRecording] = useState(false);
   const [image, setImage] = useState<File | null>(null), [imageUrl, setImageUrl] = useState("");
   const [region, setRegion] = useState<ImageRegion | null>(null);
+  const [ocrFeedback, setOcrFeedback] = useState("");
   const lock = useRef(false), alive = useRef(true), current = useRef<IntakeReview | null>(null);
   const capturePending = useRef(false), requestKeys = useRef(new Map<string, string>());
   const recorder = useRef<MediaRecorder | null>(null), stream = useRef<MediaStream | null>(null), timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -139,6 +147,21 @@ function Workspace({ account, initialMode }: { account: string; initialMode: Mod
   useEffect(() => () => { if (imageUrl) URL.revokeObjectURL(imageUrl); }, [imageUrl]);
 
   async function accept(result: IntakeReview) { remember(result); await sync(result.workflow_id); }
+  function loadImage(file?: File) {
+    if (!file || busy || capable !== true || terminal) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) {
+      setError("Chọn ảnh JPG, PNG hoặc WebP tối đa 10 MB."); return;
+    }
+    setError(""); setOcrFeedback(""); setImage(file); setImageUrl(URL.createObjectURL(file)); setRegion(null);
+  }
+  function sendMessage(text: string) {
+    if (!text.trim() || busy || capable !== true || terminal || dirty.size || voice?.draft) return;
+    void run(async () => {
+      const value = await ensureWorkflow();
+      await accept(await api<IntakeReview>("/api/v1/intake/messages", post({ workflow_id: value.workflow_id, revision: value.revision, text: text.trim() })));
+      if (alive.current) setMessage("");
+    });
+  }
   function manualFields(product: CatalogProduct): MedicationFields {
     const text = [product.brand_name, strength, form, dose, timing].filter(Boolean).join(", ");
     return { name_raw: product.brand_name, strength_raw: strength || null, dosage_form_raw: form || null,
@@ -166,15 +189,24 @@ function Workspace({ account, initialMode }: { account: string; initialMode: Mod
     } finally { capturePending.current = false; }
   }
   // All mutations are sent with the latest server revision; source adapters do not route text locally.
-  return <div className="intake-workspace stack" aria-busy={busy}>
-    <PageHeading title={initialMode === "chat" ? "Trò chuyện cùng Tiểu Bạch" : "Nhập và xem lại thuốc"}
-      description="Nhập thông tin, xem và sửa bản nháp trước khi xác nhận. Kết quả nhận diện và tương tác lấy từ máy chủ." />
+  return <div className="intake-workspace" aria-busy={busy}>
+    <PageHeading title={chatPage ? "Trò chuyện cùng Tiểu Bạch" : stage === "verify" ? "Xác nhận thông tin thuốc" : stage === "results" ? "Kết quả kiểm tra" : "Nhập toa thuốc"} />
+    {!chatPage && <Stepper step={stage === "intake" ? 1 : stage === "verify" ? 2 : 3} />}
     {capable === false && <Notice tone="warning">Chưa có quyền nhập thuốc hoặc liên kết hồ sơ Core. Không thể lưu bản nháp; hãy liên hệ người quản trị.</Notice>}
     {error && <Notice tone="warning"><p role="alert">{error}</p><button className="button secondary" disabled={busy || !current.current} onClick={() => void run(async () => { if (current.current) await sync(current.current.workflow_id); })}>Tải lại bản đã lưu</button></Notice>}
     {busy && <p role="status">Đang xử lý… Vui lòng chờ, không cần gửi lại.</p>}
-    <nav className="segmented" aria-label="Cách nhập thuốc">{([["image", "Ảnh toa thuốc"], ["manual", "Nhập tay"], ["chat", "Chatbot"], ["voice", "Giọng nói"]] as const).map(([value, text]) =>
-      <button type="button" className={`button ${mode === value ? "" : "secondary"}`} aria-pressed={mode === value} key={value} disabled={busy || recording} onClick={() => setMode(value)}>{text}</button>)}</nav>
-    <Card>
+    {stage === "verify" && <Notice tone="warning" title="Lưu ý trước khi xác nhận">Đối chiếu thuốc với toa gốc. Nếu bạn sửa thông tin, hãy lưu lại trước khi xác nhận.</Notice>}
+    {stage === "results" && details && <section className="result-banner">
+      <span className="result-icon"><ShieldAlert size={35} /></span><div><Badge tone="warning">{details.assessment && !error ? "KẾT QUẢ ĐỐI CHIẾU" : "CHƯA CÓ ĐÁNH GIÁ"}</Badge>
+        <h2>{details.assessment && !error ? "Xem kết quả và phạm vi đánh giá" : "Thuốc chưa được đánh giá"}</h2><p>Xác nhận toa chỉ xác nhận thông tin đã nhập. Không suy ra thuốc an toàn từ việc chưa thấy cảnh báo.</p></div>
+    </section>}
+    {chatPage && <IntakeChat messages={details?.messages || []} value={message} onChange={setMessage} onSend={sendMessage}
+      disabled={busy || capable !== true || terminal || dirty.size > 0 || Boolean(voice?.draft)} />}
+    {!chatPage && stage === "intake" && <nav className="input-mode-tabs" aria-label="Cách nhập thuốc">{([["image", FileImage, "Ảnh toa thuốc"], ["voice", Mic, "Giọng nói"], ["manual", PencilLine, "Nhập bằng tay"]] as const).map(([value, Icon, text]) =>
+      <button type="button" className={mode === value ? "active" : ""} aria-pressed={mode === value} key={value} disabled={busy || recording} onClick={() => setMode(value)}><Icon size={20} />{text}</button>)}</nav>}
+    <div className={!chatPage && stage === "intake" ? "intake-grid" : "stack"}>
+    {!chatPage && stage === "intake" && <div className="stack"><Card className="source-card">
+      <CardHeading icon={mode === "voice" ? <Mic /> : mode === "manual" ? <PencilLine /> : <FileImage />} title={mode === "voice" ? "Nói thông tin thuốc" : mode === "manual" ? "Nhập từ toa gốc" : "Toa thuốc của bạn"} detail="Đối chiếu thông tin với toa gốc trước khi xác nhận" />
       <fieldset disabled={busy || capable !== true || terminal} className="intake-fieldset">
         {mode === "manual" && <form onSubmit={event => { event.preventDefault(); if (selected) void run(async () => {
           const value = await ensureWorkflow(); await accept(await api<IntakeReview>("/api/v1/intake/manual", post({ workflow_id: value.workflow_id,
@@ -207,22 +239,37 @@ function Workspace({ account, initialMode }: { account: string; initialMode: Mod
             await sync(value.workflow_id);
           })}>Chuyển thành văn bản</button>
         </div>}
-        {mode === "image" && <div className="stack"><h2>Đọc ảnh toa thuốc</h2>
-          <label className="field">Chọn ảnh toa thuốc<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => {
-            const file = event.target.files?.[0]; if (!file) return;
-            if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) { setError("Chọn ảnh JPG, PNG hoặc WebP tối đa 10 MB."); return; }
-            setImage(file); setImageUrl(URL.createObjectURL(file)); setRegion(null);
-          }} /></label>
-          {imageUrl && <RegionPicker image={imageUrl} value={region} onChange={setRegion} disabled={busy} />}
-          <button className="button" disabled={!image || dirty.size > 0 || Boolean(voice?.draft)} onClick={() => void run(async () => {
+        {mode === "image" && <div className="stack">
+          <input ref={fileInput} className="sr-only" aria-label="Chọn ảnh toa thuốc" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => loadImage(event.target.files?.[0])} />
+          <input ref={cameraInput} className="sr-only" aria-label="Chụp ảnh toa thuốc" type="file" capture="environment" accept="image/*" onChange={event => loadImage(event.target.files?.[0])} />
+          {!imageUrl && <button className="upload-drop tall" onClick={() => fileInput.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); loadImage(event.dataTransfer.files[0]); }}>
+            <span className="round-icon"><Upload size={30} /></span><strong>Chọn hoặc kéo ảnh toa vào đây</strong><span>JPG, PNG, WebP · Tối đa 10 MB</span>
+          </button>}
+          {imageUrl && <><div className="prescription-preview"><img src={imageUrl} alt={image?.name || "Toa thuốc đã chọn"} />
+            <button className="icon-button" aria-label="Bỏ ảnh đã chọn" onClick={() => { setImage(null); setImageUrl(""); setRegion(null); }}><X size={17} /></button></div>
+            <RegionPicker image={imageUrl} value={region} onChange={setRegion} disabled={busy} /></>}
+          {image && <small>{image.name}</small>}
+          <div className="prescription-image-choices"><button className="button secondary grow" onClick={() => cameraInput.current?.click()}><Camera size={18} /> Chụp toa</button><button className="button secondary grow" onClick={() => fileInput.current?.click()}><ImagePlus size={18} /> Chọn ảnh</button></div>
+          <button className="button full-width prescription-read" disabled={!image || dirty.size > 0 || Boolean(voice?.draft)} onClick={() => void run(async () => {
             if (!image) return; const value = await ensureWorkflow(); const body = new FormData(); body.append("file", image); body.append("revision", String(value.revision));
             if (region) body.append("region", JSON.stringify(region));
-            const result = await api<{ review: IntakeReview; ocr: { medication_entries: unknown[] } }>(`/api/v1/intake/workflows/${value.workflow_id}/ocr`, { method: "POST", body });
+            setOcrFeedback("");
+            const result = await api<{ review: IntakeReview; ocr: { medication_entries: unknown[];
+              extraction_run?: { raw_output?: { parsed?: { review_guidance?: { message?: string } }; ocr?: { text?: string } } } } }>(`/api/v1/intake/workflows/${value.workflow_id}/ocr`, { method: "POST", body });
             await accept(result.review);
-            if (!result.ocr.medication_entries.length) throw new Error("Ảnh chưa tách được thuốc. Bản nháp đã lưu vẫn được giữ; hãy chọn vùng rõ hơn hoặc nhập tay.");
+            const output = result.ocr.extraction_run?.raw_output;
+            const guidance = output?.parsed?.review_guidance?.message;
+            if (!result.ocr.medication_entries.length) throw new Error(guidance || (output?.ocr?.text?.trim()
+              ? "Đã đọc được chữ nhưng chưa tách được danh sách thuốc. Hãy chọn vùng gồm tên thuốc và cách dùng, hoặc nhập tay."
+              : "Chưa đọc được chữ từ ảnh. Hãy chọn ảnh rõ hơn, đủ sáng hoặc nhập tay."));
+            setOcrFeedback(`Đã tạo bản nháp ${result.ocr.medication_entries.length} thuốc. ${guidance || "Hãy đối chiếu đủ số thuốc, tên, hàm lượng và cách dùng với ảnh gốc."}`);
           })}>Đọc thông tin từ ảnh</button></div>}
       </fieldset>
     </Card>
+      <Notice>Kết quả đọc ảnh và giọng nói có thể sai hoặc thiếu. Hãy kiểm tra tên thuốc, hàm lượng và cách dùng.</Notice>
+    </div>}
+    <div className="stack">
+    {ocrFeedback && <Notice tone="warning" title="Kiểm tra kết quả đọc ảnh"><p role="status">{ocrFeedback}</p></Notice>}
     {voice?.draft && <Card><section aria-label="Xem và sửa transcript" className="stack">
       <h2>Xem và sửa bản chép lời</h2><p>Whisper nghe được: <span data-testid="raw-transcript">{voice.draft.raw_transcript}</span></p>
       <label className="field">Bản chép lời để gửi<textarea aria-label="Bản chép lời để gửi" value={voiceText} disabled={busy} onChange={event => setVoiceText(event.target.value)} maxLength={12000} /></label>
@@ -242,11 +289,8 @@ function Workspace({ account, initialMode }: { account: string; initialMode: Mod
       })}>Bỏ bản chép lời này</button>
     </section></Card>}
     {details && <>
-      <Card><section aria-label="Hội thoại đã lưu" className="stack"><h2>Hội thoại</h2>
-        {details.messages.filter(item => ["USER", "ASSISTANT"].includes(item.role)).map(item => <p key={item.id} className={`intake-message ${item.role.toLowerCase()}`}>
-          <strong>{item.role === "USER" ? "Bạn" : "Tiểu Bạch"}{item.input_source === "VOICE" ? " · Voice" : ""}: </strong><span style={{ whiteSpace: "pre-wrap" }}>{item.text_content}</span></p>)}
-      </section></Card>
       <CoreOcrReview review={details.review} sources={details.entry_sources} assessment={error ? null : details.assessment} busy={busy}
+        stage={chatPage ? "chat" : stage}
         hasDirty={dirty.size > 0} onDirty={setDirtyEntry}
         onSave={(entry: IntakeEntry, medication: MedicationFields, product: CatalogProduct | null) => run(async () => {
           const value = current.current!;
@@ -256,12 +300,14 @@ function Workspace({ account, initialMode }: { account: string; initialMode: Mod
         })}
         onConfirm={() => void run(async () => { const value = current.current!;
           await accept(await api<IntakeReview>("/api/v1/intake/confirm", post({ workflow_id: value.workflow_id, revision: value.revision, request_key: key("CONFIRM", value), explicit_confirmation: true })));
+          if (alive.current) navigate("/results");
         })}
         onAssess={() => void run(async () => { const value = current.current!;
           await accept(await api<IntakeReview>("/api/v1/intake/actions", post({ workflow_id: value.workflow_id, revision: value.revision, request_key: key("ASSESS", value), action: "ASSESS", explicit_request: true })));
         })}
         onRevise={() => void run(async () => { const value = current.current!;
           await accept(await api<IntakeReview>(`/api/v1/intake/workflows/${value.workflow_id}/revise`, post({ revision: value.revision })));
+          if (alive.current) navigate("/intake");
         })} />
       <div className="button-row">
         {!terminal && <button className="button secondary" disabled={busy || Boolean(voice?.draft)} onClick={() => void run(async () => {
@@ -269,8 +315,16 @@ function Workspace({ account, initialMode }: { account: string; initialMode: Mod
         })}>Hủy yêu cầu hiện tại</button>}
         {terminal && <button className="button secondary" disabled={busy} onClick={() => void run(async () => {
           current.current = null; setDirty(new Set()); await accept(await ensureWorkflow());
+          if (alive.current && !chatPage) navigate("/intake");
         })}>Cuộc hội thoại mới</button>}
       </div>
     </>}
+    {!details && !chatPage && <Card className="intake-form"><CardHeading icon={<PencilLine />} title="Thông tin thuốc" detail="0 thuốc · Chưa xác nhận" action={<Badge tone="warning">Bản nháp</Badge>} />
+      <EmptyState title={stage === "intake" ? "Chưa có thuốc được nhập" : "Chưa có toa để xem"} description="Chọn ảnh toa thuốc hoặc nhập thông tin bằng tay để bắt đầu." />
+      {stage !== "intake" && <Link className="button" to="/intake">Nhập toa thuốc</Link>}
+    </Card>}
+    {details && stage === "intake" && <div className="actions"><button className="button" disabled={busy || dirty.size > 0 || !details.review.entries.length || Boolean(voice?.draft)} onClick={() => navigate(details.review.state === "COMPLETED" ? "/results" : "/verify")}><FileCheck2 size={18} />{details.review.state === "COMPLETED" ? "Xem kết quả" : "Tiếp tục xác nhận"}<ArrowRight size={18} /></button></div>}
+    {stage !== "intake" && !chatPage && <Link className="text-link" to="/intake">Quay lại toa thuốc</Link>}
+    </div></div>
   </div>;
 }
