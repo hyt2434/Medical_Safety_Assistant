@@ -126,3 +126,4 @@ service-account*.json
 /docs/pa/pa1/react-prototype/test-results/
 /docs/pa/pa1/react-prototype/playwright-report/
 /docs/pa/pa1/react-prototype/artifacts/
+/output/
