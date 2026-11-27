@@ -17,7 +17,7 @@ Logs are in ignored `artifacts/baseline-module45-*` and `artifacts/module45-*` f
 
 The handoff gained a prohibition on DB migration edits while implementation was underway. The existing `msa.system_domain_guard` invokes `msa.require_owner(NEW.user_id)` for a `review_cases` update, so the assigned HCP cannot close a case after recording an outcome. Changing the authenticated actor to impersonate the patient would violate the server identity contract.
 
-A local, uncommitted proposal adds `006_hcp_case_closure.sql`. It retains every existing guard and permits only the assigned HCP with current consent and `clinical.case_review` to move an OPEN/IN_REVIEW case to CLOSED after an outcome from that reviewer exists. No table or applied migration is changed. The review service records the outcome and closes the case atomically. Those service/route changes and their backend tests remain local pending an explicit exception to the handoff restriction. The draft PR does not contain the review endpoint.
+The no-migration rule remains in force. The proposed SQL, review endpoint patch, and draft backend tests are archived in ignored `artifacts/module45-g4-draft/`, outside the active source and test trees. No migration is added or changed. The draft PR does not contain the review endpoint; full HCP approval/activation is therefore not delivered. G4 remains blocked rather than bypassing the database guard or impersonating the patient. G1–G3 and G5 provide the handoff's minimum viable scope.
 
 ## Runtime behavior
 
