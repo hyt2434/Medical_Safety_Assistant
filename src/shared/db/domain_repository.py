@@ -13,13 +13,24 @@ class DomainRepository(CoreRepository):
     def __init__(self, connection, *, authenticated_actor, permissions=()):
         super().__init__(connection, authenticated_owner=authenticated_actor)
         self.permissions = tuple(permissions)
+        self._domain_transaction_depth = 0
 
     @contextmanager
     def transaction(self):
+        # Domain operations have no independently committed warning records.
+        # Compose them atomically without relaxing Core intake's transaction rule.
+        if self._domain_transaction_depth:
+            with self.db.transaction():
+                yield
+            return
         with super().transaction():
             self.db.execute("SELECT set_config('msa.authenticated_permissions',%s,true)",
                             (json.dumps(self.permissions),))
-            yield
+            self._domain_transaction_depth += 1
+            try:
+                yield
+            finally:
+                self._domain_transaction_depth -= 1
 
     def add_cabinet_item(self, name_raw, *, product_id=None, reference_build=None, expires_on=None):
         with self.transaction():

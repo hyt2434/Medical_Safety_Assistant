@@ -13,8 +13,8 @@ Rules:
 
 | Goal | Scope | Done when | Status | Commit | Notes |
 |---|---|---|---|---|---|
-| G1 | M5 pure functions: today's occurrences from `times`+timezone, merge dose records, adherence % | `pytest tests/unit/module5 -q` passes | ☑ | [G1] (this commit) | 10 pure tests pass; timezone, DST, corrections and historical schedules. |
-| G2 | M5 service + routes `/entries`, `/schedules` (POST/GET), `/today`, `/doses`, `/adherence`; register router | `python -c "import apps.backend.api.app"` OK; G1 tests still pass | ☐ | | |
+| G1 | M5 pure functions: today's occurrences from `times`+timezone, merge dose records, adherence % | `pytest tests/unit/module5 -q` passes | ☑ | 656133f0 | 10 pure tests pass; timezone, DST, corrections and historical schedules. |
+| G2 | M5 service + routes `/entries`, `/schedules` (POST/GET), `/today`, `/doses`, `/adherence`; register router | `python -c "import apps.backend.api.app"` OK; G1 tests still pass | ☑ | [G2] (this commit) | App import and 10 G1 tests pass; includes reminder gating/activation service. |
 | G3 | M4 service + routes `/providers`, `POST /cases`, `/cases/mine`, `/cases` (queue), `/cases/{id}`, `/messages`; register router | app imports OK; `pytest tests/backend -q` no new failures | ☐ | | |
 | G4 | M4 `/cases/{id}/review` (+ close case); M5 `PUT /schedules/{id}/reminder` (409 `HCP_REVIEW_REQUIRED`) + `/activate` | app imports OK; manual curl/TestClient of the flow, or integration test skeleton | ☐ | | |
 | G5 | Frontend `api.ts` helpers; `Reminders` + `DoseHistory` use API (demo fallback) | `npm run build` OK; existing Playwright specs still pass | ☐ | | |
