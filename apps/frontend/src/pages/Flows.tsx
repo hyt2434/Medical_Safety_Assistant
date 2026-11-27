@@ -1,3 +1,4 @@
+import { useCareMode, LiveDoseHistory, LiveReminderEditor } from "./PersistentCare";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -236,7 +237,7 @@ export function MedicineDetail() {
     </>
   );
 }
-export function DoseHistory() {
+function DemoDoseHistory() {
   const { state } = useDemo();
   const [filter, setFilter] = useState("all");
   const rows = state.doses.filter(
@@ -539,7 +540,7 @@ export function Caregivers() {
     </>
   );
 }
-export function ReminderEditor() {
+function DemoReminderEditor() {
   const { state, update } = useDemo();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -1125,3 +1126,17 @@ export function Operations() {
 }
 
 export { HcpPatientWorkspace as HcpPatientSummary } from "./HcpPatientWorkspace";
+
+export function DoseHistory() {
+  const {authStatus} = useDemo();
+  const mode = useCareMode(authStatus);
+  if (mode === "loading") return <p role="status">Đang tải…</p>;
+  return mode === "live" ? <LiveDoseHistory /> : <DemoDoseHistory />;
+}
+
+export function ReminderEditor() {
+  const {authStatus} = useDemo();
+  const mode = useCareMode(authStatus);
+  if (mode === "loading") return <p role="status">Đang tải…</p>;
+  return mode === "live" ? <LiveReminderEditor /> : <DemoReminderEditor />;
+}

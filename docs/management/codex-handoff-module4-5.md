@@ -15,9 +15,9 @@ Rules:
 |---|---|---|---|---|---|
 | G1 | M5 pure functions: today's occurrences from `times`+timezone, merge dose records, adherence % | `pytest tests/unit/module5 -q` passes | ☑ | 656133f0 | 10 pure tests pass; timezone, DST, corrections and historical schedules. |
 | G2 | M5 service + routes `/entries`, `/schedules` (POST/GET), `/today`, `/doses`, `/adherence`; register router | `python -c "import apps.backend.api.app"` OK; G1 tests still pass | ☑ | 923822ca | App import and 10 G1 tests pass; includes reminder gating/activation service. |
-| G3 | M4 service + routes `/providers`, `POST /cases`, `/cases/mine`, `/cases` (queue), `/cases/{id}`, `/messages`; register router | app imports OK; `pytest tests/backend -q` no new failures | ☑ | [G3] (this commit) | Consent-scoped cases/messages; full Python run has no new failures. |
-| G4 | M4 `/cases/{id}/review` (+ close case); M5 `PUT /schedules/{id}/reminder` (409 `HCP_REVIEW_REQUIRED`) + `/activate` | app imports OK; manual curl/TestClient of the flow, or integration test skeleton | ☐ | | |
-| G5 | Frontend `api.ts` helpers; `Reminders` + `DoseHistory` use API (demo fallback) | `npm run build` OK; existing Playwright specs still pass | ☐ | | |
+| G3 | M4 service + routes `/providers`, `POST /cases`, `/cases/mine`, `/cases` (queue), `/cases/{id}`, `/messages`; register router | app imports OK; `pytest tests/backend -q` no new failures | ☑ | 27a74741 | Consent-scoped cases/messages; full Python run has no new failures. |
+| G4 | M4 `/cases/{id}/review` (+ close case); M5 `PUT /schedules/{id}/reminder` (409 `HCP_REVIEW_REQUIRED`) + `/activate` | app imports OK; manual curl/TestClient of the flow, or integration test skeleton | ⚠ | pending | Existing system_domain_guard requires patient ownership for case UPDATE; assigned HCP closure needs narrow new migration. Draft prepared; awaiting migration exception. |
+| G5 | Frontend `api.ts` helpers; `Reminders` + `DoseHistory` use API (demo fallback) | `npm run build` OK; existing Playwright specs still pass | ☑ | [G5] (this commit) | Build passes; 37 Playwright pass / 1 skip. Explicit server preview preserves existing flows. |
 | G6 | Frontend `HcpQueue` + `HcpCase` use API; patient "send to HCP" (provider picker + consent) | `npm run build` OK | ☐ | | |
 | G7 | `tests/integration/test_module4_5_api.py` (skip without `MODULE2_TEST_DSN`), `hcp-case.spec.ts`, `reminders.spec.ts` | baseline holds (pytest ≥558 pass, Playwright ≥34 pass) + new tests pass/skip cleanly | ☐ | | |
 
