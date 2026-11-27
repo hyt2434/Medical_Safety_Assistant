@@ -18,20 +18,22 @@ python scripts/preview-ui.py
 ```
 
 Lệnh mở frontend tại `http://127.0.0.1:5173`, backend tại cổng 8000; `Ctrl+C`
-dừng cả hai. Có thể chọn `--port` và `--api-port` nếu cổng đang bận. Auth preview
-dùng riêng `artifacts/auth/ui-preview.sqlite`, không dùng database Auth đang có.
+dừng cả hai. Có thể chọn `--port` và `--api-port` nếu cổng đang bận. Mặc định dùng
+cấu hình database trong `apps/backend/.env`. Thêm `--isolated-auth` để dùng riêng
+SQLite `artifacts/auth/ui-preview.sqlite` và tắt Core cho bản xem UI độc lập.
 Chạy `npm.cmd ci` trong `apps/frontend` trước nếu chưa có dependencies.
 
 Tài khoản local để kiểm tra: `mai.demo@example.com` / `Mai-patient-2026`.
 Các tài khoản HCP/admin và role khác nằm trong [backend README](apps/backend/README.md).
 
 Kiểm tra `/login` → `/dashboard` → `/intake` hoặc `/chat`, cùng các trang HCP/admin.
-Để **lưu bản nháp và đánh giá thật**, cần cấu hình `CORE_DB_DSN`,
-`CORE_REFERENCE_BUILD`, cấp UUID của tài khoản preview vào Core theo
-[hợp đồng Auth/Core](db/auth/README.md), và chuẩn bị Qwen/Ollama, Whisper,
-Tesseract cùng DDInter index. Nếu chưa cấu hình, UI báo không có liên kết Core
-và không cho lưu; không thay kết quả thật bằng dữ liệu mẫu. Launcher không tự
-migrate hoặc nạp dữ liệu Core. HCP review, hồ sơ và lịch nhắc vẫn là prototype.
+Để **lưu bản nháp thật**, cấu hình PostgreSQL bằng `DB_*` hoặc `DATABASE_URL`,
+rồi chạy `python db/setup_system.py --apply` một lần. Lệnh sao lưu, bổ sung Core
+vào cùng database Auth/OCR, nhập danh mục, liên kết UUID và cập nhật `.env`.
+Chi tiết ở [hướng dẫn database chung](db/README.md#unified-local-deployment).
+Tesseract cần cho OCR, Qwen/Ollama cho NLP, Whisper cho Voice và DDInter index
+cho đánh giá tương tác. Thiếu DDInter không chặn lưu bản nháp nhưng chưa thể
+đánh giá. HCP review, hồ sơ và lịch nhắc vẫn là prototype.
 
 Trong Intake: chọn nguồn → nhập/upload → sửa và **Lưu thay đổi** từng thuốc →
 đồng ý xác nhận → **Xác nhận danh sách** → **Nhận diện và đánh giá tương tác**.

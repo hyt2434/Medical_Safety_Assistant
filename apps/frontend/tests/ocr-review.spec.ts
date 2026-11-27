@@ -1,10 +1,30 @@
 import { test, expect } from '@playwright/test';
 import { fixture, login } from './intake-fixture';
 
+test('OCR explains recognized text with unsupported structure instead of claiming no text', async ({ page }) => {
+  const state = await fixture(page);
+  await page.route('**/api/v1/intake/workflows/*/ocr', route => route.fulfill({ json: {
+    review: state.review, ocr: { medication_entries: [], extraction_run: { raw_output: {
+      ocr: { text: 'Literal OCR text' }, parsed: { review_guidance: {
+        message: 'Đã đọc được chữ nhưng chưa tách được danh sách thuốc. Hãy chọn vùng thuốc.'
+      } }
+    } } }
+  } }));
+  await login(page); await page.goto('/intake');
+  await page.getByLabel('Chọn ảnh toa thuốc', { exact: true }).setInputFiles('public/assets/prescription-sample.png');
+  await page.getByRole('button', { name: 'Đọc thông tin từ ảnh', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Đã đọc được chữ nhưng chưa tách được danh sách thuốc');
+  await expect(page.getByLabel('Tên thuốc #1', { exact: true })).toHaveCount(0);
+});
+
 test('persisted OCR edits, revision and confirmation precede explicit safety requests (HTTP fixtures)',async({page})=>{
   const state=await fixture(page);await login(page);await page.goto('/intake');
   await page.getByLabel('Chọn ảnh toa thuốc',{exact:true}).setInputFiles('public/assets/prescription-sample.png');
   await page.getByRole('button',{name:'Đọc thông tin từ ảnh',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Xác nhận danh sách',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'Tiếp tục xác nhận',exact:false}).click();
+  await expect(page).toHaveURL('/verify');
+  await page.getByText('Sửa thông tin thuốc',{exact:true}).click();
   const pane=page.getByRole('region',{name:'Bản nháp đã lưu trên máy chủ'});
   const confirm=pane.getByRole('button',{name:'Xác nhận danh sách',exact:true});
   await expect(confirm).toBeDisabled();
@@ -98,7 +118,7 @@ test('API failures and denied microphone retain input and never display sample s
   await fixture(page);await login(page);await page.goto('/intake?mode=voice');
   await page.getByRole('button',{name:'Thu âm',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('Microphone');
-  await page.getByRole('button',{name:'Chatbot',exact:true}).click();
+  await page.goto('/chat');
   await page.getByLabel('Tin nhắn',{exact:true}).fill('Dữ liệu chưa gửi được');
   await page.route('**/api/v1/intake/messages',route=>route.fulfill({status:503,json:{error:{message:'Máy chủ đang bận'}}}));
   await page.getByRole('button',{name:'Gửi tin nhắn',exact:true}).click();

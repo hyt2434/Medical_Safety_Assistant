@@ -42,7 +42,8 @@ def main(argv=None):
         parser.error('Service adapters require --application')
     if args.owner is None:
         parser.error("--owner is required for persisted dialogue")
-    dsn = os.environ.get("CORE_DB_DSN")
+    from shared.auth.settings import core_database_dsn
+    dsn = core_database_dsn()
     if not dsn:
         parser.error("CORE_DB_DSN must point to an already provisioned Core V4 database")
     # Keep the persisted chatbot path separate from stateless extraction.

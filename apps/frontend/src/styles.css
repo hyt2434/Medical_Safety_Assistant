@@ -3096,6 +3096,8 @@ td select {
   }
 }
 .intake-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.intake-workspace > .chat-layout { margin-bottom: var(--space-lg); }
+.intake-workspace .chat-compose textarea { min-height: 50px; }
 .intake-workspace .segmented, .intake-workspace .button-row { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
 .intake-workspace .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 1rem; }
 .intake-workspace .field { display: flex; flex-direction: column; gap: .35rem; margin-block: .6rem; }

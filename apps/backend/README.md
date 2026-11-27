@@ -1,5 +1,17 @@
 # Auth API
 
+## Một database cho toàn hệ thống
+
+Sau khi cấu hình PostgreSQL bằng `DB_*` hoặc `DATABASE_URL` trong `.env`, chạy
+`python db/setup_system.py --apply` từ gốc repo. Lệnh sao lưu rồi giữ Auth/OCR cũ
+ở `public`, bổ sung Core vào `identity`/`msa`/`msa_ref`, nhập danh mục và liên kết
+UUID. `DATABASE_MODE=unified` dùng chung kết nối Auth cho Core, không phải nhập
+mật khẩu lần hai. Restart backend sau thiết lập. Xem [hướng dẫn DB](../../db/README.md#unified-local-deployment).
+
+Tài khoản mới được đăng ký UUID vào Core bằng trigger cùng transaction; quyền
+vẫn do session/role kiểm soát. Thiếu DDInter không chặn OCR/nhập tay nhưng đánh giá
+tương tác sẽ chưa khả dụng. Nội dung về hai database bên dưới áp dụng cho chế độ tách riêng.
+
 Xác thực nằm trong API Python (`apps/backend`) và database Auth riêng.
 
 Core có registry `identity.users(id uuid)` và schema nghiệp vụ mở rộng theo SAD

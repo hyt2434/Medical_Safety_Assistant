@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from shared.auth.db import initialize, migrate
+from shared.auth.settings import core_database_dsn
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -19,8 +20,8 @@ if __name__ == "__main__":
     else:
         import psycopg
         from shared.auth.core_owner import provision_core_identity
-        if not args.account_id or not os.environ.get('CORE_DB_DSN'):
+        if not args.account_id or not core_database_dsn():
             parser.error('provision-core requires --account-id and CORE_DB_DSN')
-        with psycopg.connect(os.environ['CORE_DB_DSN'], autocommit=True) as connection:
+        with psycopg.connect(core_database_dsn(), autocommit=True) as connection:
             provision_core_identity(args.account_id, connection)
     print("Identity " + args.command + " completed; existing accounts and grants retained.")

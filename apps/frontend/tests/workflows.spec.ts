@@ -217,6 +217,8 @@ test('Core edits invalidate confirmation and do not fabricate assessments', asyn
   await login(page); await page.goto('/intake');
   await page.getByLabel('Chọn ảnh toa thuốc', { exact: true }).setInputFiles('public/assets/prescription-sample.png');
   await page.getByRole('button', { name: 'Đọc thông tin từ ảnh', exact: true }).click();
+  await page.getByRole('button', { name: 'Tiếp tục xác nhận', exact: false }).click();
+  await page.getByText('Sửa thông tin thuốc', { exact: true }).click();
   const confirm = page.getByRole('button', { name: 'Xác nhận danh sách', exact: true });
   await expect(confirm).toBeDisabled();
   await page.getByRole('region', { name: 'Bản nháp đã lưu trên máy chủ' }).getByRole('checkbox').check();

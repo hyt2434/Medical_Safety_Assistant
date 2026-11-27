@@ -4,6 +4,7 @@ import os
 import psycopg
 from psycopg.rows import dict_row
 from apps.backend.api.deps import current_session
+from shared.auth.settings import core_database_dsn
 
 router = APIRouter(prefix="/api/reference", tags=["Reference data"])
 
@@ -21,7 +22,7 @@ def medication_spelling(q: str = Query(min_length=1, max_length=120),
 
 @router.get("/medications")
 def medications(q: str = Query(default="", max_length=120), _session=Depends(current_session)):
-    dsn, build = os.environ.get('CORE_DB_DSN'), os.environ.get('CORE_REFERENCE_BUILD')
+    dsn, build = core_database_dsn(), os.environ.get('CORE_REFERENCE_BUILD')
     if not dsn or not build:
         raise HTTPException(503, "Chưa cấu hình danh mục Core V4")
     pattern = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"

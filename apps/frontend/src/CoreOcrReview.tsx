@@ -1,7 +1,9 @@
 import { useEffect, useId, useState } from "react";
 import { api } from "./api";
 import type { CatalogProduct, EntrySource, IntakeDetails, IntakeEntry, IntakeReview, MedicationFields } from "./api";
-import { Badge, Card, Notice } from "./components";
+import { Badge, Card, CardHeading, Notice } from "./components";
+import { PencilLine } from "lucide-react";
+import { Link } from "react-router-dom";
 import { MedicineSpelling } from "./MedicineSpelling";
 import { InstructionReview } from "./InstructionReview";
 import type { Medicine } from "./state";
@@ -85,14 +87,14 @@ function EntryEditor({ entry, source, ordinal, editable, busy, onSave, onDirty }
       uncertain_fields: Array.isArray(original.uncertain_fields) ? original.uncertain_fields.filter(field => !edited.has(String(field))) : [] };
     await onSave(entry, medication, selected);
   }
-  return <form className="intake-entry stack" aria-label={`Thuốc ${ordinal}`} onSubmit={event => { event.preventDefault(); void save(); }}>
-    <div className="button-row"><h3>Thuốc {ordinal}: {original.name_raw || "Chưa rõ tên"}</h3>
+  return <form className="medicine-editor intake-entry stack" aria-label={`Thuốc ${ordinal}`} onSubmit={event => { event.preventDefault(); void save(); }}>
+    <div className="editor-header"><span className="index-number">{String(ordinal).padStart(2, "0")}</span><strong>{original.name_raw || "Thuốc chưa đặt tên"}</strong>
       <Badge tone={entry.confirmed ? "info" : "warning"}>{entry.confirmed ? "Bản đã xác nhận" : "Chưa xác nhận"}</Badge>
       <span>Nguồn: {source?.input_source || "TEXT"}</span></div>
-    {source?.selected_product && <p>Mã đã chọn: {source.selected_product.source_medication_id} · Phiên bản danh mục: {source.selected_product.dataset_build.slice(0, 12)}</p>}
+    {source?.selected_product && <details><summary>Sản phẩm đã chọn</summary><p>Mã đã chọn: {source.selected_product.source_medication_id} · Phiên bản danh mục: {source.selected_product.dataset_build.slice(0, 12)}</p></details>}
     {original.administrations && original.administrations.length > 1 && <p>Có nhiều cữ dùng trong bản nháp. Form này sửa cữ đầu tiên; các cữ còn lại được giữ nguyên. Bạn có thể nhắn với chatbot để làm rõ thêm.</p>}
     <fieldset className="intake-fieldset" disabled={busy || !editable}>
-      <div className="form-grid">{([
+      <div className="two-grid">{([
         ["Tên thuốc", name, setName], ["Hàm lượng", strength, setStrength], ["Dạng thuốc", form, setForm],
         ["Liều mỗi lần", dose, setDose], ["Thời điểm", timing, setTiming], ["Hướng dẫn", instructions, setInstructions],
       ] as const).map(([label, value, change]) => <label className="field" key={label}>{label} #{ordinal}
@@ -108,7 +110,8 @@ function EntryEditor({ entry, source, ordinal, editable, busy, onSave, onDirty }
   </form>;
 }
 
-export function CoreOcrReview({ review, sources, assessment, busy, hasDirty, onDirty, onSave, onConfirm, onAssess, onRevise }: {
+export function CoreOcrReview({ review, sources, assessment, busy, hasDirty, onDirty, onSave, onConfirm, onAssess, onRevise, stage = "intake" }: {
+  stage?: "intake" | "verify" | "results" | "chat";
   review: IntakeReview; sources: Record<string, EntrySource>; assessment: IntakeDetails["assessment"]; busy: boolean; hasDirty: boolean;
   onDirty: (id: string, value: boolean) => void;
   onSave: (entry: IntakeEntry, medication: MedicationFields, selected: CatalogProduct | null) => Promise<void>;
@@ -119,24 +122,46 @@ export function CoreOcrReview({ review, sources, assessment, busy, hasDirty, onD
   const agreed = !hasDirty && agreedRevision === revision;
   const completed = review.state === "COMPLETED";
   const editable = !["COMPLETED", "CANCELLED", "FAILED"].includes(review.state);
-  return <Card><section aria-label="Bản nháp đã lưu trên máy chủ" className="stack">
-    <h2>Bản nháp trên máy chủ</h2>
+  return <Card className="intake-form"><section aria-label="Bản nháp đã lưu trên máy chủ" className="stack">
+    <CardHeading icon={<PencilLine />} title={stage === "results" ? "Thông tin đã xác nhận" : "Thông tin thuốc"} detail={`${review.entries.length} thuốc · ${completed ? "Đã xác nhận" : "Chưa xác nhận"}`} action={<Badge tone={completed ? "info" : "warning"}>{completed ? "Đã xác nhận" : "Bản nháp"}</Badge>} />
     <p role="status" style={{ whiteSpace: "pre-wrap" }}>{review.assistant_message}</p>
+    {review.entries.some(entry => Array.isArray(entry.medication.uncertain_fields) && entry.medication.uncertain_fields.includes('ocr_low_confidence')) &&
+      <Notice tone="warning" title="Dò lại toa thuốc">Có thông tin OCR chưa chắc chắn. Bản nháp có thể thiếu hoặc đọc sai thuốc; hãy đối chiếu đủ số thuốc, tên, hàm lượng và cách dùng với ảnh gốc.</Notice>}
     {review.missing_blockers?.map((blocker, index) => <Notice tone="warning" key={index}>{blocker.question}</Notice>)}
     {hasDirty && <Notice tone="warning">Bạn có thay đổi chưa lưu. Lưu từng thuốc trước khi xác nhận; kết quả cũ không áp dụng cho thông tin đang sửa.</Notice>}
-    {review.entries.map((entry, index) => <EntryEditor key={revision.split(":")[0] + ":" + entry.entry_version_id}
+    {(stage === "verify" || stage === "results") && <section className="medicine-confirmation" aria-label="Đối chiếu thuốc">
+      <div className="confirmation-summary"><h2>Danh sách thuốc</h2><span>{review.entries.length} thuốc · {completed ? "Đã xác nhận" : "Cần đối chiếu"}</span></div>
+      <p className="confirmation-help">Đối chiếu từng dòng với toa gốc trước khi xác nhận.</p>
+      <div className="confirmation-scroll" tabIndex={0} role="region" aria-label="Bảng xác nhận thuốc, cuộn ngang để xem đầy đủ">
+        <table className="confirmation-table"><caption className="sr-only">Thông tin thuốc cần đối chiếu với toa gốc</caption>
+          <thead><tr><th scope="col">Thuốc</th><th scope="col">Hàm lượng</th><th scope="col">Cách dùng</th><th scope="col">Xác nhận</th></tr></thead>
+          <tbody>{review.entries.map((entry, index) => <tr key={entry.entry_version_id} className={entry.confirmed ? "is-confirmed" : undefined}>
+            <th scope="row"><strong>{index + 1}. {entry.medication.name_raw || "Chưa rõ tên"}</strong><small>{entry.medication.dosage_form_raw || "Chưa rõ dạng thuốc"}</small></th>
+            <td>{entry.medication.strength_raw || "Chưa có"}</td>
+            <td className="confirmation-instruction">{[entry.medication.dose_raw, entry.medication.instructions_raw, ...(entry.medication.administrations || []).map(item => item.timing_raw)].filter(Boolean).join(" · ") || "Chưa có"}</td>
+            <td><Badge tone={entry.confirmed ? "success" : "warning"}>{entry.confirmed ? "Đã xác nhận" : "Chưa xác nhận"}</Badge></td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+    </section>}
+    {stage === "chat" && review.entries.length > 0 && <details><summary>Danh sách thuốc trong cuộc trò chuyện</summary><div className="medicine-list">{review.entries.map(entry =>
+      <div className="medicine-row" key={entry.entry_version_id}><span className="medicine-stripe" /><div className="grow"><strong>{entry.medication.name_raw} {entry.medication.strength_raw}</strong><p>{entry.medication.instructions_raw || entry.medication.dose_raw}</p></div></div>)}</div><Link to="/intake">Xem và sửa thông tin thuốc</Link></details>}
+    {stage === "intake" && review.entries.map((entry, index) => <EntryEditor key={revision.split(":")[0] + ":" + entry.entry_version_id}
       entry={entry} ordinal={index + 1} source={sources[entry.entry_version_id]} busy={busy} editable={editable} onDirty={onDirty} onSave={onSave} />)}
-    {editable && review.entries.length > 0 && <>
+    {stage === "verify" && <details><summary>Sửa thông tin thuốc</summary><div className="stack">{review.entries.map((entry, index) => <EntryEditor key={entry.entry_version_id}
+      entry={entry} ordinal={index + 1} source={sources[entry.entry_version_id]} busy={busy} editable={editable} onDirty={onDirty} onSave={onSave} />)}</div></details>}
+    {stage === "verify" && editable && review.entries.length > 0 && <>
       <label><input type="checkbox" checked={agreed} disabled={busy || hasDirty || review.state !== "AWAITING_CONFIRMATION"}
         onChange={event => setAgreedRevision(event.target.checked ? revision : "")} /> Tôi đã xem lại và đồng ý xác nhận đúng bản nháp này.</label>
       <button className="button" disabled={busy || !agreed || review.state !== "AWAITING_CONFIRMATION"} onClick={onConfirm}>Xác nhận danh sách</button>
     </>}
-    {completed && <>
+    {stage === "results" && !completed && <Notice>Bạn cần xem lại và xác nhận toa trước khi đánh giá. <Link to="/verify">Đến bước xác nhận</Link></Notice>}
+    {stage === "results" && completed && <>
       <Notice>Xác nhận là xác nhận thông tin bạn nhập. Nhận diện sản phẩm và đánh giá an toàn là các bước riêng.</Notice>
       <div className="button-row"><button className="button" disabled={busy} onClick={onAssess}>Nhận diện và đánh giá tương tác</button>
         <button className="button secondary" disabled={busy} onClick={onRevise}>Sửa danh sách đã xác nhận</button></div>
     </>}
-    {review.identification_results?.map((result, index) => <section key={index} aria-label={`Nhận diện thuốc ${index + 1}`}>
+    {stage === "results" && review.identification_results?.map((result, index) => <section key={index} aria-label={`Nhận diện thuốc ${index + 1}`}>
       <h3>Nhận diện thuốc {index + 1}: {result.core_match_status}</h3>
       {result.core_match_status === "AMBIGUOUS" && <Notice tone="warning">Có nhiều ứng viên. Chọn “Sửa danh sách đã xác nhận”, đối chiếu và chọn đúng sản phẩm từ danh mục ở thuốc tương ứng, rồi xác nhận lại. Không có sản phẩm được chọn tự động.</Notice>}
       <details><summary>Xem định danh, hoạt chất và ứng viên từ Module 2</summary><pre>{JSON.stringify(result, null, 2)}</pre></details>
@@ -146,7 +171,7 @@ export function CoreOcrReview({ review, sources, assessment, busy, hasDirty, onD
       {answer.limitations.map((value, i) => <p key={i}>{value}</p>)}
       <details><summary>Bằng chứng câu trả lời</summary><pre>{JSON.stringify(answer.evidence_refs, null, 2)}</pre></details>
     </section>)}
-    {assessment && <section aria-label="Kết quả tương tác thực tế" className="stack">
+    {stage === "results" && assessment && <section aria-label="Kết quả tương tác thực tế" className="stack">
       <h2>Kết quả tương tác</h2><p>Thực thi: {assessment.execution_status}</p>
       {Object.entries(assessment.check_results).map(([kind, check]) => <div key={kind}><strong>{kind}: {check.execution} · Coverage {check.coverage}</strong>
         {check.limitations?.map((value, index) => <p key={index}>{value}</p>)}</div>)}

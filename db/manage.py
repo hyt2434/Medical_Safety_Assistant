@@ -13,6 +13,7 @@ import psycopg
 from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from shared.db.importer import import_datasets
+from shared.auth.settings import core_database_dsn
 
 TEST_MARKER = "Medication Safety Assistant Core V4 isolated test"
 # The earlier local baseline was reconstructed from the installed function bodies
@@ -74,10 +75,10 @@ def migrate(db):
     return dict(ledger, reused_schema=row is not None, applied_migrations=[path.name for path in pending])
 
 
-def provision_identity_registry(db):
+def provision_identity_registry(db, *, unified=False):
     """Explicit new-install prerequisite; validate but never rewrite an existing registry."""
     with db.transaction():
-        if db.execute("SELECT to_regclass('public.auth_alembic_version')").fetchone()[0] is not None:
+        if not unified and db.execute("SELECT to_regclass('public.auth_alembic_version')").fetchone()[0] is not None:
             raise RuntimeError('Refusing Core registry provisioning in the separate Auth database')
         existing = db.execute("SELECT to_regclass('identity.users')").fetchone()[0]
         if existing is None:
@@ -116,7 +117,7 @@ def bootstrap_test(dsn, *, explicit=False):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=("prepare-test", "bootstrap-test", "provision-identity", "migrate", "import"))
-    parser.add_argument("--dsn", default=os.environ.get("CORE_DB_DSN"))
+    parser.add_argument("--dsn", default=core_database_dsn())
     parser.add_argument("--csv-dir", type=Path, default=ROOT / "data/datasets")
     parser.add_argument("--report", type=Path)
     parser.add_argument("--isolated-test", action="store_true")

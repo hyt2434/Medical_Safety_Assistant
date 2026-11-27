@@ -1,12 +1,16 @@
 ﻿# Auth / RBAC database
 
+Có thể hợp nhất Auth/OCR và Core bằng `python db/setup_system.py --apply`.
+Auth ở `public`, Core ở `identity`/`msa`/`msa_ref` trong cùng database; UUID mới
+được liên kết bằng trigger cùng transaction. Xem [hướng dẫn chung](../README.md#unified-local-deployment).
+
 Migration/DDL đăng nhập và phân quyền nằm duy nhất ở `db/auth/`; ORM và dịch vụ ở
 `src/shared/auth/`. Core V4 tiếp tục dùng `db/migrations/`, không chạy migration Auth
 để tạo hoặc thay thế `identity.users(id uuid)` của Core.
 
 Launcher và CLI đọc `apps/backend/.env`. Dùng `AUTH_DATABASE_URL` cho PostgreSQL Auth
 riêng hoặc `AUTH_DB_PATH` cho SQLite (mặc định `artifacts/auth/dev.sqlite`).
-Các biến cũ `DATABASE_URL` / `DB_*` còn được hỗ trợ; không trỏ chúng vào DB Core.
+`DATABASE_URL` / `DB_*` dùng được cho database chung với `DATABASE_MODE=unified`.
 `AUTH_*` được ưu tiên. Ví dụ cấu hình trong `apps/backend/.env.example`.
 
 Từ gốc repository, dùng cùng môi trường `.venv` của ứng dụng:
