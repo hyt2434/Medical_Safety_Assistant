@@ -17,36 +17,45 @@ simulated healthcare professional review, and medication reminders.
 This document covers architectural goals and constraints,
 the use-case model, and the logical view. The system provides
 decision support only and does not replace professional medical
-judgment. Deployment and implementation views are deferred
-as permitted by the PA3 requirements.
+judgment. 
+
+
 
 \medskip
 \noindent\textbf{Definitions, Acronyms and Abbreviations.}
 
 \noindent
-\begin{tabularx}{\textwidth}{|L{2.5cm}|Y|}
+\begin{tabularx}{\textwidth}{|L{2.8cm}|Y|}
     \hline
     \textbf{Term} & \textbf{Definition} \\ \hline
+    SAD & Software Architecture Document \\ \hline
     HCP & Healthcare Professional \\ \hline
     DDI & Drug--Drug Interaction \\ \hline
+    ADR & Adverse Drug Reaction \\ \hline
     OCR & Optical Character Recognition \\ \hline
     NLP & Natural Language Processing \\ \hline
+    API & Application Programming Interface \\ \hline
+    DTO & Data Transfer Object \\ \hline
     RBAC & Role-Based Access Control \\ \hline
+    ERD & Entity--Relationship Diagram \\ \hline
+    UUID & Universally Unique Identifier \\ \hline
+    Core DB V4 & The main database for medication,
+    patient health and other business records. \\ \hline
+    Auth/RBAC & The data store for user accounts,
+    authentication, roles and permissions. \\ \hline
 \end{tabularx}
+
 
 \medskip
 \noindent\textbf{References.}
 
 \noindent
-\begin{tabularx}{\textwidth}{|L{1.5cm}|Y|L{2.8cm}|}
+\begin{tabularx}{\textwidth}{|L{1.5cm}|Y|}
     \hline
-    \textbf{ID} & \textbf{Document} & \textbf{Version / Date} \\ \hline
-    R1 & Vision Document (PA2-Group02-VisionDocument)
-       & 1.1 / 01 Nov 2026 \\ \hline
-    R2 & Use-Case Specification (PA2-Group02-UseCaseSpecification)
-       & 1.0 / 01 Nov 2026 \\ \hline
-    R3 & Software Development Plan (PA2-Group02-ProjectPlan)
-       & 1.1 / 01 Nov 2026 \\ \hline
+    \textbf{ID} & \textbf{Document} \\ \hline
+    R1 & Vision Document \\ \hline
+    R2 & Use-Case Specification \\ \hline
+    R3 & Software Development Plan \\ \hline
 \end{tabularx}
 
 \medskip

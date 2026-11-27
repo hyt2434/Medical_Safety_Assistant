@@ -1,0 +1,25 @@
+.role-overview { display: grid; gap: 24px; }
+.role-overview .page-heading { margin-bottom: 0; }
+.overview-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.role-overview .metric { height: 100%; padding: 20px; }
+.overview-list { display: grid; gap: 4px; margin-bottom: 16px; }
+.overview-row { display: flex; align-items: center; gap: 16px; padding: 16px 12px; border-radius: 12px; color: var(--color-ink); text-decoration: none; min-width: 0; }
+.overview-row:hover { background: var(--color-teal-soft); }
+.overview-row > div { flex: 1; min-width: 0; }
+.overview-row strong, .overview-row span { overflow-wrap: anywhere; }
+.overview-row strong { display: block; font-size: 17px; }
+.overview-row div > span { display: block; margin-top: 4px; color: var(--color-muted); font-size: 14px; }
+.overview-row > svg { flex-shrink: 0; color: var(--color-primary); }
+.overview-list > .overview-row + .overview-row { border-top: 1px solid var(--color-border); }
+.overview-shortcuts { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+.overview-shortcuts .overview-row { background: var(--color-teal-soft); padding: 20px; }
+.overview-admin-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+@media(max-width: 600px) {
+  .role-overview { gap: 16px; }
+  .overview-metrics { grid-template-columns: 1fr; gap: 8px; }
+  .role-overview .metric { padding: 12px 16px; }
+  .overview-admin-grid { grid-template-columns: 1fr; gap: 16px; }
+  .overview-row { flex-wrap: wrap; gap: 8px; padding: 16px 4px; }
+  .overview-row > div { flex-basis: calc(100% - 32px); }
+  .overview-row strong { font-size: 16px; }
+}

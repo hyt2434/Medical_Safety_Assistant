@@ -1,0 +1,4 @@
+faster-whisper>=1.0
+# Retain the source branch's tested decoder range.
+av>=11,<17
+numpy

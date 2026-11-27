@@ -1,0 +1,47 @@
+{
+  "capturedAt": "2026-11-15T04:10:39.525Z",
+  "method": "Current React UI; synthetic auth session intercepted in isolated browser; built-in medication fixture; no OCR service invoked",
+  "fixedDisplayTime": "2026-11-15T09:00:00+07:00",
+  "checks": [
+    "unconfirmed entries prevent continuation",
+    "confirm-all permits navigation to results"
+  ],
+  "screens": [
+    {
+      "file": "01-dashboard-a.png",
+      "route": "/dashboard",
+      "fullPage": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "file": "02-intake-a.png",
+      "route": "/intake",
+      "fullPage": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "file": "03-confirm-a.png",
+      "route": "/verify",
+      "fullPage": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    {
+      "file": "04-confirm-validation-a.png",
+      "route": "/verify",
+      "fullPage": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    }
+  ]
+}

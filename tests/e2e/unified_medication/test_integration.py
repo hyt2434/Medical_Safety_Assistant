@@ -7,7 +7,7 @@ import unittest
 HERE=Path(__file__).resolve().parent
 ROOT = PROJECT_ROOT
 
-from module1_intake.ocr.local_ocr_rows import extract_printed_rows
+from module1_intake.ocr.parsing.dispatcher import extract_printed_prescription as extract_printed_rows
 spec=importlib.util.spec_from_file_location('unified_runner',HERE/'run.py')
 runner=importlib.util.module_from_spec(spec); spec.loader.exec_module(runner)
 

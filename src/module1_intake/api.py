@@ -1,29 +1,36 @@
 """2 hàm public của Module I (Manual Input + Voice Input).
 
 Cấu hình qua biến môi trường:
-  MEDICATION_DATA_DIR   thư mục chứa các file CSV (mặc định: ./data)
+  MEDICATION_DATA_DIR   thư mục chứa CSV (mặc định: data/datasets trong repo)
   WHISPER_MODEL_SIZE    tiny | base | small | medium ... (mặc định: small)
 """
 from __future__ import annotations
 
 import os
 import threading
+from pathlib import Path
+from typing import TYPE_CHECKING
 
-from .dictionary import load_dictionary
-from .suggest import MedicationSuggester
+from .manual_input.dictionary import load_dictionary
 from .voice import ASREngine, WhisperASR, transcribe_voice as _transcribe_voice
 
+if TYPE_CHECKING:
+    from .manual_input.suggest import MedicationSuggester
+
+DEFAULT_MEDICATION_DATA_DIR = Path(__file__).resolve().parents[2] / 'data' / 'datasets'
 _lock = threading.Lock()
 _suggester: MedicationSuggester | None = None
 _asr: ASREngine | None = None
 
 
-def init_suggester(data_dir: str | None = None) -> None:
+def init_suggester(data_dir: str | Path | None = None) -> None:
     """Nạp từ điển + dựng index. Gọi lúc khởi động để lần gõ đầu tiên không bị trễ."""
     global _suggester
+    from .manual_input.suggest import MedicationSuggester
+
     with _lock:
         _suggester = MedicationSuggester(
-            load_dictionary(data_dir or os.environ.get("MEDICATION_DATA_DIR", "data"))
+            load_dictionary(data_dir or os.environ.get("MEDICATION_DATA_DIR") or DEFAULT_MEDICATION_DATA_DIR)
         )
 
 

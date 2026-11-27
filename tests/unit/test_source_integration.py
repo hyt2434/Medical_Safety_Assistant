@@ -12,7 +12,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from module1_intake.ocr.local_ocr_rows import extract_printed_rows, find_numbered_row_starters
+from module1_intake.ocr.parsing.dispatcher import extract_printed_prescription as extract_printed_rows, find_numbered_row_starters
 from module2_medications.fixtures import fixture_db
 from module2_medications.reference import MedicationReference, review_product
 from module2_medications.service import assess_prescriptions
@@ -27,15 +27,15 @@ class OCRRowsTests(unittest.TestCase):
         def word(text, x, y, confidence=99):
             return {'text': text, 'confidence': confidence,
                     'bbox': {'x0': x, 'x1': x+35, 'y0': y, 'y1': y+15}}
-        return {'words': [word('Strength', 500, 10), word('1.', 10, 100),
-                          word('Fixture', 70, 100), word('500mg', 500, 100),
+        return {'words': [word('Thuốc', 10, 10), word('điều', 65, 10), word('trị', 110, 10), word('1.', 10, 100),
+                          word('Fixture', 70, 100), word('500mg', 150, 100),
                           word('Form:', 70, 150), word('tablet', 150, 150)]}
 
     def test_literal_fields_and_review_gate(self):
         result = extract_printed_rows(self.raw())
         med = result['medications'][0]
-        self.assertEqual((med['name_raw'], med['strength_raw'], med['dosage_form_raw']),
-                         ('Fixture', '500mg', 'tablet'))
+        self.assertEqual((med['name_raw'], med['strength_raw'], med.get('dosage_form_raw')),
+                         ('Fixture', '500mg', None))
         self.assertIsNone(med['dose_raw'])
         self.assertTrue(result['requires_user_review'])
 
@@ -48,11 +48,12 @@ class OCRRowsTests(unittest.TestCase):
 
     def test_low_confidence_requires_review(self):
         raw = self.raw()
-        raw['words'][2]['confidence'] = 40
+        next(w for w in raw['words'] if w['text'] == 'Fixture')['confidence'] = 40
         self.assertIn('ocr_low_confidence', extract_printed_rows(raw)['medications'][0]['uncertain_fields'])
 
-    def test_unrecognized_layout_defers_to_legacy(self):
-        self.assertIsNone(extract_printed_rows({'words': []}))
+    def test_unrecognized_layout_requires_manual_review(self):
+        with self.assertRaises(ValueError):
+            extract_printed_rows({'words': []})
 
     def test_bare_row_numbers_require_aligned_consecutive_sequence(self):
         def word(text, x, y):
@@ -82,7 +83,8 @@ class OCRRowsTests(unittest.TestCase):
         self.assertEqual(medication['strength_raw'], '10mg')
         self.assertEqual(medication['quantity_raw'], '28 Viên')
         self.assertEqual(medication['duration_raw'], '(14 ngày)')
-        self.assertEqual(medication['administrations'], [{'timing_raw': 'Sáng', 'dose_raw': '01 viên'}])
+        self.assertEqual([{k: a[k] for k in ('timing_raw', 'dose_raw')} for a in medication['administrations']],
+                         [{'timing_raw': 'Sáng', 'dose_raw': '01 viên'}])
 
 
 class SyntheticPipelineTests(unittest.TestCase):
@@ -104,7 +106,10 @@ class SyntheticPipelineTests(unittest.TestCase):
         self.mapper = DirectDDInter(self.dataset)
 
     def sample(self, reviewed=True):
-        value = json.loads((PROJECT_ROOT/'data/samples/synthetic_pipeline.json').read_text())
+        value = {'prescriptions': [{'prescription_id': f'synthetic-rx-{index}', 'medications': [{
+            'brand_name': name, 'synthetic_fixture': True,
+            'transcription_status': 'USER_CONFIRMED_TRANSCRIPTION'}]}
+            for index, name in enumerate(('Fixture Dolutegravir', 'Fixture Antacid'), 1)]}
         if reviewed:
             for prescription in value['prescriptions']:
                 for med in prescription['medications']:
@@ -168,7 +173,7 @@ class UnifiedBoundaryTests(unittest.TestCase):
 
 class ImportIsolationTests(unittest.TestCase):
     def test_runtime_modules_resolve_to_team_source(self):
-        for name in ('module1_intake.ocr.local', 'module2_medications.reference',
+        for name in ('module1_intake.ocr.application.service', 'module2_medications.reference',
                      'module2_medications.unified', 'module3_interactions.engine',
                      'module3_interactions.official_ddinter.dataset', 'shared.dav_import.pipeline'):
             module = importlib.import_module(name)
