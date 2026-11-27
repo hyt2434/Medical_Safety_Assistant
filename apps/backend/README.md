@@ -1,8 +1,23 @@
 # Auth API
 
-Xác thực nằm trong API Python (`apps/backend`), không nằm trong 20 bảng Core V4.
+## Một database cho toàn hệ thống
 
-`identity.users` chỉ là phụ thuộc ngoài với cột `id`. Schema V4 không có `USERS`, `ROLES`, `USER_ROLES`. Module xác thực dùng SQLAlchemy và Alembic trong database riêng, hỗ trợ PostgreSQL và SQLite. Không thay đổi 20 bảng Core V4 hoặc tự tạo liên kết giả với `identity.users`.
+Sau khi cấu hình PostgreSQL bằng `DB_*` hoặc `DATABASE_URL` trong `.env`, chạy
+`python db/setup_system.py --apply` từ gốc repo. Lệnh sao lưu rồi giữ Auth/OCR cũ
+ở `public`, bổ sung Core vào `identity`/`msa`/`msa_ref`, nhập danh mục và liên kết
+UUID. `DATABASE_MODE=unified` dùng chung kết nối Auth cho Core, không phải nhập
+mật khẩu lần hai. Restart backend sau thiết lập. Xem [hướng dẫn DB](../../db/README.md#unified-local-deployment).
+
+Tài khoản mới được đăng ký UUID vào Core bằng trigger cùng transaction; quyền
+vẫn do session/role kiểm soát. Thiếu DDInter không chặn OCR/nhập tay nhưng đánh giá
+tương tác sẽ chưa khả dụng. Nội dung về hai database bên dưới áp dụng cho chế độ tách riêng.
+
+Xác thực nằm trong API Python (`apps/backend`) và database Auth riêng.
+
+Core có registry `identity.users(id uuid)` và schema nghiệp vụ mở rộng theo SAD
+(36 bảng); Auth có tám bảng riêng, dùng SQLAlchemy/Alembic và UUID chung với Core.
+Baseline 20 bảng V4 và dữ liệu đã kiểm định được giữ nguyên. Schema không có FK
+xuyên database; cơ chế cấp phát thật nằm trong `shared.auth.core_owner`.
 
 Phiên dùng cookie `msa_session`: HttpOnly, SameSite=Lax, không phải bearer token. Trên HTTP local, cookie chưa bật `Secure`. Production phải bật `Secure` khi phục vụ qua HTTPS.
 
@@ -22,7 +37,7 @@ Mỗi tài khoản có mật khẩu riêng. Chuỗi này chỉ nằm trong seed 
 
 Role đúng theo thiết kế hiện có: `patient`, `hcp`, `medical_reviewer`, `technical_support`, `admin`. Không có role `staff`.
 
-Danh mục mặc định trong `src/auth/rbac.py` được seed vào `roles`, `permissions`, `role_permissions`. Mỗi API đọc quyền từ database theo **ngữ cảnh đang mở** trong session máy chủ. Tài khoản nhiều role phải chọn ngữ cảnh; không cộng quyền của các ngữ cảnh khác để cấp quyền API. `patient`, `hcp` và `medical_reviewer` được gọi OCR; `technical_support` và `admin` bị từ chối OCR.
+Danh mục mặc định trong `src/shared/auth/rbac.py` được seed vào `roles`, `permissions`, `role_permissions`. Mỗi API đọc quyền từ database theo **ngữ cảnh đang mở** trong session máy chủ. Tài khoản nhiều role phải chọn ngữ cảnh; không cộng quyền của các ngữ cảnh khác để cấp quyền API. `patient`, `hcp` và `medical_reviewer` được gọi OCR; `technical_support` và `admin` bị từ chối OCR.
 
 Mỗi request kiểm tra trạng thái tài khoản, thời hạn phiên, role chưa thu hồi/chưa hết hạn. Hồ sơ nhân sự, quan hệ chăm sóc và role là các khái niệm riêng; sửa chức danh ở prototype không cấp quyền. Admin không thể tự gỡ/đặt hết hạn quyền quản trị của mình hoặc làm mất quản trị viên đang hoạt động cuối cùng.
 
@@ -34,25 +49,25 @@ Copy `apps/backend/.env.example` thành `apps/backend/.env` nếu chưa có.
 Backend tự đọc file này khi chạy API hoặc `db/auth/manage.py`, không phụ thuộc thư mục terminal.
 Biến môi trường đã đặt trong terminal được ưu tiên; `--port` ưu tiên hơn `BACKEND_PORT`.
 Mặc định dùng SQLite, backend cổng 8000 và tài khoản development.
-Để dùng PostgreSQL, điền `DATABASE_URL` trong `.env` sau khi tạo database.
+Để dùng PostgreSQL, điền `AUTH_DATABASE_URL` trong `.env` sau khi tạo database.
 Không commit `.env`; chỉ commit `.env.example`. Khởi động lại backend sau khi đổi cấu hình.
-Origin local 5173–5175 được liệt kê trong mẫu; nếu Vite tăng sang cổng khác,
+Origin local 5173 được liệt kê trong mẫu; nếu Vite tăng sang cổng khác,
 thêm đúng origin vào `AUTH_ALLOWED_ORIGINS` rồi khởi động lại backend.
 
 Từ thư mục gốc, PowerShell:
 
 ```powershell
-py -3 -m pip install -r requirements.txt
+./.venv/Scripts/python.exe -m pip install -r requirements.txt
 # Mặc định SQLite: artifacts/auth/dev.sqlite (có thể đổi bằng AUTH_DB_PATH).
-py -3 db/auth/manage.py migrate
-py -3 db/auth/manage.py seed
-py -3 apps/backend/app.py --port 8000
+./.venv/Scripts/python.exe db/auth/manage.py migrate
+./.venv/Scripts/python.exe db/auth/manage.py seed
+./.venv/Scripts/python.exe apps/backend/app.py --port 8000
 ```
 
 Để dùng PostgreSQL, tạo database identity riêng rồi đặt biến trước các lệnh trên:
 
 ```powershell
-$env:DATABASE_URL = 'postgresql+psycopg://USER:PASSWORD@127.0.0.1:5432/msa_auth'
+$env:AUTH_DATABASE_URL = 'postgresql+psycopg://USER:PASSWORD@127.0.0.1:5432/msa_auth'
 $env:AUTH_ALLOWED_ORIGINS = 'http://localhost:5173,http://127.0.0.1:5173'
 ```
 
@@ -62,7 +77,7 @@ Sau security audit, đặt thêm `AUTH_ENV=production` để bật startup guard
 
 Request ghi từ Postman/CLI phải gửi `Origin` thuộc allowlist (ví dụ `http://127.0.0.1:5173`); thiếu Origin và Referer sẽ bị 403. Session cookie vẫn bắt buộc ở protected APIs. Chuyển context đổi cookie; cấp thêm quyền/kéo dài grant buộc tài khoản đích đăng nhập lại. Restart không phục hồi role permission đã gỡ.
 
-Xem [security audit](../../docs/security/SECURITY_AUDIT_REPORT.md) và [permission matrix](../../docs/security/RBAC_PERMISSION_MATRIX.md). Dùng venv và cài lại requirements đã vá trước chạy; Python global cũ không tự được cập nhật bởi audit.
+Quyền mặc định nằm trong `src/shared/auth/rbac.py`; kiểm tra bảo mật nằm trong `tests/backend/test_security_audit.py` và `tests/backend/test_rbac.py`. Dùng venv và cài lại requirements đã vá trước chạy; Python global cũ không tự được cập nhật bởi audit.
 
 Phiên tồn tại 12 giờ, database chỉ lưu SHA-256 của token ngẫu nhiên. Đăng nhập xoay token cũ; đăng xuất xóa phiên. Origin không được phép bị chặn với thao tác ghi. API không cache phản hồi và không đưa mật khẩu vào lỗi validation.
 
@@ -88,7 +103,7 @@ Frontend gửi cookie khi gọi cùng origin qua proxy Vite `/api`.
 ## Kiểm thử
 
 ```powershell
-py -3 -m pytest apps/backend/tests -q
+./.venv/Scripts/python.exe -m pytest tests/backend -q
 cd apps/frontend
 npm run build
 npm run test:e2e
@@ -100,7 +115,37 @@ Test PostgreSQL dùng database test riêng có tên bắt đầu `msa_auth_test_
 
 ```powershell
 $env:RBAC_POSTGRES_TEST_URL = 'postgresql+psycopg://USER:PASSWORD@127.0.0.1:5432/msa_auth_test_integration'
-py -3 -m pytest apps/backend/tests/test_rbac_postgres.py -q
+./.venv/Scripts/python.exe -m pytest tests/backend/test_rbac_postgres.py -q
 ```
 
-Không có biến này thì test PostgreSQL báo skipped. Test xác thực/phân quyền dùng dữ liệu riêng, gồm migration cũ, seed lặp, thu hồi/hết hạn, đa ngữ cảnh, chống nâng quyền, truy cập chéo tài khoản, cookie và audit. Các luồng thuốc, hồ sơ chăm sóc và danh mục lâm sàng ở frontend vẫn là prototype; RBAC không biến các dữ liệu đó thành dịch vụ lâm sàng production.
+Không có biến này thì test PostgreSQL báo skipped. Test xác thực/phân quyền dùng dữ liệu riêng, gồm migration cũ, seed lặp, thu hồi/hết hạn, đa ngữ cảnh, chống nâng quyền, truy cập chéo tài khoản, cookie và audit. Manual, chatbot, Voice và OCR ở frontend gọi Intake Core; HCP review, hồ sơ và lịch nhắc vẫn là prototype.
+
+## OCR và Core V4
+
+`CORE_DB_DSN` và `CORE_REFERENCE_BUILD` chọn Core/danh mục đã cấp phát riêng;
+Auth trả UUID chuẩn; Core cần bản ghi cùng UUID trong `identity.users`.
+`CORE_USER_BINDINGS` cũ chỉ còn là đầu vào migration, không phải cách chọn một
+owner khác lúc chạy. Dùng `AUTH_LEGACY_UUID_MAP` đã đối chiếu khi nâng cấp ID cũ;
+xem [hợp đồng Auth](../../db/auth/README.md). Chỉ server/operator cấp liên kết;
+client không gửi owner. Retry cấp phát giữ tài khoản, mật khẩu và grant đã có.
+Thiếu liên kết trả 403; cấu hình không hợp lệ trả 503; tài nguyên chủ khác trả 404.
+
+`GET /api/v1/intake/capabilities` kiểm tra UUID đã hiện diện ở Core, không chỉ DSN.
+POST `/api/v1/intake/workflows` tạo bản nháp; upload vào `/workflows/{id}/ocr`;
+`/ocr/edit` lưu bản sửa và trả revision mới. `/confirm` yêu cầu đồng ý rõ ràng và
+revision hiện tại; `/actions` với `ASSESS` mới chạy Module 2–3. OCR giữ ảnh thật và
+raw output tại `data/local/module1/runs/` (ignored); chưa có chính sách TTL.
+Giữ các đối tượng còn được DB tham chiếu. Stateless `/api/v1/ocr/extractions` chỉ
+trả kết quả OCR để xem lại, không ghi Core hoặc chạy đánh giá.
+
+`/messages`, `/manual`, `/manual/edit`, `/voice`, `/voice/edit`, `/voice/submit`
+dùng cùng dịch vụ Intake và owner guard. UI bốn đường nhập dùng cùng workflow.
+GET `/workflows/{id}/details` trả hội thoại, nguồn từng thuốc và kết quả/evidence;
+GET `/workflows/{id}/voice` tải transcript nháp. `/entries/edit` lưu bản sửa
+cho mọi nguồn, giữ input/provenance; POST `/workflows/{id}/revise` với revision
+mở bản sửa sau xác nhận. `/voice/discard` bỏ transcript chưa gửi. Voice dùng
+Whisper thật, lưu TEXT nguồn VOICE với transcript gốc/bản sửa và digest;
+không lưu audio lâu dài hoặc tạo object locator giả. Manual gửi source ID và
+dataset build đã chọn, máy chủ xác minh và giữ đúng sản phẩm.
+`GET /api/reference/medications` chỉ đọc `msa_ref` theo build đã cấu hình, không
+truy vấn các bảng tham chiếu cũ trong DB Auth.

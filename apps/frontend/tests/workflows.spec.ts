@@ -1,65 +1,23 @@
 import { test, expect } from "@playwright/test";
+import { sampleMedicines } from '../src/state';
+import { fixture } from './intake-fixture';
 import type { Page } from "@playwright/test";
 
-test("chat history survives navigation and reload; mascot opens chat for each role", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page
-    .getByRole("link", { name: "Mở chat Tiểu Bạch", exact: true })
-    .click();
-  await expect(page).toHaveURL("/login");
-  await page.getByLabel("Email").fill(demoEmail.patient);
-  await page.getByLabel("Mật khẩu").fill(demoPassword.patient);
-  await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
-  await expect(page).toHaveURL("/chat");
-  await expect(
-    page.getByRole("link", { name: "Mở chat Tiểu Bạch", exact: true }),
-  ).toHaveCount(0);
-  const history = page.getByRole("navigation", { name: "Lịch sử câu hỏi" });
-  await page
-    .getByRole("button", { name: "Nguồn dữ liệu ở đâu?", exact: true })
-    .click();
-  await page
-    .getByLabel("Nhập câu hỏi cho Tiểu Bạch")
-    .fill("Tôi nên hỏi dược sĩ điều gì?");
-  await page.getByRole("button", { name: "Gửi câu hỏi", exact: true }).click();
-  await expect(history.getByRole("button")).toHaveCount(2);
-  await page.goto("/medications");
-  await page
-    .getByRole("link", { name: "Mở chat Tiểu Bạch", exact: true })
-    .click();
-  await expect(history.getByRole("button")).toHaveCount(2);
+test('chat resumes its server workflow after navigation and reload', async ({ page }) => {
+  const state = await fixture(page);
+  await login(page);
+  await page.goto('/chat');
+  await page.getByLabel('Tin nhắn', { exact: true }).fill('Tôi nên hỏi dược sĩ điều gì?');
+  await page.getByRole('button', { name: 'Gửi tin nhắn', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Câu trả lời có nguồn' })).toContainText('Câu trả lời từ backend');
+  await page.goto('/medications');
+  await page.getByRole('link', { name: 'Mở chat Tiểu Bạch', exact: true }).click();
+  await expect(page).toHaveURL('/chat');
+  await expect(page.getByRole('region', { name: 'Câu trả lời có nguồn' })).toContainText('Câu trả lời từ backend');
   await page.reload();
-  await expect(history.getByRole("button")).toHaveCount(2);
-  await page.getByLabel("Tìm trong lịch sử câu hỏi").fill("Nguồn");
-  await expect(history.getByRole("button")).toHaveCount(1);
-  await history.getByRole("button").click();
-  await expect(page.locator(".chat-message.user.selected")).toContainText(
-    "Nguồn dữ liệu ở đâu?",
-  );
-  await page
-    .getByRole("button", { name: "Xóa lịch sử chat", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Giữ lịch sử", exact: true }).click();
-  await expect(history.getByRole("button")).toHaveCount(1);
-  await page
-    .getByRole("button", { name: "Xóa lịch sử chat", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Xóa lịch sử", exact: true }).click();
-  await expect(history.getByRole("button")).toHaveCount(0);
-  await page.reload();
-  await expect(history.getByRole("button")).toHaveCount(0);
-  await login(page, "hcp");
-  await page
-    .getByRole("link", { name: "Mở chat Tiểu Bạch", exact: true })
-    .click();
-  await expect(page).toHaveURL("/chat");
-  await expect(
-    page
-      .getByRole("navigation", { name: "Điều hướng chính" })
-      .getByRole("link", { name: "Tổng quan HCP", exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Câu trả lời có nguồn' })).toContainText('Câu trả lời từ backend');
+  expect(state.calls.filter(call => call.path.endsWith('/workflows'))).toHaveLength(1);
+  expect(state.calls.filter(call => call.path.endsWith('/messages'))).toHaveLength(1);
 });
 
 test("breadcrumbs and home keep a path back to the active workspace", async ({
@@ -75,10 +33,7 @@ test("breadcrumbs and home keep a path back to the active workspace", async ({
   await expect(
     page.getByRole("button", { name: "Quay lại", exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole("navigation", { name: "Điều hướng trang chủ" })
-    .getByRole("link", { name: "Về tổng quan", exact: true })
-    .click();
+  await page.getByRole("link", { name: "Tiếp tục cùng Tiểu Bạch", exact: true }).click();
   await expect(page).toHaveURL("/dashboard");
   const saved = await page.evaluate(() =>
     sessionStorage.getItem("tieu-bach-demo-v1"),
@@ -96,10 +51,7 @@ test("breadcrumbs and home keep a path back to the active workspace", async ({
   await directPage.close();
   await login(page, "hcp");
   await page.goto("/");
-  await page
-    .getByRole("navigation", { name: "Điều hướng trang chủ" })
-    .getByRole("link", { name: "Về HCP", exact: true })
-    .click();
+  await page.getByRole("link", { name: "Tiếp tục cùng Tiểu Bạch", exact: true }).click();
   await expect(page).toHaveURL("/hcp");
 });
 
@@ -121,17 +73,25 @@ const demoEmail = {
   multi: "multi.demo@example.com",
 } as const;
 
+const reminderHandlers = new WeakSet<Page>();
 async function login(
   page: Page,
   kind: keyof typeof demoEmail = "patient",
 ) {
+  if (!reminderHandlers.has(page)) {
+    await page.addLocatorHandler(page.getByRole('button', { name: 'Nhắc lại sau 7 ngày', exact: true }), locator => locator.click());
+    reminderHandlers.add(page);
+  }
   await page.goto("/login");
   await page.getByLabel("Email").fill(demoEmail[kind]);
   await page.getByLabel("Mật khẩu").fill(demoPassword[kind]);
+  const loginResponse = page.waitForResponse(response => response.url().endsWith('/api/auth/login') && response.request().method() === 'POST');
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  const loggedIn = await loginResponse;
+  expect(loggedIn.status(), await loggedIn.text()).toBe(200);
   if (kind === "multi") {
     await expect(
-      page.getByRole("button", { name: "Phản biện dữ liệu", exact: true }),
+      page.getByRole("button", { name: "Chuyên viên dữ liệu", exact: true }),
     ).toBeVisible();
     return;
   }
@@ -139,23 +99,42 @@ async function login(
     patient: "/dashboard",
     hcp: "/hcp",
     admin: "/admin",
-    reviewer: "/hcp",
+    reviewer: "/reviewer",
     support: "/staff",
     multi: "/login",
   }[kind];
   await expect(page).toHaveURL(destination);
 }
 
+async function completeProfile(page: Page) {
+  await page.goto('/profile');
+  await page.getByLabel('Năm sinh *', { exact: true }).fill('1990');
+  await page.getByLabel('Dị ứng hoặc phản ứng từng gặp *', { exact: true }).fill('Không ghi nhận - dữ liệu kiểm thử');
+  await page.getByLabel('Bệnh nền / ghi chú *', { exact: true }).fill('Không ghi nhận - dữ liệu kiểm thử');
+  await page.getByRole('button', { name: 'Lưu thay đổi', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Đã lưu hồ sơ');
+}
+
+// HCP/reminder screens remain explicit prototypes; seed only their isolated browser fixture.
+async function seedPrototype(page: Page) {
+  await page.evaluate((medicines) => {
+    const key = 'tieu-bach-demo-v1';
+    const saved = JSON.parse(sessionStorage.getItem(key)!);
+    saved.state.draft = medicines.map(m => ({ ...m, verified: false }));
+    saved.state.source = 'Bộ dữ liệu mẫu Clopidogrel / Omeprazole';
+    saved.state.assessment = null;
+    sessionStorage.setItem(key, JSON.stringify(saved));
+  }, sampleMedicines);
+  await page.goto('/verify');
+}
+
 async function verifiedSample(page: Page) {
-  await page.goto("/intake");
-  await page.getByRole("button", { name: "Dùng bộ dữ liệu mẫu" }).click();
-  await page.getByRole("button", { name: "Kiểm tra lại", exact: true }).click();
-  await page.getByRole("checkbox", { name: "Tôi đã đối chiếu" }).nth(0).check();
-  await page.getByRole("checkbox", { name: "Tôi đã đối chiếu" }).nth(1).check();
-  await page
-    .getByRole("checkbox", { name: "Tôi đang dùng dữ liệu giả" })
-    .check();
-  await page.getByRole("button", { name: "Xem kết quả mẫu" }).click();
+  await completeProfile(page);
+  await seedPrototype(page);
+  await page.getByRole("button", { name: "Xác nhận thuốc Clopidogrel", exact: true }).click();
+  await page.getByRole("button", { name: "Xác nhận thuốc Getzome Capsules", exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Đã xác nhận' })).toHaveText('Đã xác nhận 2/2 thuốc');
+  await page.getByRole("button", { name: "Xem kết quả", exact: true }).click();
   await expect(
     page.getByRole("heading", {
       name: "Tình huống mẫu cần chuyên gia xem lại",
@@ -178,12 +157,12 @@ test("patient request, HCP review, explicit opt-in and reminder recording", asyn
   await expect(page.getByRole("status")).toContainText(
     "Lịch mới đang chờ review",
   );
-  await page.getByRole("link", { name: "Soạn yêu cầu mẫu" }).click();
+  await page.getByRole("link", { name: "Soạn yêu cầu", exact: true }).click();
   await page
     .getByLabel("Bạn muốn hỏi điều gì?")
     .fill("Xin kiểm tra lại tình huống toa mẫu.");
   await page.getByRole("checkbox", { name: "Tôi đồng ý" }).check();
-  await page.getByRole("button", { name: "Tạo yêu cầu mẫu" }).click();
+  await page.getByRole("button", { name: "Tạo yêu cầu", exact: true }).click();
   await expect(page.getByText("Chờ phản hồi", { exact: true })).toBeVisible();
   await login(page, "hcp");
   await page.goto("/hcp/queue");
@@ -196,7 +175,7 @@ test("patient request, HCP review, explicit opt-in and reminder recording", asyn
   await page.getByRole("link", { name: "Soạn phản hồi" }).click();
   await page.getByRole("checkbox", { name: "Xác nhận lịch trên toa" }).check();
   await page.getByRole("checkbox", { name: "Tôi đã phân biệt" }).check();
-  await page.getByRole("button", { name: "Ghi nhận phản hồi mẫu" }).click();
+  await page.getByRole("button", { name: "Ghi nhận phản hồi", exact: true }).click();
   await expect(page.getByRole("status")).toContainText("Đã lưu phản hồi");
   await login(page);
   await page.goto("/results");
@@ -233,42 +212,24 @@ test("patient request, HCP review, explicit opt-in and reminder recording", asyn
   ).toBeVisible();
 });
 
-test("unverified input is blocked, edits invalidate results, unknown drugs stay unassessed", async ({
-  page,
-}) => {
-  await login(page);
-  await page.goto("/intake");
-  await page.getByRole("button", { name: "Dùng bộ dữ liệu mẫu" }).click();
-  await page.getByRole("button", { name: "Kiểm tra lại", exact: true }).click();
-  await page.getByRole("button", { name: "Xem kết quả mẫu" }).click();
-  await expect(page.getByRole("status")).toContainText("xác nhận từng thuốc");
-  await verifiedSample(page);
-  await page.goto("/intake");
-  await page.getByLabel("Tên trên toa").first().fill("Thuốc chưa ánh xạ");
-  await page.goto("/results");
-  await expect(
-    page.getByRole("heading", { name: "Chưa có kết quả hợp lệ" }),
-  ).toBeVisible();
-  await page.goto("/verify");
-  for (const box of await page
-    .getByRole("checkbox", { name: "Tôi đã đối chiếu" })
-    .all())
-    await box.check();
-  await page.getByRole("button", { name: "Xem kết quả mẫu" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Chưa đủ thông tin để đánh giá" }),
-  ).toBeVisible();
-  await page.goto("/verify");
-  await page
-    .getByRole("checkbox", { name: "Tôi đang dùng dữ liệu giả" })
-    .check();
-  await page.getByRole("button", { name: "Xem kết quả mẫu" }).click();
-  await expect(
-    page.getByRole("heading", {
-      name: "Thuốc chưa được đánh giá",
-      exact: true,
-    }),
-  ).toBeVisible();
+test('Core edits invalidate confirmation and do not fabricate assessments', async ({ page }) => {
+  const state = await fixture(page);
+  await login(page); await page.goto('/intake');
+  await page.getByLabel('Chọn ảnh toa thuốc', { exact: true }).setInputFiles('public/assets/prescription-sample.png');
+  await page.getByRole('button', { name: 'Đọc thông tin từ ảnh', exact: true }).click();
+  await page.getByRole('button', { name: 'Tiếp tục xác nhận', exact: false }).click();
+  await page.getByText('Sửa thông tin thuốc', { exact: true }).click();
+  const confirm = page.getByRole('button', { name: 'Xác nhận danh sách', exact: true });
+  await expect(confirm).toBeDisabled();
+  await page.getByRole('region', { name: 'Bản nháp đã lưu trên máy chủ' }).getByRole('checkbox').check();
+  await expect(confirm).toBeEnabled();
+  await page.getByLabel('Tên thuốc #1', { exact: true }).fill('Thuốc chưa ánh xạ');
+  await expect(confirm).toBeDisabled();
+  await page.getByRole('button', { name: 'Lưu thay đổi thuốc 1', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Lưu thay đổi thuốc 1', exact: true })).toBeDisabled();
+  expect(state.review.entries[0].confirmed).toBe(false);
+  expect(state.calls.some(c => c.path.endsWith('/actions'))).toBe(false);
+  await expect(page.getByRole('region', { name: 'Kết quả tương tác thực tế' })).toHaveCount(0);
 });
 
 test("filters, local upload, profile, guard and empty dates", async ({
@@ -281,10 +242,7 @@ test("filters, local upload, profile, guard and empty dates", async ({
   await page
     .getByLabel("Chọn ảnh toa thuốc", { exact: true })
     .setInputFiles("public/assets/prescription-sample.png");
-  await expect(page.getByRole("status")).toContainText("Chưa có OCR");
-  await expect(
-    page.getByRole("heading", { name: "Chưa có thuốc được nhập" }),
-  ).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Bản nháp đã lưu trên máy chủ' })).toHaveCount(0);
   await page.goto("/medications");
   await page.getByLabel("Tìm thuốc hoặc hoạt chất").fill("Metformin");
   await expect(page.locator(".medicine-cards .card")).toHaveCount(1);
@@ -293,8 +251,9 @@ test("filters, local upload, profile, guard and empty dates", async ({
     page.getByRole("heading", { name: "Không tìm thấy thuốc" }),
   ).toBeVisible();
   await page.goto("/profile");
+  await completeProfile(page);
   await page.getByLabel("Họ và tên").fill("Người dùng thử");
-  await page.getByRole("button", { name: "Lưu hồ sơ mẫu" }).click();
+  await page.getByRole("button", { name: "Lưu thay đổi", exact: true }).click();
   await page.reload();
   await expect(page.getByLabel("Họ và tên")).toHaveValue("Người dùng thử");
   await page.goto("/reminders");
@@ -303,17 +262,17 @@ test("filters, local upload, profile, guard and empty dates", async ({
     page.getByRole("heading", { name: "Chưa có lịch cho ngày này" }),
   ).toBeVisible();
   await page.goto("/chat");
-  await page.getByRole("button", { name: "Nguồn dữ liệu ở đâu?" }).click();
-  await expect(page.getByRole("log")).toContainText("chưa kết nối hai nguồn");
+  await expect(page.getByRole('button', { name: 'Gửi tin nhắn', exact: true })).toBeDisabled();
 });
 
-test("all routes render without errors or horizontal overflow at supported sizes", async ({
+// Each viewport gets a fresh browser context instead of retaining 100 page loads in one tab.
+for (const width of [320, 375, 414, 768, 1440]) {
+test(`all routes render without errors or horizontal overflow at ${width}px`, async ({
   page,
 }) => {
   test.setTimeout(120000);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  for (const width of [320, 375, 414, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const path of ["/", "/login", "/policy"]) {
       await page.goto(path);
@@ -339,7 +298,7 @@ test("all routes render without errors or horizontal overflow at supported sizes
       "/review-request",
     ]) {
       await page.goto(path);
-      await expect(page.locator("main h1, main h2").first()).toBeVisible();
+      await expect(page.locator("main h1, main h2").first(), `${width}: ${path}; ${errors.join('; ')}`).toBeVisible();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
@@ -359,7 +318,7 @@ test("all routes render without errors or horizontal overflow at supported sizes
       "/hcp/database",
     ]) {
       await page.goto(path);
-      await expect(page.locator("main h1, main h2").first()).toBeVisible();
+      await expect(page.locator("main h1, main h2").first(), `${width}: ${path}; ${errors.join('; ')}`).toBeVisible();
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
@@ -367,9 +326,9 @@ test("all routes render without errors or horizontal overflow at supported sizes
         `${width}: ${path}`,
       ).toBe(true);
     }
-  }
   expect(errors).toEqual([]);
 });
+}
 
 test("mobile menu, accessible dialog and admin navigation", async ({
   page,
@@ -390,7 +349,7 @@ test("mobile menu, accessible dialog and admin navigation", async ({
   await login(page, "admin");
   await expect(page).toHaveURL("/admin");
   await expect(
-    page.getByRole("heading", { name: "Không gian quản trị", exact: true }),
+    page.getByRole("heading", { name: "Tổng quan quản trị", exact: true }),
   ).toBeVisible();
   expect(
     await page.evaluate(
@@ -412,7 +371,8 @@ test("reviewer edits catalog data; staff and admin share one personnel table", a
   await login(page, "hcp");
   await page.goto("/hcp/data-review");
   await expect(page.getByLabel("Giá trị DR-01")).toHaveCount(0);
-  await expect(page.getByRole("main")).toContainText("medical reviewer");
+  await expect(page).toHaveURL('/hcp');
+  await expect(page.getByRole('link', { name: 'Rà soát dữ liệu', exact: true })).toHaveCount(0);
   await login(page, "support");
   await page.getByRole("link", { name: "Nhân sự", exact: true }).click();
   await expect(page.getByRole("table")).toContainText("NS-ADMIN-01");
@@ -458,14 +418,14 @@ test("password login, locked account, multi-role context, refresh and logout", a
   await expect(page.getByRole("alert")).toContainText("khóa");
   await login(page, "multi");
   await page
-    .getByRole("button", { name: "Phản biện dữ liệu", exact: true })
+    .getByRole("button", { name: "Chuyên viên dữ liệu", exact: true })
     .click();
-  await expect(page).toHaveURL("/hcp");
+  await expect(page).toHaveURL("/reviewer");
   await expect(
     page.getByRole("link", { name: "Rà soát dữ liệu", exact: true }),
   ).toBeVisible();
   await page.reload();
-  await expect(page).toHaveURL("/hcp");
+  await expect(page).toHaveURL("/reviewer");
   await expect(
     page
       .getByRole("navigation", { name: "Điều hướng chính" })

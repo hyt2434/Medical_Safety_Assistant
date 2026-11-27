@@ -9,7 +9,6 @@
     "preview": "vite preview --host 127.0.0.1",
     "test:e2e": "playwright test",
     "capture": "node scripts/capture.mjs",
-    "capture:prototype": "node scripts/capture-prototype.mjs",
     "format": "prettier --write src tests scripts *.ts *.css *.json index.html",
     "format:check": "prettier --check src tests scripts *.ts *.css *.json index.html"
   },

@@ -1,4 +1,4 @@
-﻿from alembic import context
+from alembic import context
 connection = context.config.attributes["connection"]
 context.configure(connection=connection, version_table="auth_alembic_version")
 with context.begin_transaction():

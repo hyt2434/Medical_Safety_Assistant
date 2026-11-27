@@ -1,6 +1,6 @@
 # Tiểu Bạch frontend
 
-Ứng dụng React + TypeScript dựng theo bộ Stitch trong `docs/analysis and design/stitch_ui_design_system_revamp/`. Vite build ứng dụng, React Router quản lý điều hướng, Lucide cung cấp icon. Font dùng thống nhất theo prototype UI: Bricolage Grotesque cho tiêu đề và IBM Plex Sans cho nội dung, đóng gói cục bộ với đầy đủ ký tự tiếng Việt và Latin.
+Ứng dụng React + TypeScript được tích hợp từ commit `e41a745` của nhánh OCR/UI, theo thiết kế Stitch trên nhánh nguồn. Vite build ứng dụng, React Router quản lý điều hướng, Lucide cung cấp icon. Font dùng thống nhất theo prototype UI: Bricolage Grotesque cho tiêu đề và IBM Plex Sans cho nội dung, đóng gói cục bộ với đầy đủ ký tự tiếng Việt và Latin.
 
 ## Chạy ứng dụng
 
@@ -28,7 +28,7 @@ npm run format:check
 npm run capture
 ```
 
-Kiểm thử Playwright dùng Google Chrome tại `C:/Program Files/Google/Chrome/Application/chrome.exe`. Có thể đặt biến môi trường `CHROME_PATH` tới trình duyệt Chromium tương thích khác. Nếu dùng Chrome đã cài trên máy, không cần tải browser Playwright.
+Kiểm thử Playwright tự tìm Chrome hoặc Edge; có thể dùng Google Chrome tại `C:/Program Files/Google/Chrome/Application/chrome.exe`. Có thể đặt biến môi trường `CHROME_PATH` tới trình duyệt Chromium tương thích khác. Nếu dùng Chrome đã cài trên máy, không cần tải browser Playwright.
 
 ## Màn hình
 
@@ -39,29 +39,31 @@ Kiểm thử Playwright dùng Google Chrome tại `C:/Program Files/Google/Chrom
 | Luồng toa thuốc | `/intake` → `/verify` → `/results` → `/review-request` |
 | Lịch & ghi nhận triệu chứng | `/reminders` |
 | HCP | `/hcp`, `/hcp/queue`, `/hcp/patients`, `/hcp/profile`, `/hcp/database` |
-| Medical reviewer | Cùng các route HCP, thêm `/hcp/data-review` |
+| Medical reviewer | `/reviewer`, `/reviewer/records/:id`, `/reviewer/history`, `/reviewer/sources` |
 | Luồng HCP | `/hcp/case/:id` → `/hcp/assessment/:id` → `/hcp/confirmation/:id` |
 | Quản trị | `/admin`, `/admin/staff`, `/admin/accounts`, `/admin/audit` |
 | Hỗ trợ kỹ thuật | `/staff`, `/staff/directory` — cùng bảng nhân sự với quản trị |
 
 Các trang Stitch được dùng làm tham chiếu về bảng màu teal/mint/kem, menu ngang, typography, thẻ thuốc, cảnh báo, biểu mẫu và bảng ca. Các màn hình xác nhận, kết quả, lịch nhắc, yêu cầu review, phản hồi, nguồn dữ liệu, quản trị và trang không tìm thấy được bổ sung theo cùng hệ thống giao diện.
 
-## Thử luồng xuyên suốt
+## Thử luồng nhập thuốc thật
 
-1. Vào `/login`, đăng nhập `mai.demo@example.com` bằng mật khẩu development trong `apps/backend/README.md`.
-2. Mở **Nhập toa thuốc**, chọn **Dùng bộ dữ liệu mẫu**. Bộ thuốc mẫu và ảnh minh họa là hai dữ liệu riêng, không phải kết quả OCR.
-3. Chọn **Kiểm tra lại**, đối chiếu từng thuốc và đánh dấu tình huống giả để xem kết quả cần review.
-4. Tạo yêu cầu mẫu, đồng ý chia sẻ và nhập câu hỏi. Yêu cầu xuất hiện trong hàng chờ HCP của cùng phiên.
-5. Vào `/hcp/login`, đăng nhập `an.demo@example.com`, tìm ca `BN-DEMO`, kiểm tra thuốc và soạn phản hồi. Có thể chọn xác nhận lịch mẫu để thử bước nhắc thuốc.
-6. Quay lại `/login` với `mai.demo@example.com`, xem phản hồi tại **Kết quả**. Xem kế hoạch và chủ động chọn thiết lập lời nhắc rồi kiểm tra điều kiện tạo lịch.
-7. Mở **Lịch thuốc**, ghi nhận đã uống/bỏ qua hoặc hoàn tác. Tải lại trang vẫn giữ dữ liệu phiên.
+1. Từ gốc repo chạy `.venv/Scripts/python.exe apps/backend/app.py --port 8000 --no-reload`; chạy `npm run dev` trong `apps/frontend/`. Mở http://127.0.0.1:5173. Backend đọc `.env` local; không đưa DSN vào bundle.
+2. Đăng nhập patient đã được máy chủ liên kết UUID Core. `/intake`, `/chat`, `/verify` và `/results` dùng chung bản nháp Core đang mở.
+3. Manual: tìm danh mục, đối chiếu mã/nhà sản xuất/dạng/thành phần, chủ động chọn sản phẩm. Form giữ source ID và dataset build, không tự chọn kết quả đầu tiên.
+4. Chatbot: gửi tiếng Việt tới Qwen qua API; xem câu hỏi làm rõ và bản nháp. Hội thoại tải từ máy chủ.
+5. Voice: thu âm nếu browser cho phép hoặc tải WAV; xem transcript gốc từ Whisper, sửa rồi gửi vào chatbot. Audio không lưu lâu dài; giữ transcript gốc/bản sửa và digest.
+6. OCR: tải ảnh/crop, chạy Tesseract, sửa và lưu từng thuốc.
+7. Đồng ý đúng revision → xác nhận danh sách → chủ động nhận diện/đánh giá. Xem định danh, hoạt chất, bằng chứng và coverage. Sửa sau xác nhận tạo phiên bản mới, kết quả cũ không áp dụng.
+
+Review HCP và lịch nhắc vẫn là minh họa riêng, chưa nối nghiệp vụ với kết quả Core.
 
 ## Cấu trúc mã
 
 ```text
 tokens.css                  Bảng màu, font, spacing và radius theo Stitch
 src/main.tsx                Entry point, font cục bộ và provider
-src/App.tsx                 Routes, shell người dùng/HCP, guard mô phỏng
+src/App.tsx                 Routes, shell người dùng/HCP, guard dựa trên phiên và context máy chủ
 src/components.tsx          Brand, card, badge, notice, stepper, modal, field
 src/state.tsx               Kiểu dữ liệu, fixture và sessionStorage
 src/pages/Public.tsx        Trang chủ, đăng nhập, giới hạn bản mẫu
@@ -76,32 +78,28 @@ tests/workflows.spec.ts     Luồng xuyên vai trò và kiểm tra responsive
 
 ## Trạng thái dữ liệu và giới hạn
 
-- Chỉ dùng dữ liệu giả. State được giữ trong `sessionStorage` của tab/phiên trình duyệt, không phải cơ sở dữ liệu. Nút **Xóa dữ liệu phiên** ở trang đăng nhập đặt lại dữ liệu.
-- Ảnh JPG/PNG/WebP tối đa 10 MB được xem cục bộ bằng object URL, không tải lên máy chủ và không tự chạy OCR. Ảnh không được giữ sau khi tải lại trang.
-- Nhận giọng nói sử dụng Web Speech khi browser hỗ trợ và được cấp quyền. Dịch vụ của browser có thể cần mạng. Bản chép lời chỉnh sửa được; chưa tự tách thành thuốc. Không hỗ trợ thì có hướng dẫn nhập tay.
-- OCR, NLP/AI, DAV và DDInter chưa được kết nối vào các màn hình này. Đăng nhập, phiên và quyền API quản trị đi qua backend Python. Chat dùng câu trả lời đã chuẩn bị. Đọc văn bản dùng speech synthesis nếu browser hỗ trợ.
-- Chat lưu câu hỏi và câu trả lời trong phiên trình duyệt. Khung **Lịch sử câu hỏi** hỗ trợ tìm kiếm, chọn để xem lại và xóa lịch sử có xác nhận. Hình Tiểu Bạch nổi trên các trang khác giúp mở nhanh chat; HCP và quản trị cũng có thể mở chat mà không đổi vai trò. Khi chưa đăng nhập, đường dẫn này đi qua đăng nhập rồi tiếp tục tới chat.
-- Chỉ bộ dữ liệu mẫu nguyên vẹn được chuyển vào tình huống review cố định. Thuốc nhập khác giữ trạng thái chưa đánh giá; thiếu bối cảnh/hoạt chất giữ trạng thái thiếu dữ liệu. Không có kết luận “an toàn” giả.
-- Sửa toa hủy kết quả trước đó. Xác nhận nhập liệu không đồng nghĩa với xác nhận điều trị.
-- Review HCP chỉ là mô phỏng. Lịch mới chỉ được tạo sau phản hồi HCP xác nhận lịch mẫu, người dùng xem kế hoạch và chủ động chọn bật. Lịch cũ của thuốc khác không tự dừng. Chưa có thông báo nền, SMS, gửi tin nhắn hoặc đồng bộ bệnh viện.
-- Triệu chứng được người dùng tự ghi nhận và tự chọn mức hỗ trợ; chưa có phân loại y khoa tự động. Nội dung khẩn cấp nhắc tìm trợ giúp thực tế, không chờ hàng chờ.
-- Route guard trên giao diện chỉ điều hướng sau khi `/api/auth/me` xác nhận phiên. Quyền thật của API quản trị nằm ở backend. Mật khẩu development và các tài khoản mẫu ghi trong `apps/backend/README.md`.
+- Manual, chatbot, Voice và OCR dùng chung workflow/revision/owner phía máy chủ. SessionStorage chỉ giữ con trỏ workflow và khóa idempotency cho luồng này; dữ liệu lâm sàng tải từ Core.
+- Thiếu liên kết Core/quyền, lỗi API và hết phiên được hiển thị rõ; không thay kết quả lỗi bằng dữ liệu mẫu. Đăng xuất/đổi tài khoản gỡ dữ liệu y tế khỏi màn hình.
+- OCR giữ ảnh/raw output thật theo chính sách `data/local/module1/runs/`. Voice lưu TEXT nguồn VOICE với transcript và digest, không có object locator giả. Ca tự động dùng WAV tiếng Việt tổng hợp qua Whisper thật; không dùng Web Speech thay Whisper.
+- PARTIAL không phải kiểm tra đầy đủ hay kết luận an toàn. Xác nhận nhập liệu không phải xác nhận điều trị. UI giữ evidence và giới hạn do backend trả về.
+- Hồ sơ, tủ thuốc, HCP review và lịch nhắc ngoài luồng Core vẫn là minh họa phiên trình duyệt; không tự tạo lịch từ kết quả tương tác. Bản mẫu HCP chỉ mở với state đã đánh dấu nguồn bộ dữ liệu mẫu và không có workflow Core đang mở.
 
 ## Kiểm tra
 
-`test:e2e` kiểm tra toàn luồng người dùng → HCP → phản hồi → bật lịch mẫu; chặn dữ liệu chưa xác nhận; hủy kết quả khi sửa toa; giữ trạng thái chưa đánh giá; upload ảnh, lọc thuốc, lưu hồ sơ và trạng thái ngày trống. Kiểm tra các route ở chiều rộng 320, 375, 414, 768 và 1440 px, theo dõi lỗi JavaScript và tràn ngang.
+`npm run build` chạy TypeScript và Vite. `tests/ocr-review.spec.ts` kiểm tra bốn đường UI bằng HTTP fixture: sửa, crop, lựa chọn không đứng đầu, gửi lặp, lỗi audio/API, hết phiên và evidence. Playwright mặc định tắt Core dù có `.env` dev; Auth dùng SQLite riêng. Các ca HCP/reminder trong `workflows.spec.ts` chỉ là hồi quy prototype.
+
+Nghiệm thu browser/API/PostgreSQL với Qwen/Whisper/Tesseract thật: từ gốc repo đặt `INTAKE_RUN_REAL_BROWSER=1`, `MODULE2_TEST_DSN` tới Core test có marker, `RBAC_POSTGRES_TEST_URL` tới Auth test có marker và `MSA_DDINTER_INDEX` tới index đã có; chạy `.venv/Scripts/python.exe -m pytest tests/integration/test_intake_browser_e2e.py -q -s`. Test từ chối DB dev, tạo UUID riêng, đối chiếu DDInter và dọn đúng dữ liệu lượt chạy. Cần cache Whisper small, Ollama/Qwen, Tesseract vie+eng, Chrome/Edge và ảnh/WAV mẫu hiện có; không tải model hoặc nạp lại reference tự động.
 
 Khi triển khai lên static hosting, cần cấu hình fallback các đường dẫn SPA về `index.html`.
 
 `npm run capture` lưu ảnh desktop/mobile vào `artifacts/` (không đưa vào Git), cần dev server đang chạy. Nếu Vite dùng cổng khác 5173, đặt `PREVIEW_URL` trước khi chạy.
 
-## Ảnh chụp giao diện thay prototype HTML
-
-`pa/pa1/ui-prototype/` hiện chứa **26 ảnh PNG toàn trang** chụp frontend thực tế ở viewport 1440 × 1000 px. Các tên như `index.png`, `dashboard.png`, `intake.png`, `verify.png`, `hcp-case.png` tương ứng tên trang prototype cũ. Bộ ảnh bao gồm cả lịch sử chat, nguồn dữ liệu, quản trị, trang không tìm thấy và các trạng thái kết quả trước/chờ/sau phản hồi HCP.
-
-Để tạo lại bộ ảnh, chạy dev server rồi chạy `npm run capture:prototype` trong thư mục frontend. Script đi qua luồng người dùng và HCP bằng thao tác thật với dữ liệu mẫu, chờ font/ảnh tải xong và lưu PNG cùng manifest vào `artifacts/ui-prototype-screens/`. Script chỉ tạo ảnh ở thư mục tạm, không tự xóa hay thay nội dung `pa/pa1/ui-prototype/`.
 ## Production API routing
 
 The browser calls relative `/api/...` URLs. `API_PROXY_URL` configures the Vite development server only; it does not configure a deployed static bundle. In production, serve the frontend over HTTPS and reverse proxy `/api` to the backend on the same public origin. Preserve cookies and do not apply the SPA HTML fallback to API requests. Set the backend's `AUTH_ALLOWED_ORIGINS` to that exact public origin, disable demo seeding and enable secure cookies.
 
 Development starts on port 5173. Vite selects a higher free port only when another server occupies it; opening another browser tab does not change ports. Add the actual development origin to the backend allowlist if it is not already listed, then restart the backend.
+
+## Luồng Intake lưu Core
+
+Xem [backend README](../backend/README.md#ocr-và-core-v4). UI gọi capabilities → workflows → nguồn nhập → details/xem-sửa → confirm → actions. Máy chủ xác định owner từ session. Build dùng duy nhất `index.html` → `src/main.tsx` → `src/App.tsx`.

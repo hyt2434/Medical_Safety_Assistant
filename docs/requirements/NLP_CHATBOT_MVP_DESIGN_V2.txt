@@ -1,0 +1,306 @@
+SOFTWARE DESIGN  /  REVISED CONTRACT  /  09 NOV 2026
+NLP CHATBOT MVPIntent • Arguments • Dialogue Policy
+Design V2.0  |  Aligned with Core V4 and latest real-Qwen fixes
+Tài liệu giao việc cho Codex và giúp nhóm frontend/backend thống nhất hành vi chatbot. Giữ thiết kế MVP; không mở rộng sang chẩn đoán, cấp cứu hay tự xây dựng lại các module.
+QUYẾT ĐỊNH QUAN TRỌNG
+ADD_MEDICATION là intent phát hiện ứng viên thông tin thuốc — KHÔNG đồng nghĩa người dùng yêu cầu lưu. record_request_raw chỉ ghi nhận câu yêu cầu lưu; quyền xác nhận phải đến từ backend sau review.
+
+Đọc nhanh trong 60 giây
+Nội dung
+Quyết định V2
+Intent
+Cả câu khai báo “Tôi được kê …” và câu “Lưu …” đều có thể mang ADD_MEDICATION; phân biệt bằng dialogue act + record_request_raw.
+Lịch uống
+Giữ timing_raw nguyên văn. timing_slots_raw do backend suy ra từ “sáng và tối” khi rõ nghĩa; không tự đặt giờ hoặc nhân liều.
+Hỏi bổ sung
+Mỗi intent có argument contract; chỉ hỏi blocker cho bước tiếp theo. Lời khai ngoài workflow có thể cần hỏi mục đích.
+Core V4
+Tái dùng 20 bảng, JSONB, FSM, revision/confirmation gates; không đổi migrations hay identity.users.
+Q&A / DDI
+App Help là đường chính; REF Q&A chỉ được trả facts nếu adapter thật có dữ liệu; DDInter target ID không phải kết quả tương tác.
+Kiểm thử
+111 offline + 14 real Qwen PASS được Codex báo cáo cho đợt semantic fix; chưa thay thế end-to-end DB/QA assessment.
+
+Tình trạng và mục tiêu
+Đã báo cáo hoạt động
+Cần triển khai/kiểm chứng tiếp
+Ollama / JSON Schema / exact evidence; intent semantic fix
+Dialogue act & SlotContract policy tích hợp thật vào chatbot turn
+Intake FSM, immutable correction, explicit confirmation (mock + DB tests cũ)
+Real Qwen → multi-turn → isolated PostgreSQL → explicit Module 2 handoff
+Ứng dụng help + bounded REF candidates
+Medication facts Q&A có nguồn; safety service, reminder service nếu thực sự sẵn sàng
+
+01 | Contract đã chốt từ code và báo cáo mới
+Điểm cần khớp
+Quy tắc áp dụng
+ADD_MEDICATION
+Nhận diện ứng viên intake từ lời khai hoặc lệnh thêm thuốc. Việc có intent ≠ ghi bản ghi confirmed.
+record_request_raw
+Tùy chọn; chỉ là exact source phrase cho lệnh lưu (“Vui lòng lưu”), null khi chỉ báo thuốc. Không thay thế confirm.
+Intent precedence
+Validated model output + deterministic routing thống nhất. Không để CLI hiển thị intents=[] trong khi router âm thầm coi là ADD_MEDICATION.
+Administration
+{timing_raw,dose_raw,timing_slots_raw?}. timing_slots_raw là backend-derived evidence, không yêu cầu LLM tự sinh.
+Time semantics
+“sáng và tối” → [“sáng”,“tối”]; “sáng hoặc tối”/“sáng đến tối” không tách; duration_raw giữ “trong 7 ngày” đúng source.
+Provider
+Qwen 3.5 9B chạy local Ollama, think=false, structured output; safe errors, validation vẫn nghiêm.
+Persistence
+MVP hiện có CoreRepository + intake_adapter; không thay thế bằng DB layer thứ hai, không tự gọi Module 2 khi chưa có user confirmation.
+
+TƯƠNG THÍCH DỮ LIỆU
+timing_slots_raw là extension optional. Báo cáo Codex chỉ xác minh tương thích Core qua xem code tĩnh, chưa kiểm thử persistence PostgreSQL cho extension. Cần test DB trước khi coi đây là contract triển khai hoàn chỉnh.
+
+02 | Intent taxonomy và dialogue acts
+Phải phân biệt ba lớp: (1) user muốn làm tác vụ gì; (2) người dùng đang nói/đề nghị điều gì trong lượt này; (3) backend có được phép thực thi hành động nào không.
+Layer
+Ví dụ
+Authority
+task_intent
+ADD_MEDICATION / CHECK_INTERACTION / MEDICATION_QA / VIEW_MEDICATIONS / APP_HELP / CREATE_REMINDER
+NLP + routing rules; có thể multi-intent
+dialogue_act
+PROVIDE_INFO / REQUEST_ACTION / ASK_QUESTION / CORRECT / CONFIRM / CANCEL / UNKNOWN
+Đề xuất application-level; không thêm DB enum
+record_request_raw
+“Vui lòng lưu” hoặc null
+Evidence chỉ có khi nguyên văn trong source
+action_authorized
+true / false
+CHỈ backend sau review + owner + revision + explicit confirmation
+
+Các câu cần cùng một semantics
+User input
+Expected detection
+Backend action
+Tôi đang uống Panadol 500mg.
+ADD_MEDICATION + PROVIDE_INFO; record_request_raw=null
+Intake candidate / draft; chưa confirm
+Tôi được kê 2 hộp Panadol 500mg.
+ADD_MEDICATION + PROVIDE_INFO; record_request_raw=null
+Bảo lưu quantity_raw=“2 hộp”; hỏi mục đích nếu không có task context
+Vui lòng lưu Panadol 500mg.
+ADD_MEDICATION + REQUEST_ACTION; record_request_raw=“Vui lòng lưu”
+Khởi động review, KHÔNG tự confirm
+Hai thuốc này có tương tác không?
+CHECK_INTERACTION + ASK_QUESTION
+Tìm thuốc qua context; thiếu thì hỏi
+Panadol có hoạt chất gì?
+MEDICATION_QA + ASK_QUESTION
+REF/Module 2 candidates; trả fact khi có nguồn xác minh
+Sửa thuốc 2 thành 250mg.
+CORRECT trong active intake
+Gắn entry 2 + revision mới; review lại
+
+03 | Intent–argument contracts (P0)
+R = required để đi bước hiện tại; C = conditional nếu mơ hồ; O = optional. Một slot thiếu không luôn là lỗi: hệ thống hỏi nếu nó chặn mục tiêu đang thực hiện.
+Intent
+Slot requirements
+Expected result / blocker
+ADD_MEDICATION
+R: drug evidence/entry candidate. C: name, strength, form nếu chưa rõ; có thể chọn “không rõ”. O: dose, timing, duration, quantity_raw.
+Review raw → user confirms transcription → Core V4 entry → explicit M2 handoff (khi app gọi).
+CHECK_INTERACTION
+R: ít nhất hai thuốc mục tiêu hoặc lựa chọn rõ từ danh sách hiện tại. C: identity/coverage/confirmation.
+Hỏi thuốc còn thiếu; chỉ gọi M2/M3 khi interface thật và guard đạt; nếu không: UNAVAILABLE / UNASSESSED.
+MEDICATION_QA
+R: loại câu hỏi. C: tên/candidate đủ phân biệt với product-specific fact; không yêu cầu liều.
+APP facts / REF candidates; trả ingredient/strength/form chỉ khi API có fact được kiểm chứng.
+APP_HELP
+R: chủ đề, hoặc mặc định hướng dẫn.
+Fixed templates theo chức năng đã có, không giả tính năng.
+VIEW_MEDICATIONS
+R: trusted owner từ identity. C: current/history nếu cần.
+Read-only, owner-scoped; không coi list confirmed là clinically verified.
+CREATE_REMINDER — P1
+R: confirmed medication instruction + applicable safety/HCP gates + Module 5 service.
+Nếu M5 thiếu, hiển thị DEFERRED; không tự tạo giờ; severe DDI gate chỉ hold new reminders implicated.
+
+KHÔNG LẠM DỤNG SLOT FILLING
+Không hỏi số hộp hay liều nếu người dùng chỉ hỏi “thuốc này chứa hoạt chất gì?”. Không ép người dùng hoàn thiện toa để tra cứu ứng viên. Khi từ chối/không nhớ: giữ UNKNOWN/UNRESOLVED thay vì tự điền.
+
+04 | Slot schema và nguồn bằng chứng
+Data
+Ghi nhận đúng
+Không được làm
+name_raw, strength_raw, dosage_form_raw
+Đúng substring của user/OCR input; gắn scope thuốc
+Không đoán tên thuốc, tự thay spelling để “khớp”
+dose_raw, frequency_raw
+Lưu raw dose/frequency như đã nói
+Không đồng nhất 500mg với “1 viên”; không suy frequency từ “sáng và tối”
+duration_raw
+Ví dụ exact “trong 7 ngày”
+Không rút gọn làm mất source evidence khi contract yêu cầu exact
+quantity_raw
+Giữ “2 hộp”, “3 vỉ” nguyên văn
+Không gộp với liều hoặc tính total pills thiếu packaging
+administrations
+Giữ timing_raw; backend có thể thêm timing_slots_raw verified
+Không tự tạo 07:00/19:00; không split “hoặc” thành AND
+negation_raw / uncertainty_raw
+Bảo toàn phủ định và uncertainty flags
+Không coi “không dùng” là thuốc đang sử dụng
+entry_id + evidence + revision
+Đúng medication entry, user message và phiên bản
+Không trộn 2 thuốc hoặc ghi đè bản confirmed
+
+Slot status dùng ở application-level: MISSING / PRESENT_RAW / AMBIGUOUS / USER_CONFIRMED. Kết quả Module 2 và Module 3 có trạng thái riêng (VERIFIED, UNRESOLVED, UNASSESSED, PARTIAL) — không trộn với các slot status của NLP.
+05 | Dialogue Policy: hỏi bổ sung có mục đích
+Thuật toán mỗi lượt
+1. Nhận current message + active workflow + pending question; chạy extraction (LLM) và exact-source validation.
+2. Chọn task intent (có thể nhiều) + dialogue act, theo context và router; không bỏ dữ liệu khi intent chưa chắc.
+3. Merge raw slots theo đúng entry ID và revision; correction tạo version mới, review cũ mất hiệu lực.
+4. Đọc SlotContract của intent hiện tại; xét blocker theo thứ tự: owner/authorization → target ambiguous → required evidence → confirm gate → downstream service availability.
+5. Hỏi tối đa một câu rõ ràng mỗi lượt, nêu đúng target slot. Nếu user nói “không rõ” thì giữ unknown và xử lý fallback phù hợp.
+6. Nếu đủ: show review (sensitive write) hoặc dispatch backend service (read-only); câu trả lời dựa trên nguồn thật.
+Câu hỏi mẫu và điều kiện
+Blocker
+Bot hỏi / xử lý
+Báo thuốc nhưng chưa có workflow
+“Bạn muốn lưu thông tin thuốc này, kiểm tra tương tác, hay chỉ hỏi thông tin?”
+CHECK_INTERACTION thiếu thuốc thứ hai
+“Bạn muốn kiểm tra Panadol 500mg với thuốc nào khác?”
+Chỉnh sửa nhiều thuốc, chưa rõ mục tiêu
+“Bạn muốn sửa thuốc số 1 hay số 2?”
+Một tên thuốc có nhiều candidates
+“Bạn có thể xem thêm hàm lượng hoặc dạng thuốc trên nhãn không?”
+Chưa thể xác định sản phẩm
+Giữ UNRESOLVED; cho sửa tên/nhập thủ công; không chọn nhầm candidate
+NLP không trả JSON hoặc Ollama offline
+Trả error code an toàn + manual entry; không hiển thị raw model output
+
+06 | Multi-turn, review và safety gate
+FSM MEDICATION_INTAKE (theo V4)
+COLLECTING  ⇄  CLARIFYING  →  AWAITING_CONFIRMATION  →  COMPLETED        correction → new version + fresh review        cancellation → CANCELLED (theo transition contract thật)
+
+Mỗi workflow lưu owner, conversation ID, workflow ID, draft per entry, pending target slot, revision và review content digest. UI Confirm cần dùng handler đã có; đối với CLI chỉ lệnh xác nhận rõ ràng “xác nhận” / “tôi xác nhận” sau review mới được phép, “đúng rồi” không đủ.
+Một thao tác xác nhận không xác minh sản phẩm hoặc mức an toàn. Handoff Module 2 chỉ diễn ra khi application explicitly calls identify_confirmed trên DTO đã confirmed. Module 3 assessment không được suy ra chỉ vì đã có DDInter target IDs.
+Hai ví dụ tổng hợp
+Turn
+Chatbot behavior
+Persist/route
+“Tôi được kê 2 hộp Panadol 500mg.”
+ADD_MEDICATION candidate, PROVIDE_INFO; quantity_raw=“2 hộp”; hỏi mục đích nếu không có context.
+Cho phép draft intake theo workflow; KHÔNG confirmed record.
+“Thêm vào danh sách; dạng viên nén.”
+Merge source slots, show review Panadol/500mg/2 hộp/viên nén; ask explicit confirm.
+Revision + digest, giữ evidence.
+“xác nhận”
+Confirm only displayed, latest revision.
+Core V4 confirmed version; optional explicit M2 call.
+“Kiểm tra tương tác của Panadol với Augmentin.”
+Resolve 2 targets; hỏi thiếu identity; không kết luận “an toàn”.
+Only M2/M3 if real service and DDI knowledge available.
+
+07 | Q&A thực sự có thể triển khai
+Nhóm QA
+Backend authority
+MVP behavior
+Application Help
+Chức năng hiện có / help templates
+WORKING khi template phản ánh app hiện tại.
+Medication Reference Q&A
+Core REF + Module 2 candidate search; actual factual lookup nếu interface có.
+PARTIAL: hiện mới có candidate/provenance; không hứa ingredient/strength facts nếu adapter không trả.
+Medication Safety Q&A
+Module 3 + interaction knowledge + assessment coverage
+ROUTE/UNAVAILABLE nếu engine/catalog chưa có; tuyệt đối không dùng kiến thức nội tại Qwen để suy “an toàn”.
+Records / personal history
+Core repository với identity owner có tin cậy
+Cho xem medication drafts/confirmed/history theo permission; không lấy owner UUID do client tự khai.
+Patient summary / reminder / HCP
+Module 4/5 + verified schedule / approved data
+DEFERRED trong MVP; giữ Option A reminder, severe DDI gate B cho new reminders.
+Symptom/emergency instructions
+Ngoài phạm vi hiện tại
+Không sinh phác đồ hay thủ thuật cấp cứu. Ưu tiên nhắc tìm chăm sóc y tế khi có dấu hiệu cấp tính.
+
+ĐIỂM CẦN TRÁNH KHI GIAO CODEX
+Không yêu cầu “Medication QA hoạt động đầy đủ” chỉ từ 42.903 REF records. REF là dữ liệu thuốc/mapping; DDInter mapping IDs khác với catalog tri thức tương tác. Mọi answer phải ghi rõ nguồn, coverage và hạn chế.
+
+08 | Application ↔ Core V4 contract
+Frontend đang được thành viên khác phát triển. Codex nên giao service/DTO + CLI test thay vì tự dựng frontend song song. Schema vẫn gồm 20 tables. Không thay đổi migrations hoặc identity.users.
+Layer
+Contract / nơi lưu
+NLP output
+intents[], dialogue act, medications[], raw evidence, ambiguity; chỉ đề xuất, không thực thi.
+Dialogue response DTO
+assistant_message, next_action, active_intent, missing_blockers[], entries[], workflow_id, revision, capability_status, evidence_refs.
+Conversation / intake
+msa.conversation_sessions/messages, workflow_instances, intake_sessions/inputs/extractions/items.
+Medication versions
+msa.medication_entry_versions, entry_matches; immutable history, confirmed status theo Core guard.
+Reference
+msa_ref.medications/ingredients/medication_ingredients/ddinter_mappings với dataset_build.
+Safety
+msa.safety_assessments/findings qua Module 3; không insert assessment từ LLM.
+Development tests
+Tách DB synthetic isolated, tránh msa_core_test_v4checks và identity thật; real Qwen tests không cần DB.
+
+Backend next_action gợi ý
+ASK_CLARIFICATION · SHOW_REVIEW · CONFIRM_REQUIRED · SHOW_CANDIDATES · SHOW_ANSWER · DEFERRED · UNAVAILABLE · ERROR. Đây là response DTO/application enum đề xuất, không mặc định là Core V4 workflow enum.
+09 | Acceptance tests và handoff
+Giữ bộ test hồi quy Codex đã viết (111 offline / 14 real-Qwen) và bổ sung đánh giá task-oriented, không chỉ JSON schema validity.
+ID
+Input / tình huống
+Pass condition
+I1
+“Tôi được kê 2 hộp Panadol 500mg.”
+ADD_MEDICATION, PROVIDE_INFO, record_request_raw=null; quantity=2 hộp; no confirm.
+I2
+“Vui lòng lưu Panadol 500mg vào hồ sơ.”
+ADD_MEDICATION, REQUEST_ACTION, record_request_raw exact, review gate.
+I3
+“Panadol chứa hoạt chất gì?”
+MEDICATION_QA; chỉ trả fact có nguồn, không ép dose/duration.
+I4
+“Kiểm tra hai thuốc này” khi không có context
+CHECK_INTERACTION → hỏi đúng tên thuốc, không suy safety.
+S1
+“Augmentin 625mg, 1 viên sáng và tối trong 7 ngày.”
+timing_raw preserved, timing_slots_raw=[sáng,tối], duration source exact.
+S2
+“1 viên sáng hoặc tối.”
+timing_slots_raw không split thành hai lần uống.
+D1
+“Panadol” → “500mg, dạng viên nén”
+Follow-up gắn đúng draft, không tạo 2 thuốc.
+D2
+“Sửa thuốc 2 thành 250mg.”
+Target correct entry; version appended, review invalidated.
+D3
+“đúng rồi” trước review
+Không được confirm; stale revision bị từ chối.
+Q1
+Chỉ có DDInter mapping nhưng không có interaction catalog
+UNASSESSED/UNAVAILABLE; không bịa finding hoặc safety.
+E1
+Ollama lỗi / owner khác
+Safe error; no leakage, no cross-user reads/writes.
+DB1
+Real Qwen + pending question + confirm + isolated PostgreSQL
+Records, digests, status đúng; không chạm protected DB.
+
+Thứ tự giao Codex
+A — Audit current branch against V2 changes → B — Add/align dialogue acts, intent-slot contracts and question policy → C — Multi-turn wiring + client response DTO → D — real-Qwen & isolated-DB e2e + benchmark. Codex phải báo WORKING / PARTIAL / UNAVAILABLE từng capability, trước/sau & test proof.
+10 | Chỉ còn 3 quyết định cần bạn thống nhất
+Decision
+Mặc định đề xuất của V2
+Khi nào cần hỏi bạn
+D1 — Lời khai thuốc ngoài task
+Cho phép mở unconfirmed intake candidate; hỏi mục đích trước khi action. Không confirmed save.
+Nếu muốn KHÔNG tạo persisted draft khi chỉ kể thuốc, cần chốt.
+D2 — Q&A factual ưu tiên
+P0: APP_HELP + source-backed REF facts khi adapter thật trả facts. Không bắt Qwen tự trả y khoa.
+Nếu muốn xây thêm factual retrieval API trong Module 1 hay chờ Module 2.
+D3 — Số câu hỏi bổ sung
+1 blocker/question mỗi lượt; tối đa 2 lần hỏi lại cùng blocker; unknown → fallback/review nếu hợp lệ.
+Nếu bạn muốn gom nhiều câu hỏi trong một form hoặc thay retry policy.
+
+KHÔNG ĐƯA VÀO SCOPE
+Không thêm bảng, không thay Core V4 schema, không chạy safety engine giả, không tạo ứng dụng frontend thứ hai, không fine-tune/RAG trong nhiệm vụ này. Các module 2/3/5 do đúng owner triển khai.
+
+Nguồn và mức độ xác minh
+Tài liệu đối chiếu: NLP_Chatbot_MVP_Design(1).docx (V1, 16 trang), Module1_NLP_Chatbot_Implementation_Specification(4).docx (29 trang) và checkpoint Codex “Real Qwen intent and timing review” ngày 09/11/2026 do nhóm cung cấp. Quyết định thiết kế V2 được đề xuất từ những nguồn đó; chưa có lần đọc trực tiếp toàn bộ code repository trong phiên soạn này.

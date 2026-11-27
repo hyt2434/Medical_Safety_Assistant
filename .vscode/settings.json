@@ -10,5 +10,8 @@
         "**/d:\\7st_semester\\SE\\Medicine_Assistant\\docs\\latex\\main.log": true,
         "**/d:\\7st_semester\\SE\\Medicine_Assistant\\docs\\latex\\main.gz": true,
         "**/d:\\7st_semester\\SE\\Medicine_Assistant\\docs\\latex\\main.out": true
-    }
+    },
+    "git.ignoredRepositories": [
+        "D:\\7st_semester\\SE\\Medical_Safety_Assistant\\tmp\\ui-intake-dev"
+    ]
 }

@@ -52,7 +52,7 @@ def main():
         line_engine = TextRecognition(model_name='latin_PP-OCRv5_mobile_rec',
                                       device='cpu', enable_mkldnn=False, cpu_threads=2)
     initialization = time.perf_counter() - start
-    script = Path(__file__).resolve().parents[1] / 'src/module1_intake/ocr/node/local_ocr.cjs'
+    script = Path(__file__).resolve().parents[3] / 'src/module1_intake/ocr/node/local_ocr.cjs'
     report = []
     for case in cases:
         output = args.output / (case['id'] + '.json')

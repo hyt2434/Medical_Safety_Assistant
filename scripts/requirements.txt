@@ -1,0 +1,2 @@
+# Use the unified application dependencies.
+-r ../requirements.txt

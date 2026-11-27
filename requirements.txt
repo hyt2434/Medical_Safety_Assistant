@@ -1,7 +1,4 @@
-# Unified Python dependencies for backend, scripts, database, tests and reports.
-# Install from repository root: python -m pip install -r requirements.txt
-
-# Backend and OCR
+# Application/API/OCR dependencies integrated from e41a745.
 fastapi>=0.115,<1
 Pillow>=13,<14
 opencv-python-headless>=4.12,<5
@@ -13,22 +10,12 @@ uvicorn[standard]>=0.30,<1
 SQLAlchemy>=2.0,<3
 alembic>=1.14,<2
 psycopg[binary]==3.3.8
-# Security floors for transitive runtime dependencies (audit 2026-11-14).
 starlette>=1.3.1,<2
 anyio>=4.14.2,<5
 Mako>=1.3.12,<2
-
-# Cloud OCR / source checkout tools
-google-genai>=2.29.0
-# Optional legacy Google Cloud Vision mode: google-cloud-vision>=3.0
-
-# Tests
 pytest>=9.0.3,<10
 httpx>=0.27,<1
-# Starlette 1.x TestClient uses httpx2; httpx is still used by existing clients.
 httpx2>=2.16,<3
-
-# PDF and SVG report tooling
-PyMuPDF>=1.24,<2
-svglib>=2.0,<3
-reportlab>=4,<6
+# Preserve the existing Voice, NLP, RAG and intake contracts.
+-r src/module1_intake/requirements.txt
+-r src/module1_intake/nlp/requirements.txt

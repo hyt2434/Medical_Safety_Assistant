@@ -6,7 +6,7 @@ function Initialize-SourceEnvironment {
     $env:PYTHONPATH=Join-Path $root 'src'
     $env:PYTHONDONTWRITEBYTECODE='1'
     if ($Python) { return $Python }
-    $interpreter=Join-Path $PSScriptRoot '.venv/Scripts/python.exe'
+    $interpreter=Join-Path $root '.venv/Scripts/python.exe'
     if (-not (Test-Path -LiteralPath $interpreter)) {
         throw 'Run scripts/setup.ps1 first, or pass -Python with an existing interpreter.'
     }

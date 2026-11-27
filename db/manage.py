@@ -13,6 +13,7 @@ import psycopg
 from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from shared.db.importer import import_datasets
+from shared.auth.settings import core_database_dsn
 
 TEST_MARKER = "Medication Safety Assistant Core V4 isolated test"
 # The earlier local baseline was reconstructed from the installed function bodies
@@ -74,7 +75,19 @@ def migrate(db):
     return dict(ledger, reused_schema=row is not None, applied_migrations=[path.name for path in pending])
 
 
-def bootstrap_test(dsn, *, explicit=False):
+def provision_identity_registry(db, *, unified=False):
+    """Explicit new-install prerequisite; validate but never rewrite an existing registry."""
+    with db.transaction():
+        if not unified and db.execute("SELECT to_regclass('public.auth_alembic_version')").fetchone()[0] is not None:
+            raise RuntimeError('Refusing Core registry provisioning in the separate Auth database')
+        existing = db.execute("SELECT to_regclass('identity.users')").fetchone()[0]
+        if existing is None:
+            db.execute((ROOT / 'db/identity.sql').read_text(encoding='utf-8'))
+        identity_contract(db)
+    return {'identity_registry': 'identity.users', 'created': existing is None}
+
+
+def prepare_test(dsn, *, explicit=False):
     options = conninfo_to_dict(dsn)
     name = options.get("dbname", "")
     if not explicit or not re.fullmatch(r"msa_core_test_v4[a-z0-9]+", name) or options.get("host") not in ("127.0.0.1", "::1", "localhost"):
@@ -87,32 +100,39 @@ def bootstrap_test(dsn, *, explicit=False):
             admin.execute(sql.SQL("COMMENT ON DATABASE {} IS {}").format(sql.Identifier(name), sql.Literal(TEST_MARKER)))
         elif found[0] != admin.info.user or found[1] != TEST_MARKER:
             raise RuntimeError("Refusing to bootstrap an unowned/unmarked existing database")
+    return {'test_database': name, 'created': found is None}
+
+
+def bootstrap_test(dsn, *, explicit=False):
+    prepare_test(dsn, explicit=explicit)
     with psycopg.connect(dsn, autocommit=True) as db:
         if db.execute("SELECT to_regclass('identity.users')").fetchone()[0] is None:
             # Only a newly owned, explicitly marked isolated test database. Not a team identity deployment.
             if db.execute("SELECT count(*) FROM pg_namespace WHERE nspname NOT IN ('public','pg_catalog','information_schema') AND nspname NOT LIKE 'pg_%'").fetchone()[0]:
                 raise RuntimeError("Test fixture requires otherwise empty database")
-            with db.transaction():
-                db.execute((ROOT / "db/tests/identity_fixture.sql").read_text(encoding="utf-8"))
+            provision_identity_registry(db)
         return migrate(db)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("bootstrap-test", "migrate", "import"))
-    parser.add_argument("--dsn", default=os.environ.get("CORE_DB_DSN"))
+    parser.add_argument("action", choices=("prepare-test", "bootstrap-test", "provision-identity", "migrate", "import"))
+    parser.add_argument("--dsn", default=core_database_dsn())
     parser.add_argument("--csv-dir", type=Path, default=ROOT / "data/datasets")
     parser.add_argument("--report", type=Path)
     parser.add_argument("--isolated-test", action="store_true")
     args = parser.parse_args()
     if not args.dsn:
         parser.error("Provide CORE_DB_DSN or --dsn")
-    if args.action == "bootstrap-test":
+    if args.action == 'prepare-test':
+        result = prepare_test(args.dsn, explicit=args.isolated_test)
+    elif args.action == "bootstrap-test":
         result = bootstrap_test(args.dsn, explicit=args.isolated_test)
     else:
         with psycopg.connect(args.dsn, autocommit=True) as db:
             db.execute("SET TIME ZONE 'UTC'")
-            result = migrate(db) if args.action == "migrate" else import_datasets(db, args.csv_dir)
+            result = (provision_identity_registry(db) if args.action == 'provision-identity' else
+                      migrate(db) if args.action == "migrate" else import_datasets(db, args.csv_dir))
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")

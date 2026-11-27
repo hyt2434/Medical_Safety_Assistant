@@ -16,7 +16,7 @@ def main():
     parser.add_argument('output', type=Path)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    script = Path(__file__).resolve().parents[1] / 'src/module1_intake/ocr/node/local_ocr.cjs'
+    script = Path(__file__).resolve().parents[3] / 'src/module1_intake/ocr/node/local_ocr.cjs'
     results = []
     for index, (name, rectangle) in enumerate(json.loads(args.regions.read_text(encoding='utf-8')).items()):
         for psm in (6, 7):

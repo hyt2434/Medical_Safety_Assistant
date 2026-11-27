@@ -18,7 +18,16 @@ HERE = Path(__file__).resolve().parent
 ROOT = PROJECT_ROOT
 PROJECT = PROJECT_ROOT
 LEGACY = PROJECT_ROOT/'data/reference/provenance/real_medication_e2e'
-from module1_intake.ocr.local import local_ocr
+from module1_intake.ocr.application.service import LocalOcrService
+
+
+def local_ocr(image, output, cid, log):
+    result = LocalOcrService().extract(image)
+    raw = result.extraction_run.raw_output
+    (output / f'{cid}_ocr_evidence.json').write_text(json.dumps(raw['ocr'], ensure_ascii=False), encoding='utf-8')
+    log.log(f'[{cid}] Actual Tesseract run={result.extraction_run.extraction_run_id}')
+    return raw['parsed'], {'provider': result.extraction_run.engine_name,
+        'run_id': str(result.extraction_run.extraction_run_id), 'requires_user_review': True}
 from module2_medications.unified import UnifiedMedicationReference, default_config
 from module2_medications.service import from_module1
 from module3_interactions.engine import assess
@@ -136,7 +145,7 @@ def run(truth_path, output, config_path=None):
     protected = protected_inputs(config)
     write(output/'protected_inputs.json',protected)
     snapshot=output/'executed_code'; snapshot.mkdir()
-    code_paths=[Path(__file__),PROJECT/'src/module1_intake/ocr/local.py',PROJECT/'src/module1_intake/ocr/local_ocr_rows.py',PROJECT/'src/module2_medications/service.py',PROJECT/'src/module2_medications/unified.py',PROJECT/'src/module3_interactions/engine.py']
+    code_paths=[Path(__file__),PROJECT/'src/module1_intake/ocr/application/service.py',PROJECT/'src/module1_intake/ocr/parsing/dispatcher.py',PROJECT/'src/module2_medications/service.py',PROJECT/'src/module2_medications/unified.py',PROJECT/'src/module3_interactions/engine.py']
     for p in code_paths: shutil.copy2(p,snapshot/p.name)
     write(output/'executed_code_hashes.json',{str(p):sha(p) for p in code_paths})
     log.log('Using unified SQLite via main Module 2; actual local OCR; SIMULATED CONFIRMATION; official DDInter 2.0.')
