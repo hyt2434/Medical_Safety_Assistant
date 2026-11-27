@@ -17,6 +17,7 @@ from apps.backend.api.routes.auth import router as auth_router
 from apps.backend.api.routes.ocr import router as ocr_router
 from apps.backend.api.routes.reference import router as reference_router
 from apps.backend.api.routes.intake import router as intake_router
+from apps.backend.api.routes.hcp import router as hcp_router
 from apps.backend.api.routes.reminders import router as reminders_router
 from shared.auth.seed import seed
 
@@ -41,6 +42,7 @@ app.include_router(admin_router)
 app.include_router(ocr_router)
 app.include_router(reference_router)
 app.include_router(intake_router)
+app.include_router(hcp_router)
 app.include_router(reminders_router)
 
 
