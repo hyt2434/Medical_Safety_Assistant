@@ -98,7 +98,8 @@ def occurrences(schedules, records, now, days=1):
 
 
 def adherence(schedules, records, now, days=7):
-    due = [r for r in occurrences(schedules, records, now, days) if r['due']]
+    due = [r for r in occurrences(schedules, records, now, days)
+           if r['scheduled_for'] <= now - timedelta(minutes=60)]
     taken = sum(r['status'] == 'TAKEN' for r in due)
     return {'days': days, 'taken': taken, 'total_due': len(due),
             'rate': taken / len(due) if due else None}

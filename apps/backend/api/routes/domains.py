@@ -6,6 +6,7 @@ from apps.backend.api.deps import current_session
 from shared.auth.core_owner import core_owner
 from shared.auth.settings import core_database_dsn
 from shared.db.domain_repository import DomainRepository
+from shared.db.errors import DomainConflict
 
 
 def domain_repository(session=Depends(current_session)):
@@ -28,8 +29,10 @@ def domain_repository(session=Depends(current_session)):
             yield DomainRepository(connection, authenticated_actor=owner, permissions=permissions)
     except PermissionError:
         raise HTTPException(403, 'Resource access denied') from None
-    except ValueError as error:
+    except DomainConflict as error:
         raise HTTPException(409, str(error)) from None
+    except ValueError:
+        raise HTTPException(500, 'Internal server error') from None
     except psycopg.Error as error:
         message = error.diag.message_primary or ''
         if 'HCP approval' in message:

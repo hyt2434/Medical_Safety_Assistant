@@ -1,6 +1,7 @@
 """Case workflows using the existing audited domain repository."""
 from hashlib import sha256
 from uuid import UUID
+from shared.db.errors import DomainConflict
 
 
 def evidence(schema, case_id, text):
@@ -13,41 +14,48 @@ class HcpService:
     def __init__(self, repo):
         self.repo = repo
 
-    def providers(self):
+    def providers(self, hcp_id=None):
         from datetime import datetime, timezone
         from sqlalchemy import select, or_
         from shared.auth.db import transaction
         from shared.auth.models import User, UserRole, Role
         with transaction() as db:
-            candidates = db.execute(select(User.user_id, User.full_name).join(
+            query = select(User.user_id, User.full_name).join(
                 UserRole, UserRole.user_id == User.user_id).join(Role).where(
                 Role.role_code == 'hcp', User.account_status == 'active',
                 UserRole.revoked_at.is_(None),
                 UserRole.granted_at <= datetime.now(timezone.utc),
                 or_(UserRole.expires_at.is_(None), UserRole.expires_at > datetime.now(timezone.utc))
-            ).distinct()).all()
+            ).distinct()
+            if hcp_id is not None:
+                query = query.where(User.user_id == str(hcp_id))
+            candidates = db.execute(query).all()
+        candidates = [(uid, name) for uid, name in candidates if str(uid) != str(self.repo.owner)]
+        if not candidates:
+            return []
         with self.repo.domain_transaction():
-            return [{'id': uid, 'full_name': name} for uid, name in candidates
-                    if UUID(str(uid)) != self.repo.owner and self.repo._one(
-                        'SELECT id FROM identity.users WHERE id=%s', (uid,))]
+            linked = {str(row['id']) for row in self.repo._all(
+                'SELECT id FROM identity.users WHERE id = ANY(%s)',
+                ([UUID(str(uid)) for uid, _ in candidates],))}
+            return [{'id': uid, 'full_name': name} for uid, name in candidates if str(uid) in linked]
 
     def create(self, kind, hcp_id, consent, assessment_id=None, schedule_id=None):
         if consent is not True:
-            raise ValueError('Explicit patient consent required')
-        if not any(str(p['id']) == str(hcp_id) for p in self.providers()):
-            raise ValueError('Choose an active linked healthcare provider')
+            raise DomainConflict('Explicit patient consent required')
+        if not any(str(p['id']) == str(hcp_id) for p in self.providers(hcp_id=hcp_id)):
+            raise DomainConflict('Choose an active linked healthcare provider')
         r = self.repo
         with r.domain_transaction():
             if kind == 'SAFETY' and assessment_id is None:
-                raise ValueError('Safety review requires a completed assessment')
+                raise DomainConflict('Safety review requires a completed assessment')
             if assessment_id:
                 assessment = r._owned('safety_assessments', assessment_id)
                 if kind == 'SAFETY' and assessment['execution_status'] != 'COMPLETED':
-                    raise ValueError('Safety review requires a completed assessment')
+                    raise DomainConflict('Safety review requires a completed assessment')
             if kind == 'SCHEDULE':
                 old = r._owned('medication_schedules', schedule_id, lock=True)
                 if r._one('SELECT id FROM msa.medication_schedules WHERE supersedes_schedule_id=%s', (schedule_id,)):
-                    raise ValueError('Schedule has already been superseded')
+                    raise DomainConflict('Schedule has already been superseded')
                 if assessment_id is None:
                     from module5_reminders.service import latest_assessment
                     assessment_id = latest_assessment(r, old['entry_version_id'])
@@ -55,7 +63,7 @@ class HcpService:
                     JOIN msa.snapshot_entries se ON se.snapshot_id=a.snapshot_id AND se.user_id=a.user_id
                     WHERE a.id=%s AND a.user_id=%s AND a.execution_status='COMPLETED' AND se.entry_version_id=%s''',
                     (assessment_id, r.owner, old['entry_version_id'])):
-                    raise ValueError('Completed assessment for this exact medication is required')
+                    raise DomainConflict('Completed assessment for this exact medication is required')
                 revision = r.save_schedule(old['entry_version_id'], old['schedule_details'], old['timezone'],
                                            origin='PROPOSED_CHANGE', supersedes=old['id'])
                 schedule_id = revision['id']
@@ -92,7 +100,7 @@ class HcpService:
 
     def message(self, case_id, text):
         if not text.strip():
-            raise ValueError('Message cannot be blank')
+            raise DomainConflict('Message cannot be blank')
         return self.repo.case_message(case_id, text.strip())
 
     def review(self, case_id, decision, notes):
@@ -105,7 +113,7 @@ class HcpService:
             if case is None:
                 raise PermissionError('Case access denied')
             if r._one('SELECT id FROM msa.review_outcomes WHERE case_id=%s', (case_id,)):
-                raise ValueError('Case already has a review outcome')
+                raise DomainConflict('Case already has a review outcome')
             return r.record_review(
                 case_id, decision,
                 evidence('review-evidence.v1', case_id, f'{decision}\n{notes}'),

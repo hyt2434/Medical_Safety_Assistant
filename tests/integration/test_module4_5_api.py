@@ -31,7 +31,7 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
         monkeypatch.setattr(deps, 'current_session', session)
         monkeypatch.setenv('AUTH_ALLOWED_ORIGINS', 'http://127.0.0.1:5173')
         monkeypatch.setenv('CORE_DB_DSN', __import__('os').environ['MODULE2_TEST_DSN'])
-        monkeypatch.setattr(HcpService, 'providers', lambda self: [{'id': str(hcp), 'full_name': 'Synthetic HCP'}])
+        monkeypatch.setattr(HcpService, 'providers', lambda self, hcp_id=None: [{'id': str(hcp), 'full_name': 'Synthetic HCP'}])
         client = TestClient(app, headers={'origin': 'http://127.0.0.1:5173'})
         try:
             intake = core.create_intake(core.create_conversation()['id'])

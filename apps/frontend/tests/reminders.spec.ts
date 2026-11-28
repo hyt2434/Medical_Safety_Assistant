@@ -4,6 +4,9 @@ import { login } from "./intake-fixture";
 test("patient creates schedule, consents to review, activates approval and corrects dose", async ({
   page,
 }) => {
+  const now = Date.now();
+  await page.clock.setFixedTime(now);
+  const scheduledFor = new Date(now - 60 * 60 * 1000).toISOString();
   let schedule: any = null,
     shared = false,
     taken = false,
@@ -52,7 +55,7 @@ test("patient creates schedule, consents to review, activates approval and corre
       if (path.endsWith("/doses")) {
         expect(body).toMatchObject({
           schedule_id: "revision-1",
-          scheduled_for: "2026-11-27T01:00:00Z",
+          scheduled_for: scheduledFor,
         });
         if (record) expect(body.supersedes).toBe(record);
         status = body.status;
@@ -89,7 +92,7 @@ test("patient creates schedule, consents to review, activates approval and corre
               schedule_id: "revision-1",
               name: "Synthetic medication",
               time: "08:00",
-              scheduled_for: "2026-11-27T01:00:00Z",
+              scheduled_for: scheduledFor,
               status,
               record_id: record,
               due: true,

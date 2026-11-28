@@ -7,6 +7,7 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy.exc import ArgumentError
+from shared.db.errors import DomainConflict
 
 from apps.backend.api.routes import domains, reminders
 
@@ -51,7 +52,7 @@ def test_unlinked_owner_remains_403(monkeypatch, domain_setup):
     connect.assert_not_called()
 
 
-def test_domain_value_error_remains_409(monkeypatch, domain_setup):
+def test_domain_conflict_remains_409(monkeypatch, domain_setup):
     from unittest.mock import MagicMock
     session, connect = domain_setup
     connect.return_value = MagicMock()
@@ -59,6 +60,19 @@ def test_domain_value_error_remains_409(monkeypatch, domain_setup):
     dependency = domains.domain_repository(session)
     next(dependency)
     with pytest.raises(HTTPException) as caught:
-        dependency.throw(ValueError('Domain conflict'))
+        dependency.throw(DomainConflict('Domain conflict'))
     assert caught.value.status_code == 409
     assert caught.value.detail == 'Domain conflict'
+
+
+def test_unexpected_value_error_is_500_without_leaking_details(monkeypatch, domain_setup):
+    from unittest.mock import MagicMock
+    session, connect = domain_setup
+    connect.return_value = MagicMock()
+    monkeypatch.setattr(domains, 'DomainRepository', Mock())
+    dependency = domains.domain_repository(session)
+    next(dependency)
+    with pytest.raises(HTTPException) as caught:
+        dependency.throw(ValueError('private implementation detail'))
+    assert caught.value.status_code == 500
+    assert caught.value.detail == 'Internal server error'

@@ -67,3 +67,17 @@ def test_dst_gap_is_skipped_and_fold_is_one_occurrence():
 def test_invalid_window(days):
     with pytest.raises(ValueError):
         adherence([], [], datetime.now(timezone.utc), days)
+
+
+@pytest.mark.parametrize('minutes,expected', [(0, 0), (59, 0), (60, 1), (61, 1)])
+def test_adherence_has_a_full_hour_grace_period(minutes, expected):
+    from datetime import timedelta
+    due = instant('2026-11-27T08:00:00+07:00')
+    row = schedule(schedule_details={'times': ['08:00']})
+    for status in ['TAKEN', 'MISSED', 'SKIPPED']:
+        records = [{'id': 'record', 'schedule_id': 's1', 'scheduled_for': due, 'dose_status': status}]
+        result = adherence([row], records, due + timedelta(minutes=minutes), 1)
+        assert result['total_due'] == expected
+        assert result['taken'] == (expected if status == 'TAKEN' else 0)
+        if not expected:
+            assert result['rate'] is None

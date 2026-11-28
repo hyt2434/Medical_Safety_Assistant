@@ -2,6 +2,7 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Card, Field, Notice, PageHeading } from "../components";
 import { api, ApiError, hcpApi, remindersApi } from "../api";
+import { isRecentDueDose } from "../reminderTiming";
 import type {
   HcpRecord,
   HcpProvider,
@@ -455,7 +456,7 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
       {notice && <p role="status">{notice}</p>}
       {loading && <p role="status">Đang tải lịch…</p>}
       {doses.some(
-        (d) => d.reminder_enabled && d.due && d.status === "PENDING",
+        (d) => isRecentDueDose(d),
       ) && (
         <Notice tone="warning">
           Đến giờ dùng thuốc. Hãy kiểm tra lịch và ghi nhận liều dùng.

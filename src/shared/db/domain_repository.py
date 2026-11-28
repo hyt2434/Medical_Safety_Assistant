@@ -4,6 +4,7 @@ These operations store data and enforce consent/version contracts. They do not
 schedule notifications, perform clinical review or implement future module APIs.
 """
 from contextlib import contextmanager
+from shared.db.errors import DomainConflict
 import json
 from psycopg.types.json import Jsonb
 from shared.db.repository import CoreRepository, now
@@ -50,16 +51,16 @@ class DomainRepository(CoreRepository):
 
     def confirm_schedule(self, schedule, displayed_digest, request_key, *, explicit_confirmation, review_outcome=None):
         if explicit_confirmation is not True:
-            raise ValueError('Explicit confirmation required')
+            raise DomainConflict('Explicit confirmation required')
         with self.domain_transaction():
             row = self._owned('medication_schedules', schedule, lock=True)
             if row['content_digest'] != displayed_digest:
-                raise ValueError('Schedule differs from displayed content')
+                raise DomainConflict('Schedule differs from displayed content')
             if row['verification_status'] != 'UNVERIFIED':
                 if (row['verification_evidence']['confirmation_key'] == str(request_key) and
                     row['verification_evidence'].get('review_outcome_id') == (str(review_outcome) if review_outcome is not None else None)):
                     return row
-                raise ValueError('Schedule already confirmed by another action')
+                raise DomainConflict('Schedule already confirmed by another action')
             entry = self._owned('medication_entry_versions', row['entry_version_id'])
             evidence = {'schema': 'schedule-verification.v1', 'explicit': True,
                         'schedule_digest': displayed_digest, 'entry_digest': entry['content_digest'],
@@ -80,7 +81,7 @@ class DomainRepository(CoreRepository):
                 if prior:
                     if prior['dose_status'] == status:
                         return prior
-                    raise ValueError('Correct the displayed dose record explicitly')
+                    raise DomainConflict('Correct the displayed dose record explicitly')
             return self._insert('msa.dose_records', user_id=self.owner, schedule_id=schedule,
                 scheduled_for=scheduled_for, dose_status=status, supersedes_record_id=supersedes)
 
@@ -144,7 +145,7 @@ class DomainRepository(CoreRepository):
 
     def set_reminder(self, schedule, *, enabled, preferences, assessment=None, eligibility=None):
         if type(enabled) is not bool:
-            raise ValueError('Explicit enabled/disabled action required')
+            raise DomainConflict('Explicit enabled/disabled action required')
         with self.domain_transaction():
             self._owned('medication_schedules', schedule, lock=True)
             previous = self._one('SELECT * FROM msa.reminder_settings WHERE schedule_id=%s AND user_id=%s FOR UPDATE', (schedule, self.owner))

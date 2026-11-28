@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid4
+from shared.db.errors import DomainConflict
 from .calculations import occurrences, adherence, verified_schedule_periods, current_schedule_listing
 
 
@@ -9,7 +10,7 @@ def latest_assessment(repo, entry):
         WHERE a.user_id=%s AND se.entry_version_id=%s AND a.execution_status='COMPLETED'
         ORDER BY a.finished_at DESC,a.id DESC LIMIT 1''', (repo.owner, entry))
     if row is None:
-        raise ValueError('Complete a safety assessment for this medication first')
+        raise DomainConflict('Complete a safety assessment for this medication first')
     return row['id']
 
 
@@ -26,7 +27,7 @@ class ReminderService:
 
     def create(self, entry_version_id, times, dose_raw, timezone, confirm):
         if confirm is not True:
-            raise ValueError('Explicit confirmation required')
+            raise DomainConflict('Explicit confirmation required')
         r = self.repo
         with r.domain_transaction():
             # Share the item lock with entry revision/confirmation and other versions.
@@ -34,17 +35,17 @@ class ReminderService:
             r._owned('intake_items', entry['item_id'], lock=True)
             entry = r._owned('medication_entry_versions', entry_version_id, lock=True)
             if entry['confirmed_at'] is None:
-                raise ValueError('Medication entry must be confirmed before creating a schedule')
+                raise DomainConflict('Medication entry must be confirmed before creating a schedule')
             if r._one('''SELECT id FROM msa.medication_entry_versions
                 WHERE user_id=%s AND item_id=%s AND version_no>%s''',
                 (r.owner, entry['item_id'], entry['version_no'])):
-                raise ValueError('Schedule requires the newest medication entry version')
+                raise DomainConflict('Schedule requires the newest medication entry version')
             if r._one('''SELECT s.id FROM msa.medication_schedules s
                 JOIN msa.medication_entry_versions e ON e.id=s.entry_version_id
                 WHERE s.user_id=%s AND e.item_id=%s AND NOT EXISTS(
                     SELECT FROM msa.medication_schedules n WHERE n.supersedes_schedule_id=s.id)''',
                 (r.owner, entry['item_id'])):
-                raise ValueError('An active schedule already exists for this medication; use a revision')
+                raise DomainConflict('An active schedule already exists for this medication; use a revision')
             row = r.save_schedule(entry_version_id, {'schema': 'schedule.v1', 'times': times, 'dose_raw': dose_raw}, timezone)
             return r.confirm_schedule(row['id'], row['content_digest'], uuid4(), explicit_confirmation=True)
 
@@ -76,12 +77,12 @@ class ReminderService:
                             AND se.user_id=a.user_id AND se.entry_version_id=%s)''',
                         (outcome, r.owner, s['id'], s['content_digest'], s['entry_version_id']))
                     if reviewed is None:
-                        raise ValueError('Reviewed assessment must be completed and cover this medication')
+                        raise DomainConflict('Reviewed assessment must be completed and cover this medication')
                     assessment = reviewed['id']
                 elif s['verification_status'] == 'PATIENT_CONFIRMED':
                     assessment = latest_assessment(r, s['entry_version_id'])
                 else:
-                    raise ValueError('Reminder requires a verified schedule')
+                    raise DomainConflict('Reminder requires a verified schedule')
             return r.set_reminder(schedule_id, enabled=enabled, assessment=assessment,
                                   preferences={'schema': 'notification-preferences.v1', 'channel': 'IN_APP'})
 
@@ -90,9 +91,9 @@ class ReminderService:
         with r.domain_transaction():
             s = r._owned('medication_schedules', schedule_id, lock=True)
             if s['schedule_origin'] != 'PROPOSED_CHANGE':
-                raise ValueError('Activation requires a reviewed schedule revision')
+                raise DomainConflict('Activation requires a reviewed schedule revision')
             if r._one('SELECT id FROM msa.medication_schedules WHERE supersedes_schedule_id=%s', (schedule_id,)):
-                raise ValueError('Cannot activate a superseded schedule')
+                raise DomainConflict('Cannot activate a superseded schedule')
             outcome = r._one('''SELECT o.*,c.safety_assessment_id AS assessment_id
                 FROM msa.review_outcomes o JOIN msa.review_cases c ON c.id=o.case_id
                 JOIN msa.safety_assessments a ON a.id=c.safety_assessment_id AND a.user_id=c.user_id
@@ -102,10 +103,10 @@ class ReminderService:
                 ORDER BY o.reviewed_at DESC,o.id DESC LIMIT 1''',
                 (schedule_id, r.owner, s['entry_version_id']))
             if outcome is None or outcome['decision'] != 'APPROVED':
-                raise ValueError('Approval with a completed assessment for this medication is required')
+                raise DomainConflict('Approval with a completed assessment for this medication is required')
             case = r._owned('review_cases', outcome['case_id'], lock=True)
             if case['status'] not in ('OPEN', 'IN_REVIEW', 'CLOSED'):
-                raise ValueError('Case is not available for activation')
+                raise DomainConflict('Case is not available for activation')
             if s['verification_status'] == 'UNVERIFIED':
                 r.confirm_schedule(s['id'], s['content_digest'], uuid4(), explicit_confirmation=True, review_outcome=outcome['id'])
             setting = r.set_reminder(schedule_id, enabled=True, assessment=outcome['assessment_id'],
@@ -116,7 +117,7 @@ class ReminderService:
                     WHERE id=%s AND user_id=%s AND status IN ('OPEN','IN_REVIEW')
                     RETURNING id''', (case['id'], r.owner))
                 if closed is None:
-                    raise ValueError('Case could not be closed during activation')
+                    raise DomainConflict('Case could not be closed during activation')
             return setting
 
     def records(self):
@@ -138,14 +139,14 @@ class ReminderService:
 
     def dose(self, schedule_id, scheduled_for, status, supersedes=None):
         if scheduled_for.tzinfo is None or scheduled_for.utcoffset() is None:
-            raise ValueError('Dose time must include a timezone')
+            raise DomainConflict('Dose time must include a timezone')
         if scheduled_for > datetime.now(timezone.utc):
-            raise ValueError('Cannot record a future dose')
+            raise DomainConflict('Cannot record a future dose')
         r = self.repo
         with r.domain_transaction():
             r._owned('medication_schedules', schedule_id, lock=True)
             schedule = [s for s in self._dose_schedules() if str(s['id']) == str(schedule_id)]
             valid = occurrences(schedule, [], scheduled_for)
             if not any(row['scheduled_for'] == scheduled_for.astimezone(timezone.utc) for row in valid):
-                raise ValueError('Dose time is outside the verified schedule effective period')
+                raise DomainConflict('Dose time is outside the verified schedule effective period')
             return r.record_dose(schedule_id, scheduled_for, status, supersedes=supersedes)
