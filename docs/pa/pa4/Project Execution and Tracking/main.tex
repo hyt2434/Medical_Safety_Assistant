@@ -63,7 +63,10 @@ Execution, collaboration, delivery and verification evidence. \upd{Part A (blue)
 Integration of all branches & \pr{79}, \pr{81}, \pr{82} and \pr{83} merged on 27 November; \texttt{dev} and \texttt{main} synchronised by \pr{84}. Only \texttt{dev} and \texttt{main} remain on GitHub.\\
 Module 4 and Module 5 & Implemented on a feature branch and merged by \pr{86} on 28 November (draft \pr{85} was closed and superseded).\\
 Intake, chatbot, database & Long integrated voice/manual input, RAG chatbot, OCR/RBAC and the complete system schema (commits 19--23 November).\\
-System testing & 644 backend/unit tests, 43 end-to-end UI tests and the Module 4/5 flow on real PostgreSQL passed; 114 functional test cases written for UC-01--UC-20.\\
+System testing & Backend/unit tests: 644 passed, 8 failed and 85 errors.
+UI tests: 43 passed and 1 skipped. The Module 4/5 PostgreSQL
+flow passed. Of 114 functional test cases, 68 passed and
+46 were not run. See A5 for detailed results.\\
 Release & Release v0.4.0 prepared from \texttt{main} for PA4 submission.\\\bottomrule
 \end{tabularx}
 
@@ -119,7 +122,13 @@ End-to-end UI (Playwright) & 43 pass / 1 skip & 34 / 1\\
 Functional test cases (UC-01--UC-20) & 114 written: 68 pass, 46 not run & --\\\bottomrule
 \end{tabularx}
 
-\textbf{Interpretation.} No regression was introduced. The remaining failures and errors are caused by local reference data missing on the test machine (B001), not by new code. Not-run cases are listed with reasons in the test-case workbook. Open defects: B001--B003, B005--B007, B014; fixed during PA4: B004, B008--B013.
+\textbf{Interpretation.} More tests passed than in the previous run,
+but full regression verification remains incomplete.
+Remaining failures and errors are attributed to missing
+local reference data (B001) in the Test Report. The 46
+unexecuted functional cases are listed with reasons in the
+test-case workbook. Open defects: B001--B003, B005--B007 and
+B014; fixed during PA4: B004 and B008--B013.
 
 \reportpage{\upd{A6. Next iteration}}
 \color{pafourblue}

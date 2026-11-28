@@ -216,7 +216,7 @@
   \hline
   \RevisionDate & \RevisionVersion & \RevisionDescription & \RevisionAuthor\\
   \hline
-  \upd{28 Nov 2026} & \upd{2.0} & \upd{PA4 revision: Sections 1--4 reviewed against the implemented release v0.4.0 (scope, references, terms, an architectural constraint, use-case implementation status, and implementation notes for Modules 4 and 5); Section 5 (UML deployment diagram and node descriptions) and Section 6 (folder structure) completed. No TA feedback for PA3 had been received; changes follow the current state of the system.} & \upd{Group 02}\\
+  \upd{28 Nov 2026} & \upd{2.0} & \upd{Updated implementation status and architecture notes; completed Deployment and Implementation Views.} & \upd{Group 02}\\
   \hline
 \end{tabularx}}
 
@@ -289,10 +289,10 @@ judgment.
     RBAC & Role-Based Access Control \\ \hline
     ERD & Entity--Relationship Diagram \\ \hline
     UUID & Universally Unique Identifier \\ \hline
-    Core DB V4 & The main database for medication,
-    patient health and other business records. \\ \hline
-    Auth/RBAC & The data store for user accounts,
-    authentication, roles and permissions. \\ \hline
+    Core DB V4 & \upd{The \texttt{msa} and \texttt{msa\_ref} schemas for medication,
+    patient health and other business records.} \\ \hline
+    Auth/RBAC & \upd{Account, authentication, role and permission tables
+    in the \texttt{public} schema.} \\ \hline
     \upd{UML} & \upd{Unified Modeling Language} \\ \hline
     \upd{RLS} & \upd{Row-Level Security: PostgreSQL policies that limit
     which rows an authenticated actor can read or change.} \\ \hline
@@ -443,7 +443,8 @@ Use-Case Specification Document.
 \begin{tabularx}{\textwidth}{|L{3.4cm}|Y|}
 \hline
 \textbf{Status} & \textbf{Use cases} \\ \hline
-Implemented (server and UI) & UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08, UC-09, UC-11, UC-15 \\ \hline
+Implemented (server and UI) & UC-01, UC-02, UC-04, UC-05, UC-06, UC-08, UC-09, UC-11, UC-15 \\ \hline
+Partially implemented & UC-03: interaction checks work, but patient-specific checks are incomplete. UC-07: reminder settings work, but timing proposals cannot carry new times. \\ \hline
 UI prototype (local data) & UC-10, UC-12, UC-13, UC-14, UC-16, UC-17, UC-18, UC-20 (account viewing uses the server) \\ \hline
 Future development & UC-19 \\ \hline
 \end{tabularx}
@@ -617,8 +618,9 @@ Future development & UC-19 \\ \hline
 
 The Medication Safety Assistant uses a \textbf{three-tier layered modular monolith}.
 The frontend shows the user interface and the Python backend runs the business logic.
-Core DB V4 stores business data; separate Auth/RBAC storage keeps accounts and
-permissions. The twelve components are logical parts of one system, not separate
+\upd{In the unified PostgreSQL deployment, \texttt{msa} and \texttt{msa\_ref}
+hold business data, \texttt{public} holds Auth/RBAC data, and \texttt{identity}
+links user identifiers.} The twelve components are logical parts of one system, not separate
 microservices.
 
 \noindent\textbf{Architecture and communication.}\par\smallskip
@@ -628,7 +630,7 @@ microservices.
 \textbf{Tier} & \textbf{Technology and responsibility} \\ \hline
 Presentation & TypeScript, HTML and CSS; display pages and collect user input. \\ \hline
 Application & Python API and services; validate requests, check permissions and run business logic. \\ \hline
-Data & Python repositories and separate business and Auth/RBAC stores; save records and audit events. \\ \hline
+Data & \upd{Python repositories and logically separated PostgreSQL schemas; save records and audit events.} \\ \hline
 \end{tabularx}
 \endgroup
 
@@ -1006,17 +1008,10 @@ need separate patient permissions. Review outcomes do not change treatment
 automatically.
 
 \begin{updated}
-\noindent\textbf{Implementation in release v0.4.0.} The case workflow is
-implemented by \texttt{HcpService} (\texttt{src/module4\_hcp/service.py}) and
-exposed at \texttt{/api/v1/hcp} (providers, create case with consent, my cases,
-HCP queue, case detail, messages, review). \texttt{ReviewCaseService},
-\texttt{ReviewConversation} and \texttt{ReviewOutcome} map to this service and
-the tables \texttt{review\_cases}, \texttt{review\_case\_messages} and
-\texttt{review\_outcomes}; \texttt{SharingPermissionService} maps to
-\texttt{review\_case\_permissions} and the database function
-\texttt{can\_access\_case}. One outcome is allowed per case; the patient closes
-a schedule case when activating the approved schedule. Health-summary sharing
-(UC-12, UC-13) is still a UI prototype.
+\noindent\textbf{Implementation in release v0.4.0.} \texttt{HcpService}
+handles consent-based case access, messages and review outcomes. Database
+permissions restrict case access. Health-summary generation and sharing
+(UC-12, UC-13) remain UI prototypes; case consent does not grant summary access.
 \end{updated}
 
 
@@ -1056,17 +1051,10 @@ and existing reminders are not changed automatically.
 
 \begin{updated}
 \noindent\textbf{Implementation in release v0.4.0.} \texttt{ReminderService}
-(\texttt{src/module5\_reminders/service.py}) is exposed at
-\texttt{/api/v1/reminders} (entries, schedules, reminder on/off, activate,
-today, history, adherence, doses). Dose occurrences and the 7-day adherence
-rate are computed by pure functions in \texttt{calculations.py} using the
-schedule's time zone, with a one-hour grace period before a dose counts as
-missed. Enabling a reminder that needs review returns
-\texttt{HCP\_REVIEW\_REQUIRED}, and the patient sends the schedule to an HCP
-through Module 4. Notifications are in-app only. Known limitation: a schedule
-proposal cannot yet carry new timing, because the unique index
-\texttt{one\_schedule\_root} allows one root schedule per medication version;
-a new migration is planned (defects B005/B006 in the Test Report).
+manages schedules, reminder settings, dose records and adherence history.
+New reminders need a valid safety result and HCP review when required.
+Notifications are in-app only. Timing proposals cannot yet carry new times;
+see defects B005/B006 in the Test Report.
 \end{updated}
 
 
@@ -1240,8 +1228,9 @@ Patient health details stay hidden unless access is explicitly allowed.
 % ============================================================
 \LogicalComponentPage{Component: Data Persistence and Audit}{subsec:logical-persistence}{%
 \textbf{Purpose.} Provide shared data access, transactions and audit
-recording for backend services. Core DB V4 holds business records, while
-separate Auth/RBAC storage holds accounts and access data.
+recording for backend services. \upd{In the unified deployment, Core DB V4
+uses \texttt{msa}/\texttt{msa\_ref}; Auth/RBAC uses \texttt{public}, and the
+\texttt{identity} schema links user IDs.}
 \textbf{Related use cases:} Supports active use cases across the system.
 }{12}{fig:logical-persistence-classes}
 
@@ -1265,9 +1254,9 @@ interface to save related changes in one transaction.
 \texttt{AuditRecorder} has an Association with the same interface to
 record important actions alongside business operations.
 
-\noindent\textbf{Important rule.} Core DB V4 business audit records and Auth/RBAC
-authentication audit records belong to separate data stores; they are not
-the same table.
+\noindent\textbf{Important rule.} \upd{Business audit records in \texttt{msa}
+and authentication audit records in \texttt{public} are distinct tables within
+the same PostgreSQL database in the unified deployment.}
 
 
 % ------------------------------------------------------------
@@ -1511,7 +1500,7 @@ staff member. \texttt{subject} and \texttt{status} describe the issue.
 \texttt{support\_messages.content} and \texttt{created\_at} keep replies.\par
 \textbf{Core relationships.} One \texttt{support\_tickets} record can have
 many \texttt{support\_messages} through \texttt{ticket\_id}. User IDs identify
-people in Auth/RBAC but are not shown as cross-database foreign keys.\par
+people in Auth/RBAC \upd{but are not shown as direct foreign keys to its tables}.\par
 }{fig:db-erd-08}
 
 % ------------------------------------------------------------
@@ -1527,7 +1516,7 @@ and \texttt{occurred\_at} describe what happened and when.
 \texttt{details} holds limited supporting information.\par
 \textbf{Core relationships.} Resource and user identifiers are logical
 references; this table has no direct foreign keys to every business table
-or to the separate Auth/RBAC database.\par
+\upd{or to the Auth/RBAC tables in \texttt{public}}.\par
 }{fig:db-erd-09}
 
 % ------------------------------------------------------------
@@ -1574,7 +1563,7 @@ hardware. Figure~\ref{fig:deployment} shows the UML deployment diagram of releas
   \node[node] (desk) at (-4.2,3.4) {\textit{\guillemotleft device\guillemotright}\\\textbf{Desktop computer}\\[2pt]
      \tikz\node[art]{\textit{\guillemotleft execution environment\guillemotright}\\Web browser (Chrome, Edge, Firefox)\\Web client (React SPA)};};
   \node[node] (mob) at (4.2,3.4) {\textit{\guillemotleft device\guillemotright}\\\textbf{Mobile device}\\[2pt]
-     \tikz\node[art]{\textit{\guillemotleft execution environment\guillemotright}\\Mobile Web browser\\Web client (responsive, 375\,px)};};
+     \tikz\node[art]{\textit{\guillemotleft execution environment\guillemotright}\\Mobile Web browser\\Responsive Web client};};
   % Application server
   \node[node, minimum width=9.4cm] (app) at (0,-0.6) {\textit{\guillemotleft device\guillemotright}\\\textbf{Application server}\\[2pt]
      \tikz\node[art, text width=8.6cm]{\textit{\guillemotleft execution environment\guillemotright} Python 3 + Uvicorn\\
@@ -1584,7 +1573,7 @@ hardware. Figure~\ref{fig:deployment} shows the UML deployment diagram of releas
        \textit{\guillemotleft artifact\guillemotright} OCR engine (Tesseract via Node.js helper)};};
   % Database server
   \node[node] (db) at (-4.2,-4.6) {\textit{\guillemotleft device\guillemotright}\\\textbf{Database server}\\[2pt]
-     \tikz\node[art]{\textit{\guillemotleft execution environment\guillemotright}\\PostgreSQL 18\\Schemas: \texttt{identity}, \texttt{msa}, \texttt{msa\_ref}\\(Auth/RBAC tables, RLS, triggers)};};
+     \tikz\node[art]{\textit{\guillemotleft execution environment\guillemotright}\\PostgreSQL 18\\Auth/RBAC: \texttt{public}\\Core: \texttt{identity}, \texttt{msa}, \texttt{msa\_ref}\\(RLS, triggers)};};
   % AI services
   \node[node] (ai) at (4.2,-4.6) {\textit{\guillemotleft device\guillemotright}\\\textbf{AI service host (optional)}\\[2pt]
      \tikz\node[art]{\textit{\guillemotleft execution environment\guillemotright}\\Ollama + local Qwen model (NLP)\\faster-whisper (speech-to-text)};};
@@ -1603,24 +1592,16 @@ hardware. Figure~\ref{fig:deployment} shows the UML deployment diagram of releas
 \begin{tabularx}{\textwidth}{|L{3.3cm}|Y|}
 \hline
 \textbf{Node} & \textbf{Description} \\ \hline
-Desktop computer & Runs a desktop Web browser that loads the React Web client. Used by
-patients, HCPs, dataset reviewers, technical support staff and administrators.
-Communicates with the application server only through HTTPS/JSON requests
-carrying a secure session cookie. \\ \hline
-Mobile device & Runs a mobile Web browser with the same responsive Web client
-(tested at 375\,px width). Mainly used by patients for medication intake,
-reminders and dose recording. No native app is installed. \\ \hline
-Application server & Hosts the FastAPI REST API under Uvicorn, the domain modules
-M1--M5 and shared repositories, the static Web client build and the OCR helper.
-It authenticates sessions, checks role permissions, validates requests and runs
-business logic. It is the only node that talks to the database. \\ \hline
-Database server & PostgreSQL 18 stores accounts, roles and permissions, medication
-and safety records, review cases, schedules, reminder settings, dose records and
-audit events. Row-level security and triggers enforce consent and schedule rules.
-Reference medication data is loaded from versioned CSV datasets. \\ \hline
-AI service host (optional) & Runs the local language model (Ollama/Qwen) used by
-the chatbot and the speech-to-text model used for voice input. When it is not
-available, the system offers manual and OCR input and reports the limitation. \\ \hline
+Desktop computer & Runs the React Web client in a desktop browser and connects to
+the application server over HTTPS/JSON. \\ \hline
+Mobile device & Runs the same responsive Web client in a mobile browser and
+connects to the application server over HTTPS/JSON. \\ \hline
+Application server & Runs the FastAPI service, domain modules, OCR helper and
+static Web client. It connects to the database server and optional AI host. \\ \hline
+Database server & Runs one PostgreSQL database for business, Auth/RBAC and identity-registry data. It accepts
+database connections from the application server. \\ \hline
+AI service host (optional) & Runs local language and speech-to-text services,
+accessed by the application server over HTTP. \\ \hline
 \end{tabularx}
 \endgroup
 \end{updated}
@@ -1630,57 +1611,90 @@ available, the system offers manual and OCR input and reports the limitation. \\
 \section{Implementation View}
 \label{sec:implementation-view}
 \begin{updated}
-The source code and supporting files are kept in one Git repository. The main
-folders are shown below as they appear on the application server (Windows style);
-generated folders such as \texttt{node\_modules}, virtual environments and build
-outputs are omitted.
+The repository has a React Web client, a FastAPI application, Python domain
+modules, and database migrations. The trees below are shortened for readability;
+they omit dependencies, virtual environments, caches, logs, temporary files,
+generated data and build products. Paths are relative to the repository root.
 
-\begingroup\small\color{pafourblue}
+\subsection{Source organization}
+\begingroup\small
 \begin{verbatim}
-Medical_Safety_Assistant\
-|-- apps\
-|   |-- backend\                 Application server (FastAPI)
-|   |   |-- app.py               Server entry point
-|   |   |-- api\
-|   |   |   |-- app.py           API application, middleware, error handling
-|   |   |   |-- deps.py          Session and permission dependencies
-|   |   |   `-- routes\          auth, admin, intake, ocr, reference, hcp, reminders
-|   |   `-- scripts\             OCR benchmark and maintenance scripts
-|   `-- frontend\                Web client (React + TypeScript + Vite)
-|       |-- src\                 Pages, components, API client (api.ts)
-|       |   `-- pages\           Patient, HCP, reviewer, admin and support pages
-|       |-- public\              Static assets
-|       `-- tests\               Playwright end-to-end tests
-|-- src\                         Domain modules used by the backend
-|   |-- module1_intake\          Manual, voice, OCR input and chatbot (NLP)
-|   |-- module2_medications\     Medication identification
-|   |-- module3_interactions\    Safety assessment (DDInter interactions)
-|   |-- module4_hcp\             HCP review cases (service.py)
-|   |-- module5_reminders\       Schedules, reminders, adherence
-|   `-- shared\                  Auth/RBAC, database repositories, contracts
-|-- db\                          Database
-|   |-- migrations\              001-005 SQL migrations (append-only)
-|   |-- auth\                    Auth/RBAC schema management
-|   |-- manage.py                Migrate, import and test-database commands
-|   `-- tests\                   Database contract tests
-|-- data\
-|   |-- datasets\                Approved medication reference CSV files
-|   `-- rag\                     Chatbot reference documents
-|-- tests\                       Python tests: unit, backend, integration, e2e
-|-- scripts\                     Setup, test and preview scripts
-`-- docs\                        Requirements, design, management and PA documents
-    `-- pa\pa0 ... pa\pa4\       Course project assignment documents
+Medical_Safety_Assistant_Team/
+|-- apps/
+|   |-- backend/
+|   |   |-- app.py
+|   |   `-- api/
+|   |       |-- app.py
+|   |       |-- deps.py
+|   |       `-- routes/
+|   `-- frontend/
+|       |-- src/
+|       |   |-- api.ts
+|       |   |-- App.tsx
+|       |   `-- pages/
+|       `-- package.json
+|-- src/
+|   |-- module1_intake/
+|   |-- module2_medications/
+|   |-- module3_interactions/
+|   |-- module4_hcp/
+|   |-- module5_reminders/
+|   `-- shared/
+|       |-- auth/
+|       `-- db/
+|-- db/
+|   |-- migrations/
+|   `-- auth/migrations/versions/
+`-- data/datasets/
 \end{verbatim}
 \endgroup
 
-\noindent\textbf{Folder responsibilities.} The \texttt{apps} folder contains the
-two deployable parts that run on the application server: the backend API and the
-Web client. The \texttt{src} folder contains the business logic of the five
-modules and the shared layer, so it can be tested without the Web layer. The
-\texttt{db} folder holds the database schema and its migrations, and
-\texttt{data/datasets} holds the reference data imported into the database. The
-\texttt{tests} and \texttt{apps/frontend/tests} folders contain the automated tests
-used for system testing in PA4.
+The backend routes call domain services and shared repositories. The client
+uses \sourcefile{apps/frontend/src/api.ts} for HTTP requests. The following
+detail identifies the main backend entry points without listing every helper.
+
+\begingroup\small
+\begin{verbatim}
+apps/backend/api/routes/
+  auth.py  admin.py  intake.py  ocr.py
+  reference.py  hcp.py  reminders.py
+src/module1_intake/
+  api.py  manual_input/  nlp/  ocr/  voice/
+src/module2_medications/  service.py  ingredients.py
+src/module3_interactions/ engine.py  official_ddinter/
+src/module4_hcp/        service.py
+src/module5_reminders/  service.py  calculations.py
+src/shared/auth/        sessions.py  rbac.py  db.py
+src/shared/db/          repository.py  domain_repository.py
+db/migrations/          001_v4.sql ... 005_schedule_runtime_guard.sql
+\end{verbatim}
+\endgroup
+
+\clearpage
+\subsection{Component-to-source mapping}
+\begingroup\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{|L{0.265\textwidth}|L{0.325\textwidth}|L{0.32\textwidth}|}
+\hline
+\textbf{Component in Section 4} & \textbf{Source path} & \textbf{Responsibility / status} \\ \hline
+\endfirsthead
+\hline
+\textbf{Component in Section 4} & \textbf{Source path} & \textbf{Responsibility / status} \\ \hline
+\endhead
+Web Frontend & \sourcefile{apps/frontend/src/App.tsx}; \sourcefile{apps/frontend/src/pages/}; \sourcefile{apps/frontend/src/api.ts} & Role-based screens and API calls. Some profile, dataset-review and support screens use local prototype state. \\ \hline
+API Controllers & \sourcefile{apps/backend/api/app.py}; \sourcefile{apps/backend/api/deps.py}; \sourcefile{apps/backend/api/routes/} & FastAPI routing, request models, session and permission checks. \\ \hline
+Medication Intake and Chatbot (M1) & \sourcefile{src/module1_intake/}; \sourcefile{apps/backend/api/routes/intake.py}; \sourcefile{apps/backend/api/routes/ocr.py} & Manual, OCR, chat and voice intake; draft confirmation and question-answering code. \\ \hline
+Medication Identification (M2) & \sourcefile{src/module2_medications/}; \sourcefile{src/shared/db/identification_adapter.py} & Candidate matching and ingredient lookup. \\ \hline
+Safety Assessment and Decision Support (M3) & \sourcefile{src/module3_interactions/}; \sourcefile{src/shared/db/safety_adapter.py} & Interaction checks and safety findings. Other patient-specific checks described in Section 4 are not fully implemented. \\ \hline
+HCP Review and Patient Health Summary (M4) & \sourcefile{src/module4_hcp/service.py}; \sourcefile{apps/backend/api/routes/hcp.py} & Consent-based case access, messages and review outcomes. The full patient health summary is only a UI prototype. \\ \hline
+Reminders and Adherence (M5) & \sourcefile{src/module5_reminders/}; \sourcefile{apps/backend/api/routes/reminders.py} & Schedules, in-app reminders, dose records and adherence calculations. \\ \hline
+Patient Health Profile & \sourcefile{apps/frontend/src/pages/Patient.tsx}; \sourcefile{db/migrations/003_system_domains.sql} & Profile UI and database tables exist; no dedicated profile API or service is present. \\ \hline
+Reference Data and Dataset Review & \sourcefile{data/datasets/}; \sourcefile{apps/backend/api/routes/reference.py}; \sourcefile{apps/frontend/src/pages/Access.tsx} & Reference lookup and import data exist. Dataset-review decisions have a table, but the reviewer workflow is a UI prototype without a review API/service. \\ \hline
+Account and Access Management & \sourcefile{src/shared/auth/}; \sourcefile{apps/backend/api/routes/auth.py}; \sourcefile{apps/backend/api/routes/admin.py}; \sourcefile{db/auth/migrations/versions/} & Accounts, sessions, roles, permissions and authentication audit. \\ \hline
+Technical Support & \sourcefile{apps/frontend/src/pages/Flows.tsx}; \sourcefile{db/migrations/003_system_domains.sql} & Ticket UI and tables exist; no support-ticket API or service is present. \\ \hline
+Data Persistence and Audit & \sourcefile{src/shared/db/}; \sourcefile{db/migrations/}; \sourcefile{db/auth/migrations/versions/} & PostgreSQL repositories and transactions; distinct business and authentication audit tables in the unified database. \\ \hline
+\end{longtable}
+\endgroup
 \end{updated}
 
 
