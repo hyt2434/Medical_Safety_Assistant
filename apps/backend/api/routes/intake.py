@@ -21,7 +21,6 @@ from module1_intake.nlp.interfaces.application import (
 )
 from module1_intake.nlp.models import Intent
 from module1_intake.nlp.understanding.providers import OllamaProvider
-from module1_intake.nlp.qa_pipeline.composition import GroundedComposer
 from module1_intake.ocr.application import intake as ocr_intake
 from module1_intake.ocr.application.service import OcrError
 from module1_intake.ocr.imaging.input import CONTENT_TYPES
@@ -101,7 +100,7 @@ def current_application(session=Depends(require_permission('patient.workspace'))
             except (OSError, ValueError, KeyError):
                 dataset = None
             yield ApplicationService(repo, OllamaProvider(os.environ.get('NLP_OLLAMA_MODEL', 'qwen3.5:9b')),
-                dataset_build=build, dataset=dataset, composer=GroundedComposer(),
+                dataset_build=build, dataset=dataset,
                 data_context=os.environ.get('CORE_DATA_CONTEXT', 'PATIENT'))
     except PermissionError:
         raise HTTPException(404, 'Không tìm thấy tài nguyên của tài khoản') from None
