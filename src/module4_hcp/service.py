@@ -90,3 +90,25 @@ class HcpService:
         if not text.strip():
             raise ValueError('Message cannot be blank')
         return self.repo.case_message(case_id, text.strip())
+
+    def review(self, case_id, decision, notes):
+        """Persist the outcome and close its case atomically as the current HCP.
+
+        Database access/transition guards remain authoritative. If closure is
+        rejected, the outcome must roll back rather than report partial success.
+        """
+        r = self.repo
+        with r.transaction():
+            outcome = r.record_review(
+                case_id, decision,
+                evidence('review-evidence.v1', case_id, f'{decision}\n{notes}'),
+                notes=notes,
+            )
+            closed = r._one('''UPDATE msa.review_cases
+                SET status='CLOSED',closed_at=clock_timestamp(),updated_at=clock_timestamp()
+                WHERE id=%s AND assigned_hcp_id=%s AND status IN ('OPEN','IN_REVIEW')
+                  AND msa.can_access_case(id,user_id)
+                RETURNING id''', (case_id, r.owner))
+            if closed is None:
+                raise ValueError('Case could not be closed by the assigned reviewer')
+            return outcome

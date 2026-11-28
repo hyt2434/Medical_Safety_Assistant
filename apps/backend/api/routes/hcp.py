@@ -83,3 +83,8 @@ def detail(case_id: UUID, repo=Depends(domain_repository)):
 @router.post('/cases/{case_id}/messages', status_code=201)
 def message(case_id: UUID, body: MessageRequest, repo=Depends(domain_repository)):
     return HcpService(repo).message(case_id, body.text)
+
+
+@router.post('/cases/{case_id}/review', dependencies=[clinician], status_code=201)
+def review(case_id: UUID, body: ReviewRequest, repo=Depends(domain_repository)):
+    return HcpService(repo).review(case_id, body.decision, body.notes)
