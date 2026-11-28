@@ -39,7 +39,7 @@ class ScheduleRequest(BaseModel):
     def valid_zone(cls, value):
         try:
             ZoneInfo(value)
-        except (ZoneInfoNotFoundError, ValueError):
+        except (ZoneInfoNotFoundError, ValueError, OSError):
             raise ValueError('IANA timezone required') from None
         return value
 

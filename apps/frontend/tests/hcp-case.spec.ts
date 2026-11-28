@@ -53,6 +53,7 @@ test("assigned HCP records review and leaves closure to patient activation", asy
   await page.getByLabel("Mật khẩu", { exact: true }).fill("Multi-role-2026");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await page.getByRole("button", { name: "HCP", exact: true }).click();
+  await expect(page).toHaveURL('/hcp');
   await page.goto("/hcp/queue");
   await page.getByRole("link", { name: "Mở ca", exact: true }).click();
   await expect(
@@ -89,6 +90,7 @@ test("denied HCP case does not fall back to demo data", async ({ page }) => {
   await page.getByLabel("Mật khẩu", { exact: true }).fill("Multi-role-2026");
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await page.getByRole("button", { name: "HCP", exact: true }).click();
+  await expect(page).toHaveURL('/hcp');
   await page.goto("/hcp/case/forbidden");
   await expect(page.getByText("Case access denied")).toBeVisible();
   await expect(
@@ -109,6 +111,7 @@ test('assessment queue filters live cases to SAFETY', async ({page}) => {
   await page.getByLabel('Mật khẩu',{exact:true}).fill('Multi-role-2026');
   await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
   await page.getByRole('button',{name:'HCP',exact:true}).click();
+  await expect(page).toHaveURL('/hcp');
   await page.goto('/hcp/queue');
   await expect(page.getByRole('link',{name:'Mở ca',exact:true})).toHaveCount(2);
   await page.goto('/hcp/assessment');

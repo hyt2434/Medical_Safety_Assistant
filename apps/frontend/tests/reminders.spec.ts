@@ -167,7 +167,7 @@ test("patient creates schedule, consents to review, activates approval and corre
 });
 
 for (const decision of ['REJECTED', 'CHANGES_REQUESTED']) {
-  test(`retained schedule can be toggled and ${decision} proposal resent`, async ({page}) => {
+  test(`retained schedule toggle is disabled and ${decision} proposal can be resent`, async ({page}) => {
     const proposal = {id:'pending',entry_version_id:'entry',name:'Medicine',timezone:'UTC',
       schedule_details:{times:['09:00'],dose_raw:'one'},verification_status:'UNVERIFIED',review_decision:decision,reminder_enabled:false};
     const retained = { ...proposal, id:'verified', verification_status:'PATIENT_CONFIRMED',
@@ -195,9 +195,8 @@ for (const decision of ['REJECTED', 'CHANGES_REQUESTED']) {
     });
     await login(page);await page.goto('/reminders');
     await expect(page.getByRole('region',{name:'Lịch đề xuất'})).toContainText(decision);
-    await page.getByRole('button',{name:'Tắt nhắc',exact:true}).click();
-    await expect(page.getByRole('button',{name:'Bật nhắc',exact:true})).toBeVisible();
-    expect(toggled).toBe(true);
+    await expect(page.getByRole('button',{name:'Tắt nhắc',exact:true})).toBeDisabled();
+    expect(toggled).toBe(false);
     await page.getByRole('button',{name:'Gửi chuyên gia',exact:true}).click();
     await page.getByLabel('Chuyên gia nhận ca').selectOption('hcp');
     await page.getByRole('checkbox').check();

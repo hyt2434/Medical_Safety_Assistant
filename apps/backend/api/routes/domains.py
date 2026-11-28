@@ -1,5 +1,6 @@
 """Shared authenticated connection and error boundary for domain APIs."""
 import psycopg
+from sqlalchemy.exc import ArgumentError
 from fastapi import Depends, HTTPException
 from apps.backend.api.deps import current_session
 from shared.auth.core_owner import core_owner
@@ -14,8 +15,13 @@ def domain_repository(session=Depends(current_session)):
     try:
         owner = core_owner(session['account']['id'])
         dsn = core_database_dsn()
-        if not dsn:
-            raise HTTPException(503, 'Core database is not configured')
+    except PermissionError:
+        raise HTTPException(403, 'Resource access denied') from None
+    except (ValueError, TypeError, ArgumentError, psycopg.Error):
+        raise HTTPException(503, 'Core database configuration is invalid') from None
+    if not dsn:
+        raise HTTPException(503, 'Core database is not configured')
+    try:
         with psycopg.connect(dsn, autocommit=True, connect_timeout=5) as connection:
             if not connection.execute('SELECT id FROM identity.users WHERE id=%s', (owner,)).fetchone():
                 raise HTTPException(403, 'Core account link required')

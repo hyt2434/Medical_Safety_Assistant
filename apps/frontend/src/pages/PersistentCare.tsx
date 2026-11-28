@@ -427,7 +427,7 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
       window.clearInterval(timer);
     };
   }, [history]);
-  async function action(fn: () => Promise<unknown>, scheduleId?: string) {
+  async function action(fn: () => Promise<unknown>, schedule?: MedicationSchedule) {
     setBusy(true);
     setError("");
     setNotice("");
@@ -438,9 +438,10 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
       if (
         e instanceof ApiError &&
         e.code === "HCP_REVIEW_REQUIRED" &&
-        scheduleId
+        schedule
       ) {
-        setShare(scheduleId);
+        const proposal = schedule.pending_proposal || schedule;
+        setShare(proposal.id);
         setNotice("Lịch này cần chuyên gia phê duyệt trước khi bật nhắc.");
       } else setError(message(e));
     } finally {
@@ -509,11 +510,11 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
               {s.verification_status !== "UNVERIFIED" && (
                 <button
                   className="button"
-                  disabled={busy}
+                  disabled={busy || Boolean(s.pending_proposal)}
                   onClick={() =>
                     void action(
                       () => remindersApi.reminder(s.id, !s.reminder_enabled),
-                      s.id,
+                      s,
                     )
                   }
                 >
