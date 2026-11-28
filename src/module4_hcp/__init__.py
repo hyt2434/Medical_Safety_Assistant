@@ -1,1 +1,1 @@
-"""module4_hcp package; planned packages expose no implementation."""
+"""Consent-scoped patient and clinician collaboration."""

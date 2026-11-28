@@ -1,3 +1,4 @@
+import { useCareMode, LiveHcpQueue, LiveHcpCase } from "./PersistentCare";
 import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -67,7 +68,7 @@ function StatusBadge({ status }: { status: ReviewCase["status"] }) {
 }
 export { HcpDashboard } from "./RoleDashboards";
 
-export function HcpQueue({ assessment = false }: { assessment?: boolean }) {
+function DemoHcpQueue({ assessment = false }: { assessment?: boolean }) {
   const { state } = useDemo();
   const [params, setParams] = useSearchParams();
   const filter = params.get("filter") || "all";
@@ -273,7 +274,7 @@ function CaseNotFound() {
     />
   );
 }
-export function HcpCase() {
+function DemoHcpCase() {
   const { id } = useParams();
   const { state, updateCase } = useDemo();
   const record = state.cases.find((c) => c.id === id);
@@ -845,3 +846,17 @@ export function HcpProfile() {
 }
 export { ReferenceDatabase as Database } from "./ReferenceDatabase";
 export { Admin } from "./RoleDashboards";
+
+export function HcpQueue(props: {assessment?: boolean}) {
+  const {authStatus} = useDemo();
+  const mode = useCareMode(authStatus);
+  if (mode === "loading") return <p role="status">Đang tải…</p>;
+  return mode === "live" ? <LiveHcpQueue {...props} /> : <DemoHcpQueue {...props} />;
+}
+
+export function HcpCase() {
+  const {authStatus} = useDemo();
+  const mode = useCareMode(authStatus);
+  if (mode === "loading") return <p role="status">Đang tải…</p>;
+  return mode === "live" ? <LiveHcpCase /> : <DemoHcpCase />;
+}

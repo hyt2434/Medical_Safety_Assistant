@@ -1,3 +1,4 @@
+import { useCareMode, LiveReminders } from "./PersistentCare";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { IntakeWorkspace } from "../IntakeWorkspace";
@@ -233,7 +234,7 @@ export function Medications() {
   );
 }
 
-export function Reminders() {
+function DemoReminders() {
   const { state, update } = useDemo();
   const [selected, setSelected] = useState(today());
   const [symptom, setSymptom] = useState(false);
@@ -731,4 +732,11 @@ export function Profile() {
 
 export function Chat() {
   return <IntakeWorkspace initialMode="chat" />;
+}
+
+export function Reminders() {
+  const {authStatus} = useDemo();
+  const mode = useCareMode(authStatus);
+  if (mode === "loading") return <p role="status">Đang tải…</p>;
+  return mode === "live" ? <LiveReminders /> : <DemoReminders />;
 }
