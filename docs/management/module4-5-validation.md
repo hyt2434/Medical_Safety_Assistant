@@ -2,31 +2,28 @@
 
 Branch: `feature/module4-hcp-module5-reminders`.
 
-## G4-fix2
+## G8 review fixes
 
-- HCP review calls only `record_review`. It does not update the patient's case.
-- Patient activation selects the latest outcome for the current assessment and requires approval. It locks the owned case, confirms the revision, enables its reminder, and closes the case in one transaction. Failure rolls back activation; retrying an already-closed case does not update it again.
-- Pending unverified revisions no longer truncate verified schedule history. Today, history, and adherence follow verified ancestors through revision chains. A verified replacement takes over at `verified_at`, preserving earlier occurrences and their original schedule IDs for recording/correction.
-- No migrations or actor impersonation are required. The former ownership blocker is resolved by closing the case in the patient action.
+- **G8-A:** Activation rejects any schedule with a child and uses the completed assessment attached to the reviewed case, provided its snapshot contains the exact entry. It does not require the latest assessment. The schedule list retains the last verified ancestor alongside its pending proposal and latest decision. The patient can disable the retained reminder and resend the pending proposal after REJECTED or CHANGES_REQUESTED.
+- **G8-B:** Occurrences before `verified_at` (or `created_at`) are omitted. Dose writes require an exact occurrence of a verified schedule within its effective period, including timezone/DST boundaries. Historical corrections retain their original schedule identity. Schedule creation locks the entry and returns 409 if an active schedule already exists.
+- **G8-C:** Only `domain_transaction()` composes domain operations. `transaction()` and inherited Core methods continue rejecting outer transactions. Structured errors lacking a message use a fallback. The assessment queue filters live cases to SAFETY, and SAFETY cases require a completed owned assessment.
 
-Validation:
+No database migrations were added, edited, or applied. Existing database reminder eligibility rules remain authoritative: an ancestor can be disabled, but the guard rejects enabling a schedule with a child even while that child is unverified. The restored control reports the conflict rather than bypassing the guard; activate an approved current revision to enable its reminder.
 
-- `venv/Scripts/python -m pytest tests/unit/module5 tests/backend/test_hcp_review.py tests/integration/test_module4_5_api.py -q`: **26 passed, 1 skipped**. Includes eight new Module 5 service/selection regression cases, updated outcome-only HCP service checks, and existing HTTP/Auth validation.
-- `npx playwright test tests/hcp-case.spec.ts tests/reminders.spec.ts`: **3 passed**. The review fixture now explicitly leaves the case OPEN until patient activation.
-- The PostgreSQL integration test now checks pending-ancestor recording, OPEN after HCP review, and CLOSED after patient activation using the existing migrations. It skips because `MODULE2_TEST_DSN` is unset; real database execution remains unverified.
-- Logs: `artifacts/g4-fix2-tests.log` and `artifacts/g4-fix2-playwright.log`.
+## Required checks
 
-## Earlier baseline evidence
+- `venv/Scripts/python -m pytest tests/backend tests/unit -q`: **609 passed, 8 failed, 12 skipped, 85 errors**. Comparing failing test names against the previously recorded baseline found **no new failures or errors**. Missing reference/DDInter data and the existing CLI subprocess failure remain.
+- `venv/Scripts/python -X utf8 C:/Users/Admin/AppData/Local/Temp/claude/54ac132e11eb8c9c/c1c36b89-014f-4804-af88-29f30dbea2c9/scratchpad/run_m45_db_tests.py`: **2 passed** against the existing marked loopback PostgreSQL test database.
+- `npm run build`: **passed**.
+- `npx playwright test`: **40 passed, 1 skipped**. The opt-in real intake/inference browser test remains skipped. Module 4/5 browser tests use HTTP fixtures and real local Auth; the separate PostgreSQL tests exercise real Core persistence.
+- Focused G8-C run: **51 passed** across domain boundaries, review HTTP/Auth, and Module 5 unit tests.
 
-- Original Python baseline: **557 passed, 9 failed, 12 skipped, 85 errors**.
-- Last full Python run before these fixes: **568 passed, 8 failed, 12 skipped, 85 errors**, with no new failing test names. Missing reference/DDInter data and the existing CLI subprocess failure remain; the latency test passed on rerun.
-- Frontend baseline: build passed; **34 passed, 1 skipped**. Last full browser run: **37 passed, 1 skipped**, and production build passed.
-- These full-suite counts are historical, not a new full-suite run for G4-fix2. The targeted current results are listed above.
+Logs: `artifacts/g8-final-python.log`, `artifacts/g8-final-db.log`, `artifacts/g8-final-build.log`, `artifacts/g8-final-playwright.log`. Earlier group results are in `artifacts/g8-a-*` and `artifacts/g8-b-db.log`.
 
-## Runtime behavior
+The formerly skipped integration fixture needed two corrections before it could execute: one-medication pair coverage is NOT_APPLICABLE, and FastAPI must override the original session dependency with a concrete signature. The dose fixture advances only the application clock to the next scheduled minute; database creation/verification timestamps remain real. No records are backdated or production guards disabled. Tests retain exact-owner cleanup on the marked database.
 
-- Explicit preview mode is available only when development Core is unconfigured. Failed requests to configured Core never fall back to synthetic records.
-- Domain reads use actor-scoped transactions; compound patient activation is atomic. Database triggers retain business auditing.
-- Risk/coverage conflicts return `HCP_REVIEW_REQUIRED`; activation requires approval for the latest completed assessment containing the exact entry.
-- Root schedules begin on their creation date; verified revisions begin at verification time. DST gaps are omitted and repeated wall times occur once. Future doses cannot be recorded, and corrections append a record with `supersedes`.
-- Notifications remain in-app banners refreshed every minute; no background push service is introduced.
+## Runtime notes
+
+HCP review records only an outcome. Patient activation confirms the revision, enables its reminder using the reviewed assessment, and closes the case atomically. Rejected activation rolls back those changes; retries do not update an already-closed case.
+
+Pending revisions do not end a verified ancestor's dose period. A verified replacement takes over at verification time, preserving earlier history and dose IDs. Notifications remain in-app banners refreshed every minute, with no background push service.

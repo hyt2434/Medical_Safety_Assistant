@@ -26,7 +26,7 @@ class HcpService:
                 UserRole.granted_at <= datetime.now(timezone.utc),
                 or_(UserRole.expires_at.is_(None), UserRole.expires_at > datetime.now(timezone.utc))
             ).distinct()).all()
-        with self.repo.transaction():
+        with self.repo.domain_transaction():
             return [{'id': uid, 'full_name': name} for uid, name in candidates
                     if UUID(str(uid)) != self.repo.owner and self.repo._one(
                         'SELECT id FROM identity.users WHERE id=%s', (uid,))]
@@ -37,9 +37,13 @@ class HcpService:
         if not any(str(p['id']) == str(hcp_id) for p in self.providers()):
             raise ValueError('Choose an active linked healthcare provider')
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
+            if kind == 'SAFETY' and assessment_id is None:
+                raise ValueError('Safety review requires a completed assessment')
             if assessment_id:
-                r._owned('safety_assessments', assessment_id)
+                assessment = r._owned('safety_assessments', assessment_id)
+                if kind == 'SAFETY' and assessment['execution_status'] != 'COMPLETED':
+                    raise ValueError('Safety review requires a completed assessment')
             if kind == 'SCHEDULE':
                 old = r._owned('medication_schedules', schedule_id, lock=True)
                 if r._one('SELECT id FROM msa.medication_schedules WHERE supersedes_schedule_id=%s', (schedule_id,)):
@@ -62,7 +66,7 @@ class HcpService:
 
     def cases(self, *, mine=False):
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             return r._all('''SELECT c.*, (SELECT to_jsonb(o) FROM msa.review_outcomes o
                 WHERE o.case_id=c.id ORDER BY reviewed_at DESC,id DESC LIMIT 1) AS latest_outcome
                 FROM msa.review_cases c WHERE ''' + ('c.user_id=%s' if mine else 'c.assigned_hcp_id=%s') +
@@ -70,7 +74,7 @@ class HcpService:
 
     def detail(self, case_id):
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             row = r._one('SELECT * FROM msa.review_cases WHERE id=%s AND msa.can_access_case(id,user_id)', (case_id,))
             if row is None:
                 raise PermissionError('Case access denied')

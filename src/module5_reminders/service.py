@@ -18,7 +18,7 @@ class ReminderService:
         self.repo = repo
 
     def entries(self):
-        with self.repo.transaction():
+        with self.repo.domain_transaction():
             return self.repo._all('''SELECT e.id,e.medication_fields->>'name_raw' AS name,e.medication_fields
                 FROM msa.medication_entry_versions e WHERE e.user_id=%s AND e.confirmed_at IS NOT NULL
                 AND NOT EXISTS(SELECT FROM msa.medication_entry_versions n WHERE n.item_id=e.item_id AND n.version_no>e.version_no)
@@ -28,7 +28,7 @@ class ReminderService:
         if confirm is not True:
             raise ValueError('Explicit confirmation required')
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             # Serialize creation for this entry, including concurrent requests.
             r._owned('medication_entry_versions', entry_version_id, lock=True)
             if r._one('''SELECT s.id FROM msa.medication_schedules s
@@ -41,7 +41,7 @@ class ReminderService:
 
     def schedules(self, *, include_history=False):
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             rows = r._all('''SELECT s.*,e.medication_fields->>'name_raw' AS name,
                 coalesce(rs.enabled,false) AS reminder_enabled,
                 (SELECT o.decision FROM msa.review_outcomes o WHERE o.schedule_id=s.id ORDER BY o.reviewed_at DESC,o.id DESC LIMIT 1) AS review_decision
@@ -52,7 +52,7 @@ class ReminderService:
 
     def reminder(self, schedule_id, enabled):
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             s = r._owned('medication_schedules', schedule_id, lock=True)
             assessment = latest_assessment(r, s['entry_version_id']) if enabled else None
             return r.set_reminder(schedule_id, enabled=enabled, assessment=assessment,
@@ -60,7 +60,7 @@ class ReminderService:
 
     def activate(self, schedule_id):
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             s = r._owned('medication_schedules', schedule_id, lock=True)
             if s['schedule_origin'] != 'PROPOSED_CHANGE':
                 raise ValueError('Activation requires a reviewed schedule revision')
@@ -94,7 +94,7 @@ class ReminderService:
 
     def records(self):
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             return r._all('SELECT * FROM msa.dose_records WHERE user_id=%s ORDER BY recorded_at,id', (r.owner,))
 
     def today(self, now=None):
@@ -115,7 +115,7 @@ class ReminderService:
         if scheduled_for > datetime.now(timezone.utc):
             raise ValueError('Cannot record a future dose')
         r = self.repo
-        with r.transaction():
+        with r.domain_transaction():
             r._owned('medication_schedules', schedule_id, lock=True)
             schedule = [s for s in self._dose_schedules() if str(s['id']) == str(schedule_id)]
             valid = occurrences(schedule, [], scheduled_for)

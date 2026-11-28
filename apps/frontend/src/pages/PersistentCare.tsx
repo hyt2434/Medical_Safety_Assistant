@@ -118,7 +118,7 @@ export function SendToHcp({
     </form>
   );
 }
-export function LiveHcpQueue() {
+export function LiveHcpQueue({assessment = false}: {assessment?: boolean}) {
   const [rows, setRows] = useState<HcpRecord[] | null>(null),
     [error, setError] = useState("");
   useEffect(() => {
@@ -135,13 +135,14 @@ export function LiveHcpQueue() {
       active = false;
     };
   }, []);
+  const visibleRows = rows?.filter(r => !assessment || r.case_type === 'SAFETY');
   return (
     <>
       <PageHeading title="Hàng đợi chuyên gia" />
       {error && <Notice tone="warning">{error}</Notice>}
       {!rows && !error && <p role="status">Đang tải ca…</p>}
-      {rows?.length === 0 && <p>Chưa có ca được phân công.</p>}
-      {rows?.map((r) => (
+      {visibleRows?.length === 0 && <p>Chưa có ca được phân công.</p>}
+      {visibleRows?.map((r) => (
         <Card key={r.id}>
           <h2>
             {r.case_type === "SCHEDULE"

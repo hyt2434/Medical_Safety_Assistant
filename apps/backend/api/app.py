@@ -50,8 +50,9 @@ app.include_router(reminders_router)
 async def http_error(_request: Request, error: HTTPException):
     codes = {401: "UNAUTHENTICATED", 403: "FORBIDDEN", 404: "NOT_FOUND", 409: "CONFLICT", 422: "INVALID_INPUT", 429: "RATE_LIMITED"}
     if isinstance(error.detail, dict) and 'code' in error.detail:
+        detail = {**error.detail, 'message': error.detail.get('message', 'Request failed')}
         return JSONResponse(status_code=error.status_code, headers=error.headers,
-                            content={**error.detail, 'detail': error.detail['message'], 'error': error.detail})
+                            content={**detail, 'detail': detail['message'], 'error': detail})
     return JSONResponse(status_code=error.status_code, headers=error.headers, content={"detail": error.detail,
         "error": {"code": codes.get(error.status_code, "REQUEST_FAILED"), "message": error.detail}})
 

@@ -55,6 +55,8 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             core.confirm_entry(entry['id'], entry['content_digest'], uuid4(), explicit_confirmation=True)
             snapshot = core.create_snapshot([(entry['id'], None)], data_context='SYNTHETIC_TEST')
             attempt = core.start_assessment(snapshot['id'], {'ddinter': {'synthetic': True}, 'engine_config': {}, 'limitations': ['Synthetic API test']})
+            assert client.post('/api/v1/hcp/cases', json={'kind': 'SAFETY', 'assessment_id': str(attempt['id']),
+                'hcp_id': str(hcp), 'consent': True}).status_code == 409
             checks = empty_checks()
             for check in checks.values():
                 if isinstance(check, dict):
@@ -129,6 +131,22 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             actor.update(id=hcp, permissions=['clinical.case_review'])
             assert client.get(case_url).status_code == 403
             assert client.post(case_url+'/messages', json={'text': 'Access revoked'}).status_code == 403
+            actor.update(id=core.owner, permissions=['patient.workspace'])
+            response = client.post('/api/v1/hcp/cases', json={'kind': 'SAFETY', 'assessment_id': str(assessment['id']), 'hcp_id': str(hcp), 'consent': True})
+            assert response.status_code == 201, response.text
         finally:
             app.dependency_overrides.clear()
             client.close()
+
+
+def test_domain_composition_keeps_core_outer_transaction_guard(postgres_repo):
+    repo = DomainRepository(postgres_repo.db, authenticated_actor=postgres_repo.owner)
+    with repo.domain_transaction():
+        cabinet = repo.add_cabinet_item('Explicit synthetic transaction fixture')
+        with pytest.raises(RuntimeError, match='outer transaction'):
+            repo.create_conversation()
+    with repo.transaction():
+        assert repo._owned('medication_cabinet_items', cabinet['id'])
+        with pytest.raises(RuntimeError, match='outer transaction'):
+            repo.add_cabinet_item('Must not persist in arbitrary outer transaction')
+    assert repo.create_conversation()['user_id'] == repo.owner

@@ -17,7 +17,7 @@ from tests.unit.module5.test_service import schedules, at
 ])
 def test_dose_rejects_non_occurrences_without_writing(timestamp, verified, until):
     repo = Mock()
-    repo.transaction = nullcontext
+    repo.domain_transaction = nullcontext
     service = ReminderService(repo)
     row = {**schedules()[0], 'verified_at': verified, 'effective_until': until}
     service._dose_schedules = Mock(return_value=[row])
@@ -28,7 +28,7 @@ def test_dose_rejects_non_occurrences_without_writing(timestamp, verified, until
 
 def test_unverified_schedule_cannot_record_doses():
     repo = Mock()
-    repo.transaction = nullcontext
+    repo.domain_transaction = nullcontext
     service = ReminderService(repo)
     service._dose_schedules = Mock(return_value=verified_schedule_periods(schedules()))
     with pytest.raises(ValueError):
@@ -38,7 +38,7 @@ def test_unverified_schedule_cannot_record_doses():
 
 def test_valid_historical_correction_keeps_original_schedule_id():
     repo = Mock()
-    repo.transaction = nullcontext
+    repo.domain_transaction = nullcontext
     service = ReminderService(repo)
     row = {**schedules()[0], 'effective_until': at(12)}
     service._dose_schedules = Mock(return_value=[row])
@@ -48,7 +48,7 @@ def test_valid_historical_correction_keeps_original_schedule_id():
 
 def test_dst_repeated_time_accepts_only_the_generated_occurrence():
     repo = Mock()
-    repo.transaction = nullcontext
+    repo.domain_transaction = nullcontext
     service = ReminderService(repo)
     row = {**schedules()[0], 'timezone': 'America/New_York', 'schedule_details': {'times': ['01:30']},
            'created_at': datetime(2020, 10, 31, tzinfo=timezone.utc),
@@ -69,7 +69,7 @@ def test_occurrences_start_at_verification_or_creation_instant(verified):
 
 def test_duplicate_schedule_creation_locks_entry_and_rejects_without_writes():
     repo = Mock(owner='owner')
-    repo.transaction = nullcontext
+    repo.domain_transaction = nullcontext
     repo._one.return_value = {'id': 'active'}
     with pytest.raises(ValueError, match='active schedule already exists'):
         ReminderService(repo).create('entry', ['08:00'], 'one', 'UTC', True)

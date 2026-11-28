@@ -95,3 +95,24 @@ test("denied HCP case does not fall back to demo data", async ({ page }) => {
     page.getByRole("button", { name: "Lưu kết quả rà soát" }),
   ).toHaveCount(0);
 });
+
+test('assessment queue filters live cases to SAFETY', async ({page}) => {
+  await page.route('**/api/v1/hcp/**',route=> {
+    if(route.request().url().endsWith('/capabilities'))return route.fulfill({json:{preview:false}});
+    return route.fulfill({json:[
+      {id:'safety',case_type:'SAFETY',status:'OPEN',created_at:'2026-11-28T00:00:00Z'},
+      {id:'schedule',case_type:'SCHEDULE',status:'OPEN',created_at:'2026-11-28T00:00:00Z'},
+    ]});
+  });
+  await page.goto('/login');
+  await page.getByLabel('Email',{exact:true}).fill('multi.demo@example.com');
+  await page.getByLabel('Mật khẩu',{exact:true}).fill('Multi-role-2026');
+  await page.getByRole('button',{name:'Đăng nhập',exact:true}).click();
+  await page.getByRole('button',{name:'HCP',exact:true}).click();
+  await page.goto('/hcp/queue');
+  await expect(page.getByRole('link',{name:'Mở ca',exact:true})).toHaveCount(2);
+  await page.goto('/hcp/assessment');
+  await expect(page.getByRole('link',{name:'Mở ca',exact:true})).toHaveCount(1);
+  await expect(page.getByRole('link',{name:'Mở ca',exact:true})).toHaveAttribute('href','/hcp/case/safety');
+  await expect(page.getByRole('heading',{name:'Rà soát lịch dùng thuốc',exact:true})).toHaveCount(0);
+});

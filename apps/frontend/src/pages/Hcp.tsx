@@ -851,7 +851,7 @@ export function HcpQueue(props: {assessment?: boolean}) {
   const {authStatus} = useDemo();
   const mode = useCareMode(authStatus);
   if (mode === "loading") return <p role="status">Đang tải…</p>;
-  return mode === "live" ? <LiveHcpQueue /> : <DemoHcpQueue {...props} />;
+  return mode === "live" ? <LiveHcpQueue {...props} /> : <DemoHcpQueue {...props} />;
 }
 
 export function HcpCase() {

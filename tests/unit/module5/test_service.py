@@ -26,7 +26,7 @@ def schedules():
 
 def test_pending_revision_preserves_today_history_adherence_and_recordable_id():
     repo = Mock()
-    repo.transaction = __import__('contextlib').nullcontext
+    repo.domain_transaction = __import__('contextlib').nullcontext
     service = ReminderService(repo)
     source = schedules()
     service.schedules = Mock(return_value=source)
@@ -74,7 +74,7 @@ class ActivationRepo:
         self.events = []
 
     @contextmanager
-    def transaction(self):
+    def domain_transaction(self):
         snapshot = deepcopy((self.schedule, self.case, self.enabled))
         try:
             yield
@@ -171,7 +171,7 @@ def test_listing_keeps_verified_ancestor_and_pending_decision(decision):
     source.append({**source[1], 'id': 'leaf', 'supersedes_schedule_id': 'new'})
     before = deepcopy(source)
     repo = Mock()
-    repo.transaction = __import__('contextlib').nullcontext
+    repo.domain_transaction = __import__('contextlib').nullcontext
     repo._all.return_value = source
     listing = ReminderService(repo).schedules()
     assert len(listing) == 1 and listing[0]['id'] == 'old'
