@@ -13,13 +13,13 @@ Rules:
 
 | Goal | Scope | Done when | Status | Commit | Notes |
 |---|---|---|---|---|---|
-| G1 | M5 pure functions: today's occurrences from `times`+timezone, merge dose records, adherence % | `pytest tests/unit/module5 -q` passes | ☑ | 656133f0 | Revalidated: 10 pure tests pass; timezone, DST, corrections and historical schedules. |
+| G1 | M5 pure functions: today's occurrences from `times`+timezone, merge dose records, adherence % | `pytest tests/unit/module5 -q` passes | ☑ | 656133f0 | 18 Module 5 tests pass, including activation and pending-revision regressions; timezone, DST, corrections and historical schedules. |
 | G2 | M5 service + routes `/entries`, `/schedules` (POST/GET), `/today`, `/doses`, `/adherence`; register router | `python -c "import apps.backend.api.app"` OK; G1 tests still pass | ☑ | 923822ca | App import and 10 G1 tests pass; includes reminder gating/activation service. |
 | G3 | M4 service + routes `/providers`, `POST /cases`, `/cases/mine`, `/cases` (queue), `/cases/{id}`, `/messages`; register router | app imports OK; `pytest tests/backend -q` no new failures | ☑ | 27a74741 | Consent-scoped cases/messages; full Python run has no new failures. |
-| G4 | M4 `/cases/{id}/review` (+ close case); M5 `PUT /schedules/{id}/reminder` (409 `HCP_REVIEW_REQUIRED`) + `/activate` | app imports OK; manual curl/TestClient of the flow, or integration test skeleton | ⚠ | 08a0fc46 | POST review endpoint and HcpService.review implemented with atomic record_review + closure; 8 new tests pass (18 with M5), integration skips without DSN. Runtime blocker remains: existing owner-only DB guard rejects HCP closure; no migration or actor bypass. |
+| G4 | M4 review records outcome; patient M5 activation closes case and enables reminders | app imports OK; manual curl/TestClient of the flow, or integration test skeleton | ☑ | [G4-fix2] (this commit) | HCP writes only outcome; patient activation atomically confirms/enables/closes. Pending revisions preserve verified ancestor doses until verification. 26 targeted Python tests pass; 3 browser tests pass; PostgreSQL integration skips without DSN. No DB migration changes. |
 | G5 | Frontend `api.ts` helpers; `Reminders` + `DoseHistory` use API (demo fallback) | `npm run build` OK; existing Playwright specs still pass | ☑ | e6672693 | Revalidated without G4 draft: production build passes; 37 Playwright pass / 1 skip. Existing specs unchanged; explicit server preview preserves existing flows. |
-| G6 | Frontend `HcpQueue` + `HcpCase` use API; patient "send to HCP" (provider picker + consent) | `npm run build` OK | ☑ | ba157962 | Revalidated in the G5 production build and 37-pass browser suite: live queue/detail, consent picker, and denied-access behavior. Review submission remains blocked by G4; mocked approval tests are UI contracts only. |
-| G7 | `tests/integration/test_module4_5_api.py` (skip without `MODULE2_TEST_DSN`), `hcp-case.spec.ts`, `reminders.spec.ts` | baseline holds (pytest ≥558 pass, Playwright ≥34 pass) + new tests pass/skip cleanly | ☑ | 7c3ec4e6 | Clean-source rerun: Python 568 pass / 8 existing failures / 85 existing errors; no new failing names. Build passes; Playwright 37 pass / 1 skip. PostgreSQL skeleton skips without DSN. G4 draft/tests archived outside source tree. |
+| G6 | Frontend `HcpQueue` + `HcpCase` use API; patient "send to HCP" (provider picker + consent) | `npm run build` OK | ☑ | ba157962 | Revalidated in the G5 production build and 37-pass browser suite: live queue/detail, consent picker, and denied-access behavior. Review records the HCP outcome; patient activation closes the case. Mocked browser tests are UI contracts only. |
+| G7 | `tests/integration/test_module4_5_api.py` (skip without `MODULE2_TEST_DSN`), `hcp-case.spec.ts`, `reminders.spec.ts` | baseline holds (pytest ≥558 pass, Playwright ≥34 pass) + new tests pass/skip cleanly | ☑ | 7c3ec4e6 | Clean-source rerun: Python 568 pass / 8 existing failures / 85 existing errors; no new failing names. Build passes; Playwright 37 pass / 1 skip. PostgreSQL skeleton skips without DSN. G4-fix2 targeted checks: 26 Python pass / 1 integration skip; 3 browser pass. Previous full-suite counts retained above. |
 
 ## 1. What already exists (reuse, don't rewrite)
 - **Persistence**: `src/shared/db/domain_repository.py` → `DomainRepository(conn, authenticated_actor=UUID, permissions=[...])`
@@ -51,7 +51,7 @@ Rules:
 | GET | `/cases` | clinical.case_review | queue: cases assigned to me & accessible |
 | GET | `/cases/{id}` | either | case + medication name/schedule + messages + outcomes (403 if not accessible) |
 | POST | `/cases/{id}/messages` | either | `{text}` → case_message |
-| POST | `/cases/{id}/review` | clinical.case_review | `{decision: APPROVED|CHANGES_REQUESTED|REJECTED, notes}` → record_review, then set case status CLOSED (`closed_at`) |
+| POST | `/cases/{id}/review` | clinical.case_review | `{decision: APPROVED|CHANGES_REQUESTED|REJECTED, notes}` → record_review only; case remains open until patient activation |
 
 ### Module 5 — `src/module5_reminders/service.py` + `apps/backend/api/routes/reminders.py` (prefix `/api/v1/reminders`, patient.workspace)
 | Method | Path | Does |
@@ -60,7 +60,7 @@ Rules:
 | POST | `/schedules` | `{entry_version_id, times[], dose_raw, timezone, confirm: true}` → save + confirm (PATIENT_CONFIRMED) |
 | GET | `/schedules` | current (non-superseded) schedules + verification + reminder setting |
 | PUT | `/schedules/{id}/reminder` | `{enabled}` → set_reminder with latest COMPLETED assessment containing the entry; on "HCP approval" DB error return 409 `{code:'HCP_REVIEW_REQUIRED'}` |
-| POST | `/schedules/{id}/activate` | find APPROVED outcome for a PROPOSED_CHANGE revision → confirm_schedule(review_outcome) → set_reminder |
+| POST | `/schedules/{id}/activate` | find APPROVED outcome for a PROPOSED_CHANGE revision → confirm_schedule(review_outcome) → set_reminder → close the reviewed case as patient, atomically |
 | GET | `/today` | expand `times` of verified current schedules for today in schedule timezone; merge latest dose record per occurrence → `[{schedule_id, name, time, scheduled_for, status: PENDING|TAKEN|SKIPPED|MISSED}]` |
 | POST | `/doses` | `{schedule_id, scheduled_for, status, supersedes?}` → record_dose |
 | GET | `/adherence?days=7` | `taken / total_due` over the window |

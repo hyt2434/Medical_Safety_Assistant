@@ -1,6 +1,6 @@
 ﻿import { test, expect } from "@playwright/test";
 
-test("assigned HCP loads case, messages, and closes it with an explicit review", async ({
+test("assigned HCP records review and leaves closure to patient activation", async ({
   page,
 }) => {
   const row = {
@@ -37,7 +37,6 @@ test("assigned HCP loads case, messages, and closes it with an explicit review",
         decision: "APPROVED",
         notes: "Reviewed exact schedule and assessment",
       });
-      row.status = "CLOSED";
       row.outcomes.push({
         id: "o1",
         decision: "APPROVED",
@@ -72,11 +71,11 @@ test("assigned HCP loads case, messages, and closes it with an explicit review",
     .fill("Reviewed exact schedule and assessment");
   await page.getByRole("button", { name: "Lưu kết quả rà soát" }).click();
   await expect(
-    page.getByRole("heading", { name: "SCHEDULE · CLOSED" }),
+    page.getByRole("heading", { name: "SCHEDULE · OPEN" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Lưu kết quả rà soát" }),
-  ).toHaveCount(0);
+    page.getByText("APPROVED: Reviewed exact schedule and assessment", { exact: true }),
+  ).toBeVisible();
 });
 
 test("denied HCP case does not fall back to demo data", async ({ page }) => {

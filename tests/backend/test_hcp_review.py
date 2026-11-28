@@ -1,10 +1,4 @@
-"""Review HTTP contract with real Auth; service atomicity with isolated storage.
-
-These tests do not claim PostgreSQL permits HCP case closure. The existing
-marked-database integration test covers that contract when configured.
-"""
-from contextlib import contextmanager
-from copy import deepcopy
+"""Review HTTP contract with real Auth; clinician writes outcomes only."""
 from hashlib import sha256
 from unittest.mock import Mock
 from uuid import uuid4
@@ -66,58 +60,25 @@ def test_review_rejects_invalid_body(client, repo_override, monkeypatch, body):
     review.assert_not_called()
 
 
-class ReviewStorage:
-    """Transactional storage double that exposes a partially committed outcome."""
-    def __init__(self, failure=None):
-        self.owner = uuid4()
-        self.outcomes = []
-        self.status = 'OPEN'
-        self.active = False
-        self.failure = failure
-
-    @contextmanager
-    def transaction(self):
-        before = deepcopy(self.outcomes), self.status
-        self.active = True
-        try:
-            yield
-        except Exception:
-            self.outcomes, self.status = before
-            raise
-        finally:
-            self.active = False
-
-    def record_review(self, case, decision, evidence, *, notes):
-        assert self.active
-        row = {'id': uuid4(), 'case_id': case, 'decision': decision,
-               'evidence': evidence, 'notes': notes}
-        self.outcomes.append(row)
-        return row
-
-    def _one(self, query, params):
-        assert self.active and len(self.outcomes) == 1
-        assert params == (self.outcomes[0]['case_id'], self.owner)
-        assert "status='CLOSED'" in query and 'closed_at=clock_timestamp()' in query
-        if self.failure == 'guard':
-            raise PermissionError('Existing owner-only database guard')
-        if self.failure == 'missing':
-            return None
-        self.status = 'CLOSED'
-        return {'id': params[0]}
-
-
-def test_service_records_review_evidence_and_closes_in_one_transaction():
-    repo, case_id = ReviewStorage(), uuid4()
+def test_service_records_evidence_without_updating_patient_case():
+    repo = Mock(spec=['record_review'])
+    case_id = uuid4()
+    repo.record_review.return_value = {'id': uuid4(), 'decision': 'APPROVED'}
     result = HcpService(repo).review(case_id, 'APPROVED', 'Exact schedule reviewed')
-    assert repo.status == 'CLOSED' and repo.outcomes == [result]
-    assert result['evidence']['schema'] == 'review-evidence.v1'
-    assert result['evidence']['sources'][0]['sha256'] == sha256(
+    assert result == repo.record_review.return_value
+    args, kwargs = repo.record_review.call_args
+    assert args[:2] == (case_id, 'APPROVED')
+    assert kwargs == {'notes': 'Exact schedule reviewed'}
+    assert args[2]['schema'] == 'review-evidence.v1'
+    assert args[2]['sources'][0]['sha256'] == sha256(
         b'APPROVED\nExact schedule reviewed').hexdigest()
+    assert len(repo.mock_calls) == 1
 
 
-@pytest.mark.parametrize('failure,error', [('guard', PermissionError), ('missing', ValueError)])
-def test_service_rolls_back_outcome_if_closure_fails(failure, error):
-    repo = ReviewStorage(failure)
+@pytest.mark.parametrize('error', [PermissionError, ValueError])
+def test_service_propagates_review_denial_without_other_writes(error):
+    repo = Mock(spec=['record_review'])
+    repo.record_review.side_effect = error('Review denied')
     with pytest.raises(error):
         HcpService(repo).review(uuid4(), 'APPROVED', 'Exact schedule reviewed')
-    assert repo.outcomes == [] and repo.status == 'OPEN'
+    assert len(repo.mock_calls) == 1

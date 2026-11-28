@@ -1,6 +1,6 @@
-﻿"""Real PostgreSQL domain API flow; only server session and provider directory are injected.
+"""Real PostgreSQL domain API flow; only server session and provider directory are injected.
 
-Requires an existing marked MODULE2_TEST_DSN migrated through 006. No reference
+Requires an existing marked MODULE2_TEST_DSN with the current migrations. No reference
 CSV or inference services are needed: the assessment is explicitly synthetic.
 """
 from contextlib import ExitStack
@@ -63,6 +63,14 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             assert response.status_code == 201, response.text
             case = response.json(); case_url = '/api/v1/hcp/cases/'+case['id']
             assert case['schedule_id'] != schedule['id']
+            # A pending proposal must keep the verified ancestor's doses usable.
+            pending_doses = client.get('/api/v1/reminders/today').json()
+            assert len(pending_doses) == 1 and pending_doses[0]['schedule_id'] == schedule['id']
+            assert client.post('/api/v1/reminders/doses', json={
+                'schedule_id': schedule['id'], 'scheduled_for': pending_doses[0]['scheduled_for'],
+                'status': 'TAKEN',
+            }).status_code == 201
+            assert client.get('/api/v1/reminders/history?days=1').json()[0]['status'] == 'TAKEN'
             assert client.post(case_url+'/review', json={'decision': 'APPROVED', 'notes': 'Patient cannot approve'}).status_code == 403
             actor.update(id=other, permissions=['clinical.case_review'])
             assert client.get(case_url).status_code == 403
@@ -72,11 +80,14 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             assert client.post(case_url+'/messages', json={'text': 'Reviewed synthetic instructions'}).status_code == 201
             response = client.post(case_url+'/review', json={'decision': 'APPROVED', 'notes': 'Synthetic review of exact schedule and assessment'})
             assert response.status_code == 201, response.text
-            assert client.get(case_url).json()['status'] == 'CLOSED'
-            assert client.post(case_url+'/review', json={'decision': 'REJECTED', 'notes': 'Cannot review twice'}).status_code == 409
+            assert client.get(case_url).json()['status'] == 'OPEN'
             actor.update(id=core.owner, permissions=['patient.workspace'])
             response = client.post('/api/v1/reminders/schedules/'+case['schedule_id']+'/activate')
             assert response.status_code == 200, response.text
+            assert client.get(case_url).json()['status'] == 'CLOSED'
+            actor.update(id=hcp, permissions=['clinical.case_review'])
+            assert client.post(case_url+'/review', json={'decision': 'REJECTED', 'notes': 'Cannot review twice'}).status_code == 409
+            actor.update(id=core.owner, permissions=['patient.workspace'])
             schedule = client.get('/api/v1/reminders/schedules').json()[0]
             assert schedule['verification_status'] == 'HCP_VERIFIED' and schedule['reminder_enabled']
             when = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()

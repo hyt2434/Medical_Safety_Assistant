@@ -1,33 +1,32 @@
-﻿# Module 4/5 validation and remaining checkpoint
+﻿# Module 4/5 validation
 
 Branch: `feature/module4-hcp-module5-reminders`.
 
-## Validation
+## G4-fix2
 
-- G4-fix: review route and atomic service added. `venv/Scripts/python -m pytest tests/backend/test_hcp_review.py tests/unit/module5 tests/integration/test_module4_5_api.py -q`: **18 passed, 1 skipped**. App import and OpenAPI review-route registration pass. The 8 new tests cover real Auth permissions, HTTP dispatch/validation, review evidence, and rollback using an isolated storage double; PostgreSQL closure remains unverified and subject to the existing guard.
+- HCP review calls only `record_review`. It does not update the patient's case.
+- Patient activation selects the latest outcome for the current assessment and requires approval. It locks the owned case, confirms the revision, enables its reminder, and closes the case in one transaction. Failure rolls back activation; retrying an already-closed case does not update it again.
+- Pending unverified revisions no longer truncate verified schedule history. Today, history, and adherence follow verified ancestors through revision chains. A verified replacement takes over at `verified_at`, preserving earlier occurrences and their original schedule IDs for recording/correction.
+- No migrations or actor impersonation are required. The former ownership blocker is resolved by closing the case in the patient action.
 
-- Current committed source, after archiving G4: `venv/Scripts/python -m pytest tests/backend tests/unit -q`: **568 passed, 8 failed, 12 skipped, 85 errors**. Comparison with the original baseline found **no new failing test names**. The latency test now passes.
-- Current integration skeleton: `venv/Scripts/python -m pytest tests/integration/test_module4_5_api.py -q`: **1 skipped** because `MODULE2_TEST_DSN` is unset.
+Validation:
 
-- Before implementation: `venv/Scripts/python -m pytest tests/backend tests/unit -q`: **557 passed, 9 failed, 12 skipped, 85 errors**. The extra failure compared with the handoff was the latency test.
-- Historical run including the now-archived G4 draft: **578 passed, 8 failed, 12 skipped, 85 errors**. No new failing test names. Missing reference/DDInter data and the existing CLI subprocess failure remain.
-- Historical targeted run (includes now-archived draft backend tests): `venv/Scripts/python -m pytest tests/backend/test_module4_5_api.py tests/unit/module5 tests/integration/test_module4_5_api.py -q`: **22 passed, 1 skipped**.
-- Frontend baseline: build passed; **34 passed, 1 skipped**.
-- Frontend revalidated after archiving G4: build passed; **37 passed, 1 skipped**. Existing specs were not edited. New browser tests use HTTP fixtures plus real local authentication; they do not establish PostgreSQL behavior.
-- The PostgreSQL integration skeleton targets the full G4 review/closure contract, which remains blocked. Do not enable it as proof of a working flow until G4 is resolved within the approved scope. It requires a marked loopback database and performs no migrations or reference-data imports.
+- `venv/Scripts/python -m pytest tests/unit/module5 tests/backend/test_hcp_review.py tests/integration/test_module4_5_api.py -q`: **26 passed, 1 skipped**. Includes eight new Module 5 service/selection regression cases, updated outcome-only HCP service checks, and existing HTTP/Auth validation.
+- `npx playwright test tests/hcp-case.spec.ts tests/reminders.spec.ts`: **3 passed**. The review fixture now explicitly leaves the case OPEN until patient activation.
+- The PostgreSQL integration test now checks pending-ancestor recording, OPEN after HCP review, and CLOSED after patient activation using the existing migrations. It skips because `MODULE2_TEST_DSN` is unset; real database execution remains unverified.
+- Logs: `artifacts/g4-fix2-tests.log` and `artifacts/g4-fix2-playwright.log`.
 
-Logs are in ignored `artifacts/baseline-module45-*` and `artifacts/module45-*` files. The clean-source rerun uses `artifacts/module45-resume-build.log`, `artifacts/module45-resume-playwright.log`, `artifacts/module45-resume-python.log`, and `artifacts/module45-resume-integration.log`.
+## Earlier baseline evidence
 
-## G4 restriction
-
-The handoff gained a prohibition on DB migration edits while implementation was underway. The existing `msa.system_domain_guard` invokes `msa.require_owner(NEW.user_id)` for a `review_cases` update, so the assigned HCP cannot close a case after recording an outcome. Changing the authenticated actor to impersonate the patient would violate the server identity contract.
-
-The no-migration rule remains in force. The proposed SQL, review endpoint patch, and draft backend tests are archived in ignored `artifacts/module45-g4-draft/`, outside the active source and test trees. No migration is added or changed. The G4-fix now supplies the review endpoint and atomic review/closure service. Full HCP approval/activation remains blocked by the unchanged database guard; a rejected closure rolls back the outcome rather than reporting partial success. G4 remains blocked rather than bypassing the database guard or impersonating the patient. G1–G3 and G5 provide the handoff's minimum viable scope.
+- Original Python baseline: **557 passed, 9 failed, 12 skipped, 85 errors**.
+- Last full Python run before these fixes: **568 passed, 8 failed, 12 skipped, 85 errors**, with no new failing test names. Missing reference/DDInter data and the existing CLI subprocess failure remain; the latency test passed on rerun.
+- Frontend baseline: build passed; **34 passed, 1 skipped**. Last full browser run: **37 passed, 1 skipped**, and production build passed.
+- These full-suite counts are historical, not a new full-suite run for G4-fix2. The targeted current results are listed above.
 
 ## Runtime behavior
 
-- `GET /api/v1/hcp/capabilities` explicitly enables demo preview only when Core is unconfigured outside production. Failure of a configured Core never falls back to demo records.
-- All domain reads run inside actor-scoped transactions. Multi-step domain writes compose atomically; the Core intake transaction rule remains unchanged. Existing database triggers persist business audit events.
-- Reminder eligibility uses the latest completed assessment containing the exact entry. Risk/coverage conflicts return `HCP_REVIEW_REQUIRED`. Approval must match the same assessment before activation.
-- Dose corrections append a record with `supersedes`; future doses cannot be recorded. Adherence counts due occurrences only and retains superseded schedule history. Root schedules begin on their creation date; revisions begin at their creation instant. DST gaps are omitted and repeated wall times occur once.
-- Notifications are in-app banners on the reminder/history screen, refreshed every minute. No background push service is introduced.
+- Explicit preview mode is available only when development Core is unconfigured. Failed requests to configured Core never fall back to synthetic records.
+- Domain reads use actor-scoped transactions; compound patient activation is atomic. Database triggers retain business auditing.
+- Risk/coverage conflicts return `HCP_REVIEW_REQUIRED`; activation requires approval for the latest completed assessment containing the exact entry.
+- Root schedules begin on their creation date; verified revisions begin at verification time. DST gaps are omitted and repeated wall times occur once. Future doses cannot be recorded, and corrections append a record with `supersedes`.
+- Notifications remain in-app banners refreshed every minute; no background push service is introduced.

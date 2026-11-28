@@ -3,6 +3,35 @@ from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 
+def verified_schedule_periods(schedules):
+    """Keep a verified ancestor effective until a descendant is verified.
+
+    Pending revisions do not interrupt dose recording. Verification time, rather
+    than proposal creation time, is the boundary between old and new doses.
+    Traverse pending intermediates too, so revision chains retain their history.
+    """
+    by_id = {str(s['id']): s for s in schedules}
+    verified = {key: {**s, 'effective_until': None} for key, s in by_id.items()
+                if s['verification_status'] != 'UNVERIFIED'}
+    for key, s in verified.items():
+        parent = s.get('supersedes_schedule_id')
+        if not parent:
+            continue
+        start = s.get('verified_at') or s.get('created_at')
+        s['effective_from'] = start
+        visited = {key}
+        while parent and str(parent) in by_id and str(parent) not in visited:
+            ancestor = str(parent)
+            visited.add(ancestor)
+            if ancestor in verified:
+                previous = verified[ancestor]['effective_until']
+                if start is not None and (previous is None or start < previous):
+                    verified[ancestor]['effective_until'] = start
+                break
+            parent = by_id[ancestor].get('supersedes_schedule_id')
+    return list(verified.values())
+
+
 def occurrences(schedules, records, now, days=1):
     """Expand local calendar days; use elapsed UTC instants for due comparisons.
 
@@ -29,7 +58,8 @@ def occurrences(schedules, records, now, days=1):
                     continue
                 if s.get('created_at') and day < s['created_at'].astimezone(zone).date():
                     continue
-                if s.get('supersedes_schedule_id') and s.get('created_at') and instant < s['created_at']:
+                start = s.get('effective_from', s.get('created_at'))
+                if s.get('supersedes_schedule_id') and start and instant < start:
                     continue
                 if s.get('effective_until') and instant >= s['effective_until']:
                     continue
