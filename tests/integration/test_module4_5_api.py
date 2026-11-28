@@ -52,6 +52,11 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
                 modality='TEXT', input_payload={'schema': 'input.v4', 'digest_basis': 'ORIGINAL_BYTES', 'text': raw},
                 extractor_name='EXPLICIT_SYNTHETIC_FIXTURE', extractor_version='module45.v1')
             entry = saved['entries'][0]
+            unconfirmed = client.post('/api/v1/reminders/schedules', json={
+                'entry_version_id': str(entry['id']), 'times': [clock], 'dose_raw': 'one tablet',
+                'timezone': 'UTC', 'confirm': True})
+            assert unconfirmed.status_code == 409
+            assert 'must be confirmed' in unconfirmed.text
             core.confirm_entry(entry['id'], entry['content_digest'], uuid4(), explicit_confirmation=True)
             snapshot = core.create_snapshot([(entry['id'], None)], data_context='SYNTHETIC_TEST')
             attempt = core.start_assessment(snapshot['id'], {'ddinter': {'synthetic': True}, 'engine_config': {}, 'limitations': ['Synthetic API test']})
@@ -142,6 +147,13 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             actor.update(id=core.owner, permissions=['patient.workspace'])
             response = client.post('/api/v1/hcp/cases', json={'kind': 'SAFETY', 'assessment_id': str(assessment['id']), 'hcp_id': str(hcp), 'consent': True})
             assert response.status_code == 201, response.text
+            # A new entry version must not bypass the existing item's active schedule.
+            revised = core.correct_entry(entry['id'], entry['medication_fields'])
+            core.confirm_entry(revised['id'], revised['content_digest'], uuid4(), explicit_confirmation=True)
+            stale = client.post('/api/v1/reminders/schedules', json=body)
+            assert stale.status_code == 409 and 'newest' in stale.text
+            duplicate = client.post('/api/v1/reminders/schedules', json={**body, 'entry_version_id': str(revised['id'])})
+            assert duplicate.status_code == 409 and 'active schedule already exists' in duplicate.text
         finally:
             app.dependency_overrides.clear()
             client.close()

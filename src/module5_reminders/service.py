@@ -29,12 +29,21 @@ class ReminderService:
             raise ValueError('Explicit confirmation required')
         r = self.repo
         with r.domain_transaction():
-            # Serialize creation for this entry, including concurrent requests.
-            r._owned('medication_entry_versions', entry_version_id, lock=True)
+            # Share the item lock with entry revision/confirmation and other versions.
+            entry = r._owned('medication_entry_versions', entry_version_id)
+            r._owned('intake_items', entry['item_id'], lock=True)
+            entry = r._owned('medication_entry_versions', entry_version_id, lock=True)
+            if entry['confirmed_at'] is None:
+                raise ValueError('Medication entry must be confirmed before creating a schedule')
+            if r._one('''SELECT id FROM msa.medication_entry_versions
+                WHERE user_id=%s AND item_id=%s AND version_no>%s''',
+                (r.owner, entry['item_id'], entry['version_no'])):
+                raise ValueError('Schedule requires the newest medication entry version')
             if r._one('''SELECT s.id FROM msa.medication_schedules s
-                WHERE s.user_id=%s AND s.entry_version_id=%s AND NOT EXISTS(
+                JOIN msa.medication_entry_versions e ON e.id=s.entry_version_id
+                WHERE s.user_id=%s AND e.item_id=%s AND NOT EXISTS(
                     SELECT FROM msa.medication_schedules n WHERE n.supersedes_schedule_id=s.id)''',
-                (r.owner, entry_version_id)):
+                (r.owner, entry['item_id'])):
                 raise ValueError('An active schedule already exists for this medication; use a revision')
             row = r.save_schedule(entry_version_id, {'schema': 'schedule.v1', 'times': times, 'dose_raw': dose_raw}, timezone)
             return r.confirm_schedule(row['id'], row['content_digest'], uuid4(), explicit_confirmation=True)

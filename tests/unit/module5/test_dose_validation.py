@@ -70,9 +70,36 @@ def test_occurrences_start_at_verification_or_creation_instant(verified):
 def test_duplicate_schedule_creation_locks_entry_and_rejects_without_writes():
     repo = Mock(owner='owner')
     repo.domain_transaction = nullcontext
-    repo._one.return_value = {'id': 'active'}
+    repo._owned.return_value = {'id': 'entry', 'item_id': 'item', 'version_no': 2, 'confirmed_at': at(1)}
+    repo._one.side_effect = [None, {'id': 'active-on-first-version'}]
     with pytest.raises(ValueError, match='active schedule already exists'):
         ReminderService(repo).create('entry', ['08:00'], 'one', 'UTC', True)
-    repo._owned.assert_called_once_with('medication_entry_versions', 'entry', lock=True)
+    assert repo._owned.call_args_list[1].args == ('intake_items', 'item')
+    assert repo._owned.call_args_list[1].kwargs == {'lock': True}
+    assert repo._one.call_args.args[1] == ('owner', 'item')
+    assert 'e.item_id=%s' in repo._one.call_args.args[0]
     assert repo.mock_calls[0][0] == '_owned'
     repo.save_schedule.assert_not_called()
+
+
+@pytest.mark.parametrize('confirmed,newer,message', [(False, False, 'must be confirmed'), (True, True, 'newest')])
+def test_schedule_creation_rejects_unconfirmed_and_stale_entries(confirmed, newer, message):
+    repo = Mock(owner='owner')
+    repo.domain_transaction = nullcontext
+    repo._owned.return_value = {'id': 'entry', 'item_id': 'item', 'version_no': 1,
+                               'confirmed_at': at(1) if confirmed else None}
+    repo._one.return_value = {'id': 'newer'} if newer else None
+    with pytest.raises(ValueError, match=message):
+        ReminderService(repo).create('entry', ['08:00'], 'one', 'UTC', True)
+    repo.save_schedule.assert_not_called()
+
+
+def test_schedule_creation_accepts_confirmed_latest_entry_without_existing_schedule():
+    repo = Mock(owner='owner')
+    repo.domain_transaction = nullcontext
+    repo._owned.return_value = {'id': 'entry', 'item_id': 'item', 'version_no': 2, 'confirmed_at': at(1)}
+    repo._one.return_value = None
+    repo.save_schedule.return_value = {'id': 'schedule', 'content_digest': 'digest'}
+    ReminderService(repo).create('entry', ['08:00'], 'one', 'UTC', True)
+    repo.save_schedule.assert_called_once()
+    repo.confirm_schedule.assert_called_once()
