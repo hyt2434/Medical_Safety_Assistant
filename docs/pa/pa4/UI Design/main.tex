@@ -1,0 +1,294 @@
+% !TeX program = xelatex
+% !TeX encoding = UTF-8
+% UI Design - Medication Safety Assistant (PA4 final design, Group 02)
+% PA4: text added or changed in PA4 is blue (\upd{...} / updated environment).
+% One file: cover, contents, role sections, screenshots and structured descriptions.
+% Build twice: xelatex -interaction=nonstopmode -halt-on-error -jobname="UI Design" main.tex
+% Images may be placed next to main.tex or inside images/.
+\documentclass[12pt,letterpaper,landscape]{article}
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\usepackage[left=16mm,right=16mm,top=22mm,bottom=15mm,headheight=34pt,headsep=8pt,footskip=22pt]{geometry}
+\usepackage{graphicx,fancyhdr,lastpage,xcolor,array,tabularx}
+\definecolor{pafourblue}{RGB}{0,82,204}
+\newcommand{\upd}[1]{{\color{pafourblue}#1}}
+\newenvironment{updated}{\par\color{pafourblue}}{\par}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage[unicode,hidelinks]{hyperref}
+\hypersetup{pdftitle={UI Design - Medication Safety Assistant},
+ pdfauthor={Group 02 - Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành},
+ pdfsubject={PA4 - Final User Interface Design}}
+\graphicspath{{./}{images/}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\emergencystretch=2em
+% Same two-line running header, ruled footer and typography as SAD.
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\begin{minipage}[b]{.73\textwidth}\raggedright\fontsize{10}{12}\selectfont
+ MEDICATION SAFETY ASSISTANT\\[-1pt]
+ {\fontsize{10}{12}\selectfont UI Design\enspace(PA4-Group02-UI)}\end{minipage}}
+\fancyhead[R]{\begin{minipage}[b]{.24\textwidth}\raggedleft\fontsize{10}{12}\selectfont
+ Version 2.0\\[-1pt]{\fontsize{9}{11}\selectfont 28 November 2026}\end{minipage}}
+\fancyfoot[L]{\fontsize{10}{12}\selectfont University of Science, VNU-HCM -- Course Project}
+\fancyfoot[R]{\fontsize{10}{12}\selectfont Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{.45pt}
+\renewcommand{\footrulewidth}{.45pt}
+\fancypagestyle{uicover}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}}
+% Role sections start with their first screenshot, without a separate divider page.
+\newif\iffirstrolescreen
+\newcommand{\rolesection}[1]{%
+ \clearpage
+ \section{#1}
+ \firstrolescreentrue
+}
+% Each screen has a title above, then a high-resolution image and a structured description below.
+\renewcommand{\contentsname}{Table of Contents}
+\setcounter{tocdepth}{2}
+\newsavebox{\designcaption}
+\newsavebox{\designdescription}
+\newlength{\designimageheight}
+\newcommand{\screendetails}[3]{%
+ \textbf{Purpose.} #1\par
+ \textbf{What it shows.} #2\par
+ \textbf{How to use it.} #3
+}
+\newcommand{\designfigure}[3]{%
+ \iffirstrolescreen\firstrolescreenfalse\else\clearpage\fi
+ \phantomsection\addcontentsline{toc}{subsection}{#2}%
+ \sbox{\designcaption}{\begin{minipage}{\textwidth}\centering\fontsize{13}{16}\selectfont\textbf{#2}\end{minipage}}%
+ \sbox{\designdescription}{\begin{minipage}{\textwidth}\fontsize{12}{15}\selectfont\setlength{\parskip}{5pt}#3\end{minipage}}%
+ \setlength{\designimageheight}{\dimexpr\textheight-\pagetotal-\ht\designcaption-\dp\designcaption-\ht\designdescription-\dp\designdescription-48pt\relax}%
+ \noindent\begin{minipage}{\textwidth}
+  \centering\usebox{\designcaption}\par\vspace{2mm}
+  \includegraphics[width=\linewidth,height=\designimageheight,keepaspectratio]{#1}\par\vspace{3mm}
+  \usebox{\designdescription}
+ \end{minipage}\par
+}
+\begin{document}
+\thispagestyle{uicover}
+\begin{center}
+ \vspace*{.15in}
+ {\bfseries\fontsize{13}{17}\selectfont MEDICATION SAFETY ASSISTANT\par}
+ \vspace{.48in}
+ {\bfseries\fontsize{22}{27}\selectfont UI Design\par}
+ \vspace{8pt}
+ {\fontsize{12}{16}\selectfont \upd{PA4 -- Final User Interface Design}\par}
+ \vspace{.25in}
+ {\fontsize{12}{15}\selectfont \upd{Version 2.0}\par}
+ \vfill
+ {\fontsize{12}{15}\selectfont
+ \begin{tabular}{@{}r@{\quad}l@{}}
+ \textbf{Document identifier:} & \upd{PA4-Group02-UI}\\
+ \textbf{Prepared by:} & Group 02 -- Medication Safety Assistant Team\\
+ \textbf{Authors:} & Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\\
+ \textbf{Organization:} & University of Science, VNU-HCM\\
+ \textbf{Date:} & \upd{28 November 2026}
+ \end{tabular}\par}
+ \vspace{4mm}
+ \begin{minipage}{.9\textwidth}\centering\normalsize
+ Two distinct UI designs are provided for each of eleven screens across five roles: 22 design options in total.
+ Option A documents the current frontend; Option B is a static alternative prototype, not an implemented feature or a usability-tested improvement.
+ Medication intake Option A uses two views of the same long screen. All screenshots use illustrative data and 2x pixel density.\par\smallskip
+ \upd{\textbf{PA4 decision:} the team selected Option A for every screen as the final design. Option B screens are kept as the PA3 alternatives that were evaluated and not selected. New screens for HCP review and medication reminders (Modules 4 and 5) are added in Section 6.}
+ \end{minipage}
+\end{center}
+\clearpage
+\begin{center}{\bfseries\fontsize{16}{20}\selectfont Revision History\par}\end{center}
+\vspace{6pt}
+\begin{tabularx}{\textwidth}{|L{3cm}|L{2cm}|X|L{4cm}|}
+\hline
+\textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author}\\ \hline
+15 Nov 2026 & 1.0 & PA3: two UI design options (A and B) for eleven screens across five roles. & Group 02\\ \hline
+\upd{28 Nov 2026} & \upd{2.0} & \upd{PA4: final design selected (Option A for all screens, with rationale); Option B kept as not-selected alternatives; new screens for HCP case review and medication reminders implemented in release v0.4.0 (Section 6).} & \upd{Group 02}\\ \hline
+\end{tabularx}
+
+\medskip
+\upd{\textit{Convention: text written in blue was added or changed in PA4.}}
+\clearpage
+\tableofcontents
+\clearpage
+\section{\upd{Final Design Decision}}
+\begin{updated}
+After discussing the PA3 options, the team chose \textbf{Option A} for all eleven screens. Option A is the implemented frontend, it was exercised by the PA4 system tests, and it keeps one consistent layout (top navigation, breadcrumb, cards) across all roles and on mobile widths. The Option B ideas that remain useful are recorded as future improvements.
+
+\medskip
+\begin{tabularx}{\textwidth}{|L{5.2cm}|L{2.2cm}|X|}
+\hline
+\textbf{Screen} & \textbf{Final choice} & \textbf{Rationale}\\ \hline
+Patient home & Option A & Balanced overview of the next dose, today's progress and medicines; works without a sidebar on mobile.\\ \hline
+Medication intake & Option A & Shows all draft medicines next to the source for comparison; supports image, voice and manual input already tested.\\ \hline
+Medication confirmation & Option A & Table with per-medicine and confirm-all actions is faster; explicit confirmation is still required.\\ \hline
+HCP workspace and queue & Option A & Metric-led overview and table scale to many cases; the live queue now loads real assigned cases (Section 6).\\ \hline
+Medical Reviewer workspace and queue & Option A & Table editing matches the catalog workflow; the Option B save-draft boundary is a future improvement.\\ \hline
+Admin workspace and account management & Option A & Immediate role changes are protected by server authorization and audit; a review wizard (Option B) is a future improvement.\\ \hline
+Technical Support workspace and queue & Option A & Simple list with filters is sufficient for the current ticket volume.\\ \hline
+\end{tabularx}
+\end{updated}
+\rolesection{Patient}
+\designfigure{01-dashboard-a.png}
+ {Figure 1. Patient home -- Option A -- Current frontend}
+ {\screendetails{Provide the patient with a starting point for daily medication management and the medication-entry use case.}
+ {The home page combines navigation, the next scheduled dose, today's dose progress, a medication list and the assistant shortcut. The schedule and names in this capture are demonstration data.}
+ {Choose the prescription-entry action to open medication intake. Open the next-dose panel or the schedule link to inspect planned doses, or select a medicine to view its details. Use the main navigation to reach medication lists, the assistant and the health profile. Viewing this dashboard does not record a dose as taken.}}
+\designfigure{01-dashboard-b.png}
+ {Figure 2. Patient home -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Prioritize the next scheduled action through a persistent sidebar and a dominant next-dose panel, instead of the balanced overview in Option A.}
+ {A large next-dose card leads into a chronological daily schedule. The medication list and help panel occupy a secondary column. The sidebar keeps the patient workspace navigation visible.}
+ {In the proposed interaction, open the highlighted dose to inspect the schedule, select a medicine or start a new prescription. The timeline supports scanning the day in order. This layout emphasizes the next action but dedicates more width to navigation; small screens would require a collapsed sidebar.}}
+
+\designfigure{02-intake-a-upper.png}
+ {Figure 3. Medication intake -- Option A -- Current frontend (upper view)}
+ {\screendetails{Collect an editable medication draft while keeping the input source available for comparison.}
+ {The upper view contains the workflow indicator, image/voice/manual input methods, a prescription-image area and medication fields. The displayed draft comes from the sample-data action; the photo is illustrative and is not evidence of a completed OCR extraction.}
+ {Select an input method. For image entry, choose a JPG, PNG or WebP file up to 10 MB, optionally select a region and request extraction. Review the resulting draft and correct the medicine name, strength and instructions against the source. Leave an unknown ingredient unresolved rather than guessing. Scroll down to complete the remaining entries.}}
+\designfigure{02-intake-a-lower.png}
+ {Figure 4. Medication intake -- Option A -- Current frontend (lower view)}
+ {\screendetails{Finish editing the medication list and move from data entry to explicit confirmation. This is the lower portion of the same intake screen.}
+ {Additional medicine editors, the add-medicine control, draft/source actions and the review button continue the upper view. Each entry retains its own medication details so the patient can compare and correct the list.}
+ {Scroll through all entries, add missing medicines and remove unwanted rows. Correct names, strengths and instructions before selecting the review action. The current frontend requires a non-empty draft and no active OCR request before continuing. The next screen checks required fields and explicit confirmation; reaching it does not itself confirm the draft.}}
+\designfigure{02-intake-b.png}
+ {Figure 5. Medication intake -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Reduce simultaneous editing by guiding the patient through one medicine at a time, rather than presenting all medicine editors together as in Option A.}
+ {A three-stage indicator separates source selection, medicine editing and confirmation. The main panel contains one medicine; the side panel retains the source choice and draft list. The prototype illustrates manual entry.}
+ {Choose the source, enter the current medicine and use the proposed save-and-continue action to move through the draft. Select a draft item to revisit it, then proceed to confirmation after reviewing the list. Unknown ingredients stay unresolved. The design reduces visible field density but adds navigation steps; these staged controls are proposed.}}
+
+\designfigure{03-confirm-a-focus.png}
+ {Figure 6. Medication confirmation -- Option A -- Current frontend}
+ {\screendetails{Require the patient to compare entered medication information with the source before continuing to results.}
+ {A table lists medicines, strengths, instructions and confirmation states. The screen includes a confirmed-count indicator, per-medicine and confirm-all controls, a correction action, a result action and a reminder about missing health-profile information.}
+ {Read each row against the original source. Return to intake if a value is incorrect, then confirm each reviewed medicine or use confirm-all after checking the full list. Missing required fields prevent confirmation, and unconfirmed entries block continuation. Select the result action only after every entry is confirmed. Confirmation records input review; it does not establish clinical safety or resolve missing allergy and condition information.}}
+
+\designfigure{03-confirm-b.png}
+ {Figure 7. Medication confirmation -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Encourage deliberate field-by-field review of each medicine instead of relying on the comparison table and bulk-confirmation action in Option A.}
+ {A single-medicine checklist shows the name, strength, instructions and recorded ingredient. A progress panel lists reviewed and remaining medicines; a disabled result action explains what remains. The example shows one of two medicines already confirmed.}
+ {Compare each displayed field with the original source, mark reviewed items, correct mismatches and confirm the medicine. Move to the next item or revisit a reviewed one. Continue only when every medicine meets the required checks. An unknown ingredient remains explicitly unresolved. Individual review adds steps and removes the bulk-confirmation shortcut; the checklist is a proposed control.}}
+
+\rolesection{Healthcare Professional (HCP)}
+\designfigure{05-workspace-hcp.png}
+ {Figure 8. HCP workspace -- Option A -- Current frontend (/hcp)}
+ {\screendetails{Help healthcare professionals prioritize clinical cases that need a response.}
+ {The overview shows counts for pending responses, high-severity alerts and cases needing more information. A prioritized case list displays patient/case identifiers, medicine summaries and status labels. Shortcuts lead to patient profiles, drug lookup and responded cases. The displayed cases are built-in examples.}
+ {Open the queue to inspect all cases, or use a metric to view its corresponding filter. Select a case row to open the review workspace and examine its details before responding. Use patient-profile and lookup shortcuts when additional context is needed. This overview is a navigation and prioritization screen; it does not itself submit a clinical response.}}
+\designfigure{06-option-b-hcp.png}
+ {Figure 9. HCP workspace -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Support clinical triage with a master-detail workspace that keeps a case list and selected-case summary visible together, replacing the metric-led overview in Option A.}
+ {The left panel lists pending cases and status badges. The right panel previews the selected case, its medicines, a context reminder and links to the patient profile and full case-review workspace. Example records are illustrative.}
+ {Select a case in the proposed list to update its preview, inspect the medicine summary and open the full review workspace before responding. Use the patient-profile action for context. The split layout reduces repeated navigation but leaves less width for each panel. The preview does not submit a response or replace clinical assessment; the selection behavior is a design proposal.}}
+
+\designfigure{07-task-a-hcp.png}
+ {Figure 10. HCP case queue -- Option A -- Current frontend (/hcp/queue)}
+ {\screendetails{Locate clinical cases and prioritize the next case to review.}
+ {Status and severity filters, a text search, sorting controls and the case table show sample patients, medicines and review states. A CSV action exports the filtered sample list.}
+ {Select a status or severity filter, search by case identifier, patient or medicine, and sort by priority or recency. Open the required case to inspect its clinical context. Export CSV when a sample list is needed. Filtering and exporting do not submit a response.}}
+
+\designfigure{08-task-b-hcp.png}
+ {Figure 11. HCP case queue -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Offer a card-based queue with a persistent filter column as an alternative to the current table.}
+ {The left column groups search, priority, status and sort settings. The main area presents individual case cards with medicine summaries, status badges and direct open-case actions.}
+ {Apply the proposed filters, scan the cards and open a case for detailed review. Clear filters to return to the full list. Cards provide more space for context but display fewer cases per page; this is a static proposed layout using illustrative cases.}}
+
+\rolesection{Medical Reviewer}
+\designfigure{05-workspace-medical_reviewer.png}
+ {Figure 12. Medical Reviewer workspace -- Option A -- Current frontend (/reviewer)}
+ {\screendetails{Organize reference-data records requiring reconciliation and distinguish their review stages.}
+ {Counters summarize pending, in-review and approved records. The list displays record titles, identifiers, values and review states, with links to the full queue, data sources and review history. The records in this screenshot are illustrative.}
+ {Open the queue or select a record to inspect its source and recorded value. Use the record workspace for available review or editing actions, and consult source/history pages for context. Return to the overview to locate other pending records. This role reviews catalog data; clinical patient-case review belongs to the HCP workspace. The overview itself does not approve or publish a record.}}
+\designfigure{06-option-b-medical_reviewer.png}
+ {Figure 13. Medical Reviewer workspace -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Make review-stage distribution visible through a three-column status board, rather than the counters and single pending-record list in Option A.}
+ {Pending, in-review and approved columns contain record cards with identifiers, titles and values. Filters and links provide entry points to records and sources. The approved column explicitly shows an empty state in this example.}
+ {Filter the proposed board, locate a record in its current stage and open it to compare source evidence and recorded values. Continue editing or reviewing in the record workspace. Status transitions require explicit confirmation rather than drag-and-drop approval. The board improves stage visibility but shows fewer record details at once; it remains a static proposal for catalog review.}}
+
+\designfigure{07-task-a-medical_reviewer.png}
+ {Figure 14. Reference-data review queue -- Option A -- Current frontend (/reviewer/queue)}
+ {\screendetails{Inspect and edit reference-record drafts in the reviewer workspace.}
+ {A table contains record identifiers, titles, editable values, status selectors and notes. Record links open detailed views. The notice explains that changes remain in the browser session and do not publish a real DAV or DDInter catalog.}
+ {With catalog-edit permission, change the value, select a review state and enter a note in the relevant row. Open the record to inspect more context. Current edits update session state; selecting a state is not evidence of production publication. Without edit permission, these values are read-only.}}
+
+\designfigure{08-task-b-medical_reviewer.png}
+ {Figure 15. Reference-data review queue -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Separate record selection from editing so users focus on one draft at a time instead of editing multiple table rows.}
+ {A searchable list sits beside a dedicated editor with value, status and note fields. Cancel and save-draft actions make the proposed editing boundary visible.}
+ {Select a record, compare its details with the source, edit the fields and explicitly save the draft or cancel. Search locates another record. The staged save behavior is proposed; the current frontend updates fields directly. The prototype retains the session-only limitation and does not claim a publishing workflow.}}
+
+\rolesection{Administrator}
+\designfigure{05-workspace-admin.png}
+ {Figure 16. Admin workspace -- Option A -- Current frontend (/admin)}
+ {\screendetails{Provide a central navigation page for account, role and administrative activities.}
+ {Two groups organize account and access management, staff information, security logs, drug-data sources and operations links. The screenshot uses a simulated administrator session and reflects the links rendered by the current frontend.}
+ {Choose accounts to inspect account status and access, roles to inspect available roles and grants, or the security log to inspect recorded activity. Open other modules through their corresponding links. Changes are performed on destination pages, not on this overview. A visible navigation link is not proof of authorization: access to each destination and protected action must still satisfy the current session permissions.}}
+\designfigure{06-option-b-admin.png}
+ {Figure 17. Admin workspace -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Bring account inspection into the main administrative workspace, replacing the module-link overview of Option A with a searchable account list and selected-account detail.}
+ {Tabs organize accounts, roles and audit navigation. The main table shows sample identities and roles; the adjacent panel displays the selected account status, effective role and links to access management and audit history. Other administrative areas remain in the sidebar.}
+ {Search or select an account in the proposed list, inspect its status and open access management to review grants. Use the security-log action to investigate activity. Changes still require authorized destination workflows and confirmation. The layout shortens the path to account inspection but gives less prominence to other modules. Search and synchronized selection are proposed interactions, not implemented behavior.}}
+
+\designfigure{07-task-a-admin.png}
+ {Figure 18. Account and role management -- Option A -- Current frontend (/admin/accounts)}
+ {\screendetails{Inspect user accounts and administer their role grants.}
+ {The account table shows identities, email addresses, status and effective roles. The selected-account panel includes an optional expiry field, role checkboxes, permission hints and current permissions. This screenshot uses a mocked directory response and synthetic accounts.}
+ {Select an account and inspect its current roles. Set an optional expiry for a new grant, then toggle the relevant role; the current UI sends each change to the role-grant endpoint immediately. Controls are disabled while saving, and the signed-in administrator cannot remove their own active admin role through this panel. No real grant was changed during capture.}}
+
+\designfigure{08-task-b-admin.png}
+ {Figure 19. Account and role management -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Make role changes reviewable before submission through a three-step wizard, unlike the current immediate checkbox updates.}
+ {The proposed stages select an account, choose roles and review changes. A role list displays permission hints, while a side panel shows account status and the intended expiry. A notice states that changes have not yet been applied.}
+ {Choose the target account, adjust roles and expiry, then proceed to the review step. Inspect the pending differences before explicitly confirming. Go back to correct the selection. This proposal adds an explicit confirmation boundary and extra steps; it must preserve server authorization and the self-admin protection.}}
+
+\rolesection{Technical Support}
+\designfigure{05-workspace-technical_support.png}
+ {Figure 20. Technical Support workspace -- Option A -- Current frontend (/staff)}
+ {\screendetails{Help technical-support staff monitor operational requests and select the next item to handle.}
+ {Counters distinguish new, in-progress and completed requests. Pending rows show ticket identifiers, issue titles and status badges. Shortcuts lead to incident reporting and the shared staff directory. The ticket contents and counts are demonstration data.}
+ {Open the queue to inspect the request list, or select a pending ticket to view its details and available handling actions. Use incident reporting to open the reporting workflow and the directory to locate staff information. Return to the overview to find another request. This page does not itself complete a ticket or grant account-administration or clinical-review permissions.}}
+
+\designfigure{06-option-b-technical_support.png}
+ {Figure 21. Technical Support workspace -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Keep operational triage and ticket context together in a split workspace, instead of the summary counters and pending list used in Option A.}
+ {Status filters sit above a ticket list and a selected-ticket panel. The detail panel includes the issue description, a suggested handling checklist and links to the handling workspace and staff directory. The displayed requests are sample data.}
+ {Filter requests by status, select a ticket to inspect its context and open its handling workspace to record investigation results. Use incident reporting for a new issue and the staff directory when coordination is needed. The checklist guides inspection without automatically completing the request. This proposed layout reduces navigation but reserves more space for the selected ticket.}}
+
+\designfigure{07-task-a-technical_support.png}
+ {Figure 22. Support ticket queue -- Option A -- Current frontend (/staff/tickets)}
+ {\screendetails{Find an operational request and open its handling workspace.}
+ {A text-search field and status selector filter the ticket list. Each entry shows its identifier, title and current state. If no request matches, an empty-state message offers a way to reset the filters.}
+ {Enter a ticket identifier or title fragment, select all/new/in-progress/completed and open a matching ticket. If the list is empty, adjust or reset the filters. Ticket updates occur on the detail page rather than in this queue. The captured list uses the built-in demonstration requests.}}
+
+\designfigure{08-task-b-technical_support.png}
+ {Figure 23. Support ticket queue -- Option B \upd{(PA3 alternative -- not selected)}}
+ {\screendetails{Present the same queue as a status board so workload distribution can be scanned without switching a status selector.}
+ {Three columns group new, in-progress and completed tickets. Search stays above the board; each ticket card includes its identifier, issue summary and open action. The completed column illustrates an empty state.}
+ {Search for a request or scan the relevant status column, then open its detail page to investigate and update it. Status changes require the detail workflow; dragging cards does not complete a request. This static proposal improves stage visibility but uses more horizontal space than the current list.}}
+
+\rolesection{\upd{New Screens for Modules 4 and 5 (Release v0.4.0)}}
+\designfigure{09-reminders-today.png}
+ {\upd{Figure 24. Medication reminders -- today's doses (final design)}}
+ {\color{pafourblue}\screendetails{Let the patient see the doses due today and record each one (UC-06, UC-08).}
+ {The page shows the 7-day adherence summary, today's doses with time and status, and buttons to record Taken, Skipped or Missed. Tabs lead to schedule creation and dose history. Data comes from the live reminders API.}
+ {Select Taken, Skipped or Missed for a due dose; a recorded dose can be corrected later. Future doses cannot be recorded. Use "Tạo lịch dùng thuốc" to create a schedule from a confirmed medicine. Reminders are shown in the application only.}}
+\designfigure{11-schedule-pending-review.png}
+ {\upd{Figure 25. Schedule with a pending HCP proposal (final design)}}
+ {\color{pafourblue}\screendetails{Show the current schedule, its verification status and any proposal waiting for HCP review (UC-04, UC-06, UC-07).}
+ {Each schedule card shows dose, time, time zone and status (PATIENT\_CONFIRMED, HCP\_VERIFIED). A pending proposal is listed under it with status UNVERIFIED and the review state; the list of submitted cases follows.}
+ {Turn reminders on or off for an eligible schedule. If the system answers that HCP review is required, choose an HCP, give consent and send the schedule. While a proposal is undecided, enabling is blocked but disabling stays available. After approval, use the activation button.}}
+\designfigure{10-dose-history.png}
+ {\upd{Figure 26. Dose history and 7-day adherence (final design)}}
+ {\color{pafourblue}\screendetails{Let the patient review recorded doses and adherence over the last seven days (UC-09).}
+ {The adherence card shows taken doses over due doses and a percentage. The list shows each dose with medicine, time, date and recorded status, with correction buttons.}
+ {Review the history and correct a wrong status when needed. A dose is counted as missed only one hour after its time; days follow the schedule's time zone.}}
+\designfigure{12-hcp-live-queue.png}
+ {\upd{Figure 27. HCP live case queue (final design)}}
+ {\color{pafourblue}\screendetails{Show the HCP only the cases assigned to them with valid patient consent (UC-05).}
+ {Each card shows the case type, status and time, with an action to open the case. The assessment view lists SAFETY cases only. If access is denied, no demonstration data is shown.}
+ {Open a case to review it. Cases disappear from the queue when the patient revokes consent.}}
+\designfigure{13-hcp-case-review.png}
+ {\upd{Figure 28. HCP case detail with conversation and outcome (final design)}}
+ {\color{pafourblue}\screendetails{Let the HCP review a case, talk with the patient and record one outcome (UC-05).}
+ {The case header shows the type and status with the shared schedule (medicine, dose, time, time zone). The conversation area lists messages; the outcome area shows the recorded decision and notes.}
+ {Read the shared information, send messages, then record APPROVED, CHANGES\_REQUESTED or REJECTED with notes. Only one outcome can be recorded per case; the form is hidden afterwards. The patient activates an approved schedule from the reminders page.}}
+
+\end{document}
