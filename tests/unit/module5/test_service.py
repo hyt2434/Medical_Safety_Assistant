@@ -26,6 +26,7 @@ def schedules():
 
 def test_pending_revision_preserves_today_history_adherence_and_recordable_id():
     repo = Mock()
+    repo.transaction = __import__('contextlib').nullcontext
     service = ReminderService(repo)
     source = schedules()
     service.schedules = Mock(return_value=source)

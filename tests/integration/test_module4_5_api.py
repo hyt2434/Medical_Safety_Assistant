@@ -35,10 +35,20 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
         client = TestClient(app, headers={'origin': 'http://127.0.0.1:5173'})
         try:
             intake = core.create_intake(core.create_conversation()['id'])
-            raw = 'Synthetic medication, one tablet at 00:00'
+            # Advance only the application clock for due-dose checks; database
+            # timestamps remain real and precede this next-minute occurrence.
+            occurrence = (datetime.now(timezone.utc) + timedelta(minutes=2)).replace(second=0, microsecond=0)
+            clock = occurrence.strftime('%H:%M')
+            import module5_reminders.service as reminders_module
+            class DoseClock(datetime):
+                @classmethod
+                def now(cls, tz=None):
+                    return (occurrence + timedelta(seconds=1)).astimezone(tz or timezone.utc)
+            monkeypatch.setattr(reminders_module, 'datetime', DoseClock)
+            raw = f'Synthetic medication, one tablet at {clock}'
             saved = persist_module1(core, intake['id'], raw.encode(), {'medications': [{
                 'name_raw': 'Synthetic medication', 'dose_raw': 'one tablet',
-                'administrations': [{'timing_raw': '00:00', 'dose_raw': 'one tablet'}], 'evidence_text': raw}]},
+                'administrations': [{'timing_raw': clock, 'dose_raw': 'one tablet'}], 'evidence_text': raw}]},
                 modality='TEXT', input_payload={'schema': 'input.v4', 'digest_basis': 'ORIGINAL_BYTES', 'text': raw},
                 extractor_name='EXPLICIT_SYNTHETIC_FIXTURE', extractor_version='module45.v1')
             entry = saved['entries'][0]
@@ -53,13 +63,16 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             response = client.get('/api/v1/reminders/entries')
             assert response.status_code == 200, response.text
             assert response.json()[0]['id'] == str(entry['id'])
-            body = {'entry_version_id': str(entry['id']), 'times': ['00:00'], 'dose_raw': 'one tablet', 'timezone': 'UTC', 'confirm': True}
+            body = {'entry_version_id': str(entry['id']), 'times': [clock], 'dose_raw': 'one tablet', 'timezone': 'UTC', 'confirm': True}
             # An invalid transcription must roll back the draft as well as confirmation.
-            assert client.post('/api/v1/reminders/schedules', json={**body, 'times': ['04:00']}).status_code == 409
+            assert client.post('/api/v1/reminders/schedules', json={**body, 'times': [(occurrence + timedelta(hours=6)).strftime('%H:%M')]}).status_code == 409
             assert client.get('/api/v1/reminders/schedules').json() == []
             response = client.post('/api/v1/reminders/schedules', json=body)
             assert response.status_code == 201, response.text
             schedule = response.json()
+            assert client.post('/api/v1/reminders/schedules', json=body).status_code == 409
+            assert client.post('/api/v1/reminders/doses', json={'schedule_id': schedule['id'],
+                'scheduled_for': (occurrence - timedelta(days=1)).isoformat(), 'status': 'TAKEN'}).status_code == 409
             response = client.put('/api/v1/reminders/schedules/'+schedule['id']+'/reminder', json={'enabled': True})
             assert response.status_code == 409 and response.json()['code'] == 'HCP_REVIEW_REQUIRED'
             response = client.post('/api/v1/hcp/cases', json={'kind': 'SCHEDULE', 'schedule_id': schedule['id'], 'hcp_id': str(hcp), 'consent': True})
@@ -98,7 +111,7 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             actor.update(id=core.owner, permissions=['patient.workspace'])
             schedule = client.get('/api/v1/reminders/schedules').json()[0]
             assert schedule['verification_status'] == 'HCP_VERIFIED' and schedule['reminder_enabled']
-            when = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+            when = occurrence.isoformat()
             dose = {'schedule_id': schedule['id'], 'scheduled_for': when, 'status': 'TAKEN'}
             response = client.post('/api/v1/reminders/doses', json=dose)
             assert response.status_code == 201, response.text

@@ -29,6 +29,13 @@ class ReminderService:
             raise ValueError('Explicit confirmation required')
         r = self.repo
         with r.transaction():
+            # Serialize creation for this entry, including concurrent requests.
+            r._owned('medication_entry_versions', entry_version_id, lock=True)
+            if r._one('''SELECT s.id FROM msa.medication_schedules s
+                WHERE s.user_id=%s AND s.entry_version_id=%s AND NOT EXISTS(
+                    SELECT FROM msa.medication_schedules n WHERE n.supersedes_schedule_id=s.id)''',
+                (r.owner, entry_version_id)):
+                raise ValueError('An active schedule already exists for this medication; use a revision')
             row = r.save_schedule(entry_version_id, {'schema': 'schedule.v1', 'times': times, 'dose_raw': dose_raw}, timezone)
             return r.confirm_schedule(row['id'], row['content_digest'], uuid4(), explicit_confirmation=True)
 
@@ -103,6 +110,15 @@ class ReminderService:
         return adherence(self._dose_schedules(), self.records(), now or datetime.now(timezone.utc), days)
 
     def dose(self, schedule_id, scheduled_for, status, supersedes=None):
+        if scheduled_for.tzinfo is None or scheduled_for.utcoffset() is None:
+            raise ValueError('Dose time must include a timezone')
         if scheduled_for > datetime.now(timezone.utc):
             raise ValueError('Cannot record a future dose')
-        return self.repo.record_dose(schedule_id, scheduled_for, status, supersedes=supersedes)
+        r = self.repo
+        with r.transaction():
+            r._owned('medication_schedules', schedule_id, lock=True)
+            schedule = [s for s in self._dose_schedules() if str(s['id']) == str(schedule_id)]
+            valid = occurrences(schedule, [], scheduled_for)
+            if not any(row['scheduled_for'] == scheduled_for.astimezone(timezone.utc) for row in valid):
+                raise ValueError('Dose time is outside the verified schedule effective period')
+            return r.record_dose(schedule_id, scheduled_for, status, supersedes=supersedes)

@@ -28,10 +28,10 @@ def test_corrections_replace_original_and_skipped_remains_in_denominator():
     assert adherence([schedule()], records, now, 1)['rate'] == 0
 
 
-def test_seven_calendar_days_and_no_doses_before_creation_day():
+def test_seven_calendar_days_and_no_doses_before_creation_instant():
     now = instant('2026-11-27T09:00:00+07:00')
     assert adherence([schedule()], [], now)['total_due'] == 13
-    assert adherence([schedule(created_at=instant('2026-11-26T10:00:00+07:00'))], [], now)['total_due'] == 3
+    assert adherence([schedule(created_at=instant('2026-11-26T10:00:00+07:00'))], [], now)['total_due'] == 2
 
 
 def test_superseded_schedule_keeps_historical_doses_only():

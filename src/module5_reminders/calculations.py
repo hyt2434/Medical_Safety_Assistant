@@ -78,7 +78,8 @@ def occurrences(schedules, records, now, days=1):
                 instant = local.astimezone(timezone.utc)
                 if instant.astimezone(zone).replace(tzinfo=None) != local.replace(tzinfo=None):
                     continue
-                if s.get('created_at') and day < s['created_at'].astimezone(zone).date():
+                verified = s.get('verified_at') or s.get('created_at')
+                if verified and instant < verified:
                     continue
                 start = s.get('effective_from', s.get('created_at'))
                 if s.get('supersedes_schedule_id') and start and instant < start:
