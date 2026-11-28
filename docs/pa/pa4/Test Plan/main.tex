@@ -1,0 +1,281 @@
+% !TeX program = xelatex
+% !TeX encoding = UTF-8
+% Test Plan -- single self-contained file (preamble, metadata, cover, body).
+% Build from this directory:  latexmk -xelatex main.tex   (or xelatex main.tex twice)
+\documentclass[10pt,letterpaper]{article}
+
+% -------------------- Metadata --------------------
+\newcommand{\ProjectName}{MEDICATION SAFETY ASSISTANT}
+\newcommand{\GroupName}{Medication Safety Assistant Team}
+\newcommand{\GroupNumber}{Group 02}
+\newcommand{\OrganizationName}{University of Science, VNU-HCM}
+\newcommand{\DocumentAuthors}{Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành}
+\newcommand{\DocumentTitle}{Test Plan}
+\newcommand{\DocumentIdentifier}{PA4-Group02-TP}
+\newcommand{\DocumentVersion}{1.0}
+\newcommand{\DocumentDate}{28 November 2026}
+\newcommand{\ConfidentialityText}{Confidential}
+
+% -------------------- Fonts and layout (same as PA3 documents) --------------------
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{\setmainfont{Liberation Serif}}
+\IfFontExistsTF{Arial}{\setsansfont{Arial}}{\setsansfont{Liberation Sans}}
+\usepackage[letterpaper,margin=1in,headheight=34pt,headsep=16pt,footskip=28pt]{geometry}
+\usepackage{setspace}\setstretch{1.08}
+\usepackage{microtype}
+\usepackage{array,tabularx,longtable,booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{xcolor}
+\usepackage{tocloft}
+\usepackage[unicode,hidelinks]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.23}
+\emergencystretch=2em
+\setcounter{tocdepth}{2}
+\setlist[itemize]{topsep=3pt,itemsep=2pt,parsep=0pt}
+\renewcommand{\contentsname}{Table of Contents}
+\titleformat{\section}{\normalfont\bfseries\fontsize{12}{15}\selectfont}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries\normalsize}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{8pt}{3pt}
+\titlespacing*{\subsection}{0pt}{6pt}{3pt}
+\renewcommand{\cfttoctitlefont}{\hfill\normalfont\bfseries\fontsize{17}{21}\selectfont}
+\renewcommand{\cftaftertoctitle}{\hfill\mbox{}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecaftersnum}{.}
+\tocloftpagestyle{fancy}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% -------- PA4 update marking: text added or changed in PA4 is blue --------
+\definecolor{pafourblue}{RGB}{0,82,204}
+\newcommand{\upd}[1]{{\color{pafourblue}#1}}
+\newenvironment{updated}{\par\color{pafourblue}}{\par}
+\newcommand{\frontmattertitle}[1]{\begin{center}{\normalfont\bfseries\fontsize{16}{20}\selectfont #1\par}\end{center}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\begin{minipage}[b]{.73\textwidth}\raggedright\fontsize{9}{11}\selectfont
+  \ProjectName\\[-1pt]{\fontsize{8}{10}\selectfont\DocumentTitle\enspace(\DocumentIdentifier)}\end{minipage}}
+\fancyhead[R]{\begin{minipage}[b]{.24\textwidth}\raggedleft\fontsize{9}{11}\selectfont
+  Version \DocumentVersion\\[-1pt]{\fontsize{8}{10}\selectfont\DocumentDate}\end{minipage}}
+\fancyfoot[L]{\fontsize{8.5}{10}\selectfont\OrganizationName{} -- Course Project}
+\fancyfoot[C]{\fontsize{8}{10}\selectfont\ConfidentialityText}
+\fancyfoot[R]{\fontsize{8.5}{10}\selectfont Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.45pt}
+\renewcommand{\footrulewidth}{0.45pt}
+\fancypagestyle{cover}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}}
+\hypersetup{pdftitle={\DocumentTitle\ - \ProjectName},pdfauthor={\DocumentAuthors}}
+
+\begin{document}
+
+% ------------------ Cover ------------------
+\thispagestyle{cover}
+\begin{center}
+  \vspace*{.35in}
+  {\bfseries\fontsize{13}{17}\selectfont \ProjectName\par}
+  \vspace*{1.50in}
+  {\bfseries\fontsize{22}{27}\selectfont \DocumentTitle\par}
+  \vspace{8pt}
+  {\fontsize{12}{16}\selectfont (System Testing)\par}
+  \vspace{.92in}
+  {\fontsize{12}{15}\selectfont Version \DocumentVersion\par}
+  \vfill
+  {\fontsize{10}{14}\selectfont
+    \begin{tabular}{@{}r@{\quad}l@{}}
+      \textbf{Document identifier:} & \DocumentIdentifier\\
+      \textbf{Prepared by:} & \GroupNumber{} -- \GroupName\\
+      \textbf{Authors:} & \DocumentAuthors\\
+      \textbf{Organization:} & \OrganizationName\\
+      \textbf{Date:} & \DocumentDate
+    \end{tabular}\par}
+  \vspace*{1.05in}
+\end{center}
+\clearpage
+
+% ------------------ Revision History ------------------
+\frontmattertitle{Revision History}
+\vspace{7pt}
+\begin{tabularx}{\textwidth}{|L{2.10cm}|L{1.30cm}|Y|L{2.60cm}|}
+  \hline
+  \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author}\\ \hline
+  \upd{28 Nov 2026} & \upd{1.0} & \upd{New document in PA4: system test plan for the release produced in this iteration. Test cases and results are kept in the instructor's workbooks PA4-Group02-Test-Cases.xlsx and PA4-Group02-Test-Report.xlsx.} & \upd{Group 02}\\ \hline
+\end{tabularx}
+
+\medskip
+\upd{\textit{Convention: in all PA4 documents, text written in blue was added or changed in PA4.}}
+\clearpage
+
+\tableofcontents
+\clearpage
+
+\frontmattertitle{\DocumentTitle}
+
+% =====================================================================
+\section{Introduction}
+\subsection{Purpose}
+This Test Plan describes how Group 02 performs system testing of the Medication Safety Assistant
+release built in the PA4 iteration. It defines the features to be tested, the testing approach, the
+environment, the pass/fail criteria, the schedule and the responsibilities, so that the results reported
+in the Test Report can be traced back to the use cases of the requirements stage.
+
+\subsection{Scope}
+The plan covers \textbf{functional system testing} (black-box) of the twenty use cases UC-01 to UC-20
+documented in the PA2/PA3 Use-Case Specification. Use cases whose main flow is implemented end to end
+(server and user interface) are executed in this iteration; use cases that exist only as UI prototypes
+or are reserved for future work are listed with the reason they are not fully executed.
+
+\subsection{References}
+\begin{itemize}
+  \item PA2/PA3 Use-Case Specification (UC-01 to UC-20) and PA3 Software Architecture Document.
+  \item PA4 Software Architecture Document v2.0 (deployment and implementation views).
+  \item PA4-Group02-Test-Cases.xlsx and PA4-Group02-Test-Report.xlsx (instructor templates v1.1).
+  \item Source repository: \url{https://github.com/hyt2434/Medical_Safety_Assistant}.
+\end{itemize}
+
+% =====================================================================
+\section{Test Items}
+\begin{longtable}{|L{4.2cm}|L{11.3cm}|}
+\hline \textbf{Item} & \textbf{Description}\\ \hline \endhead
+Web client & React/TypeScript single-page application (\texttt{apps/frontend}), production build.\\ \hline
+Application server & FastAPI REST API (\texttt{apps/backend}) with routes for authentication, administration, intake/OCR, reference data, HCP review (Module 4) and reminders (Module 5).\\ \hline
+Domain modules & \texttt{src/module1\_intake} (manual, voice, OCR, chatbot), \texttt{module2\_medications}, \texttt{module3\_interactions}, \texttt{module4\_hcp}, \texttt{module5\_reminders}, \texttt{shared} (auth, database repositories).\\ \hline
+Database & PostgreSQL 18 schemas \texttt{identity}, \texttt{msa}, \texttt{msa\_ref} created by migrations 001--005 with row-level security and domain guards.\\ \hline
+Release under test & Branch \texttt{dev} at commit \texttt{de32207c} (PR \#86), tagged as release \texttt{v0.4.0} on \texttt{main}.\\ \hline
+\end{longtable}
+
+% =====================================================================
+\section{Features to Be Tested}
+Each feature corresponds to one use case. At least five functional test cases are written for every use case
+(main flow, invalid input, boundary values, permission/role checks, and error or recovery flows).
+\begin{longtable}{|L{1.35cm}|L{5.4cm}|L{4.1cm}|L{4.2cm}|}
+\hline \textbf{ID} & \textbf{Feature (use case)} & \textbf{Implementation level} & \textbf{Execution in PA4}\\ \hline \endhead
+UC-01 & Sign In & Server + UI & Executed (automated)\\ \hline
+UC-02 & Enter and Confirm Medication Information & Server + UI & Executed (automated)\\ \hline
+UC-03 & Check Medication Safety & Server + UI & Partly; DDI cases need local reference data\\ \hline
+UC-04 & Arrange HCP Review & Server + UI (new in PA4) & Executed (automated)\\ \hline
+UC-05 & Review Medication Safety Case & Server + UI (new in PA4) & Executed (automated)\\ \hline
+UC-06 & Set Up Medication Reminders & Server + UI (new in PA4) & Executed (automated)\\ \hline
+UC-07 & Manage Medication Reminders & Server + UI (new in PA4) & Executed; known open defects\\ \hline
+UC-08 & Record Dose Status & Server + UI (new in PA4) & Executed (automated)\\ \hline
+UC-09 & View Adherence History & Server + UI (new in PA4) & Executed (automated)\\ \hline
+UC-10 & View Medication and Safety History & UI prototype & Partly\\ \hline
+UC-11 & Ask a Medication Question & Server + UI & Partly; model-dependent cases opt-in\\ \hline
+UC-12 & Generate Patient Health Summary & UI prototype & Not executed (no server API)\\ \hline
+UC-13 & Share Patient Health Summary with HCP & UI prototype & UI level only\\ \hline
+UC-14 & Review Medication Reference Data & UI prototype & UI level only\\ \hline
+UC-15 & Manage User Accounts and Roles & Server + UI & Executed (automated)\\ \hline
+UC-16 & Report Technical Issue & UI prototype & UI level only\\ \hline
+UC-17 & Handle Technical Support Request & UI prototype & UI level only\\ \hline
+UC-18 & Manage Patient Health Profile & UI prototype & UI level only\\ \hline
+UC-19 & Manage Personal Medication Cabinet & Future development & Not executed\\ \hline
+UC-20 & Manage Personal Account & Server (view) + UI & Partly\\ \hline
+\end{longtable}
+
+\section{Features Not to Be Tested}
+\begin{itemize}
+  \item Clinical correctness of medical content: the product is a research prototype and does not replace
+        professional judgement; only the system behaviour defined in the use cases is tested.
+  \item Performance, load and penetration testing beyond the existing automated security checks.
+  \item UC-19 (reserved for future development) and push/e-mail notification delivery (reminders are in-app only).
+  \item Real-model accuracy of the local language model (Ollama/Qwen) and speech recognition (Whisper), which
+        are opt-in and depend on hardware.
+\end{itemize}
+
+% =====================================================================
+\section{Approach}
+\subsection{Test level and type}
+System testing of the integrated release through its public interfaces (browser UI and REST API),
+using functional black-box techniques: equivalence partitioning, boundary-value analysis (times, dates,
+time zones, dose windows), role/permission testing (RBAC), and alternative/exception flows from the
+use-case specifications.
+
+\subsection{Execution methods}
+\begin{itemize}
+  \item \textbf{Automated end-to-end UI tests} with Playwright (Chromium) at desktop (1280\,px) and mobile (375\,px) widths.
+  \item \textbf{Automated API and integration tests} with pytest, including a full Module 4/5 flow on an isolated,
+        marked PostgreSQL test database.
+  \item \textbf{Manual exploratory tests} for cases without automation (recorded as \emph{Not run} until executed).
+  \item An AI coding assistant was used to help draft test cases from the use-case specifications; every result
+        recorded as Pass is backed by an executed automated test named in the test-case workbook.
+\end{itemize}
+
+\subsection{Regression}
+The full automated suite is executed before every merge to \texttt{dev}; results are compared with the
+previous baseline (27 Nov 2026) to detect regressions.
+
+% =====================================================================
+\section{Item Pass/Fail Criteria}
+\begin{itemize}
+  \item A test case \textbf{passes} when the actual result matches the expected result in every step.
+  \item A test case \textbf{fails} when any step deviates; a defect is recorded in the Bug report.
+  \item The release is \textbf{accepted} when the main flows of at least two main use-case groups pass,
+        no executed test case of severity High is failing, and all open defects are documented with a plan.
+\end{itemize}
+
+\section{Suspension Criteria and Resumption Requirements}
+Testing is suspended when the build fails, the database cannot be migrated, or sign-in (UC-01) fails,
+because these block all other features. Testing resumes after the blocking defect is fixed and the
+smoke tests (sign-in, medication intake, reminders) pass again.
+
+\section{Test Deliverables}
+Test Plan (this document); Test-case workbook; Test Report workbook (summary, bug report, screenshots);
+automated test scripts in \texttt{tests/} and \texttt{apps/frontend/tests/}; execution logs.
+
+% =====================================================================
+\section{Environmental Needs}
+\begin{longtable}{|L{3.6cm}|L{11.9cm}|}
+\hline \textbf{Component} & \textbf{Specification}\\ \hline \endhead
+Client devices & Windows 11 laptop; desktop browser (Chromium/Microsoft Edge, Firefox); mobile viewport 375\,px.\\ \hline
+Server & Python 3.14, FastAPI/Uvicorn, Node.js for the frontend build and OCR helper.\\ \hline
+Database & PostgreSQL 18; separate marked test database for destructive integration tests.\\ \hline
+Optional services & Ollama with a local Qwen model (chatbot), faster-whisper (voice), Tesseract (OCR).\\ \hline
+Test data & Synthetic patient accounts and synthetic medication records only; no real patient data.\\ \hline
+Tools & pytest, Playwright, Git/GitHub (pull requests, releases).\\ \hline
+\end{longtable}
+
+\section{Responsibilities}
+\begin{longtable}{|L{3.8cm}|L{11.7cm}|}
+\hline \textbf{Member} & \textbf{Responsibility}\\ \hline \endhead
+Hoàng Yến Trang & Test lead; Modules 4 and 5, User Management (UC-01, UC-15, UC-20) and OCR intake; test plan and report.\\ \hline
+Cao Hoàng Long & Modules 2 and 3 and the database; safety checks (UC-03) and reference data (UC-14); provides reference datasets.\\ \hline
+Lỗ Chí Thành & Voice and manual input (UC-02), reminders review (UC-06--UC-09).\\ \hline
+\end{longtable}
+
+\section{Schedule}
+\begin{longtable}{|L{3.2cm}|L{9.0cm}|L{3.3cm}|}
+\hline \textbf{Date} & \textbf{Activity} & \textbf{Owner}\\ \hline \endhead
+27 Nov 2026 & Baseline run on \texttt{dev}; defects B001--B004 recorded & Trang\\ \hline
+27--28 Nov 2026 & Modules 4/5 implemented; code reviews and fixes (B008--B013) & Trang\\ \hline
+28 Nov 2026 & Full system run, test-case execution, report & Trang\\ \hline
+29 Nov 2026 & Release v0.4.0 and PA4 submission & Group 02\\ \hline
+Next iteration & Manual execution of Not-run cases; fixes for B005--B007, B014 & Group 02\\ \hline
+\end{longtable}
+
+\section{Risks and Contingencies}
+\begin{longtable}{|L{5.5cm}|L{10.0cm}|}
+\hline \textbf{Risk} & \textbf{Contingency}\\ \hline \endhead
+Reference datasets missing on a test machine (B001) & Share the dataset package from the database owner; mark affected cases Not run instead of Pass.\\ \hline
+Local AI models unavailable or slow & Keep model-dependent tests opt-in; test the non-model behaviour (limits, no automatic record changes).\\ \hline
+Schema change needed for schedule proposals (B005) & Plan migration 006 with the database owner; keep the current verified schedule behaviour documented.\\ \hline
+Limited time before the deadline & Prioritise the main flows of UC-01--UC-09; record remaining cases as Not run with reasons.\\ \hline
+\end{longtable}
+
+\section{Approvals}
+\begin{tabularx}{\textwidth}{|Y|L{4cm}|L{3cm}|}
+\hline \textbf{Name} & \textbf{Role} & \textbf{Date}\\ \hline
+Hoàng Yến Trang & Test lead & 28 Nov 2026\\ \hline
+Cao Hoàng Long & Team member & \\ \hline
+Lỗ Chí Thành & Team member & \\ \hline
+\end{tabularx}
+
+\end{document}
