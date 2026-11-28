@@ -115,6 +115,12 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             actor.update(id=core.owner, permissions=['patient.workspace'])
             schedule = client.get('/api/v1/reminders/schedules').json()[0]
             assert schedule['verification_status'] == 'HCP_VERIFIED' and schedule['reminder_enabled']
+            # A newer assessment must not replace the assessment that authorized this schedule.
+            reminder_url = '/api/v1/reminders/schedules/'+schedule['id']+'/reminder'
+            assert client.put(reminder_url, json={'enabled': False}).status_code == 200
+            response = client.put(reminder_url, json={'enabled': True})
+            assert response.status_code == 200, response.text
+            assert response.json()['last_assessment_id'] == str(assessment['id'])
             when = occurrence.isoformat()
             dose = {'schedule_id': schedule['id'], 'scheduled_for': when, 'status': 'TAKEN'}
             response = client.post('/api/v1/reminders/doses', json=dose)

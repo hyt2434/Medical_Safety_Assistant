@@ -54,7 +54,25 @@ class ReminderService:
         r = self.repo
         with r.domain_transaction():
             s = r._owned('medication_schedules', schedule_id, lock=True)
-            assessment = latest_assessment(r, s['entry_version_id']) if enabled else None
+            assessment = None
+            if enabled:
+                if s['verification_status'] == 'HCP_VERIFIED':
+                    outcome = (s.get('verification_evidence') or {}).get('review_outcome_id')
+                    reviewed = r._one('''SELECT a.id FROM msa.review_outcomes o
+                        JOIN msa.review_cases c ON c.id=o.case_id AND c.user_id=o.user_id
+                        JOIN msa.safety_assessments a ON a.id=c.safety_assessment_id AND a.user_id=c.user_id
+                        WHERE o.id=%s AND o.user_id=%s AND o.schedule_id=%s AND o.decision='APPROVED'
+                        AND o.reviewed_content_digest=%s AND a.execution_status='COMPLETED'
+                        AND EXISTS(SELECT FROM msa.snapshot_entries se WHERE se.snapshot_id=a.snapshot_id
+                            AND se.user_id=a.user_id AND se.entry_version_id=%s)''',
+                        (outcome, r.owner, s['id'], s['content_digest'], s['entry_version_id']))
+                    if reviewed is None:
+                        raise ValueError('Reviewed assessment must be completed and cover this medication')
+                    assessment = reviewed['id']
+                elif s['verification_status'] == 'PATIENT_CONFIRMED':
+                    assessment = latest_assessment(r, s['entry_version_id'])
+                else:
+                    raise ValueError('Reminder requires a verified schedule')
             return r.set_reminder(schedule_id, enabled=enabled, assessment=assessment,
                                   preferences={'schema': 'notification-preferences.v1', 'channel': 'IN_APP'})
 
