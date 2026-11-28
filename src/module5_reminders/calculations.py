@@ -32,6 +32,28 @@ def verified_schedule_periods(schedules):
     return list(verified.values())
 
 
+def current_schedule_listing(schedules):
+    """Group a pending leaf and its decision with its last verified ancestor."""
+    by_id = {str(s['id']): s for s in schedules}
+    parents = {str(s['supersedes_schedule_id']) for s in schedules if s.get('supersedes_schedule_id')}
+    active = {str(s['id']): s for s in verified_schedule_periods(schedules)
+              if s['effective_until'] is None}
+    for key, row in by_id.items():
+        if key in parents or row['verification_status'] != 'UNVERIFIED':
+            continue
+        parent, visited = row.get('supersedes_schedule_id'), {key}
+        while parent and str(parent) in by_id and str(parent) not in visited:
+            parent = str(parent)
+            visited.add(parent)
+            if parent in active:
+                active[parent]['pending_proposal'] = dict(row)
+                break
+            parent = by_id[parent].get('supersedes_schedule_id')
+        else:
+            active[key] = dict(row)
+    return list(active.values())
+
+
 def occurrences(schedules, records, now, days=1):
     """Expand local calendar days; use elapsed UTC instants for due comparisons.
 

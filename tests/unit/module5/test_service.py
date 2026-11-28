@@ -67,7 +67,7 @@ class ActivationRepo:
         self.schedule = dict(id='new', entry_version_id='entry', schedule_origin='PROPOSED_CHANGE',
                              verification_status='UNVERIFIED', content_digest='digest')
         self.case = dict(id='case', user_id=self.owner, status=status)
-        self.outcome = dict(id='outcome', case_id='case', decision=decision)
+        self.outcome = dict(id='outcome', case_id='case', decision=decision, assessment_id='reviewed-assessment')
         self.enabled = False
         self.failure = failure
         self.events = []
@@ -88,10 +88,13 @@ class ActivationRepo:
         return row.copy()
 
     def _one(self, query, params):
+        if 'FROM msa.medication_schedules WHERE supersedes_schedule_id' in query:
+            return {'id': 'child'} if self.failure == 'superseded' else None
         if 'FROM msa.safety_assessments' in query:
             return {'id': 'assessment'}
         if 'FROM msa.review_outcomes' in query:
-            assert params == ('new', self.owner, 'assessment')
+            assert params == ('new', self.owner, 'entry')
+            assert "a.execution_status='COMPLETED'" in query and 'se.entry_version_id=%s' in query
             return self.outcome.copy()
         assert 'UPDATE msa.review_cases' in query
         assert params == ('case', 'patient') and 'user_id=%s' in query
@@ -108,7 +111,7 @@ class ActivationRepo:
         self.schedule['verification_status'] = 'HCP_VERIFIED'
 
     def set_reminder(self, identity, *, enabled, assessment, preferences):
-        assert identity == 'new' and enabled and assessment == 'assessment'
+        assert identity == 'new' and enabled and assessment == 'reviewed-assessment'
         self.events.append('enable')
         if self.failure == 'enable':
             raise ValueError('Eligibility changed')
@@ -142,3 +145,38 @@ def test_unapproved_or_cancelled_case_cannot_activate(decision, status):
     with pytest.raises(ValueError):
         ReminderService(repo).activate('new')
     assert repo.events == []
+
+
+def test_activation_rejects_a_superseded_schedule_even_when_already_verified():
+    repo = ActivationRepo(failure='superseded')
+    repo.schedule['verification_status'] = 'HCP_VERIFIED'
+    with pytest.raises(ValueError, match='superseded'):
+        ReminderService(repo).activate('new')
+    assert repo.events == []
+
+
+def test_activation_uses_reviewed_assessment_not_latest(monkeypatch):
+    import module5_reminders.service as module
+    monkeypatch.setattr(module, 'latest_assessment', Mock(side_effect=AssertionError('Must use case assessment')))
+    repo = ActivationRepo()
+    assert ReminderService(repo).activate('new') == {'enabled': True}
+
+
+@pytest.mark.parametrize('decision', ['REJECTED', 'CHANGES_REQUESTED', 'APPROVED', None])
+def test_listing_keeps_verified_ancestor_and_pending_decision(decision):
+    from module5_reminders.calculations import current_schedule_listing
+    source = schedules()
+    source[1]['review_decision'] = decision
+    source.append({**source[1], 'id': 'leaf', 'supersedes_schedule_id': 'new'})
+    before = deepcopy(source)
+    repo = Mock()
+    repo.transaction = __import__('contextlib').nullcontext
+    repo._all.return_value = source
+    listing = ReminderService(repo).schedules()
+    assert len(listing) == 1 and listing[0]['id'] == 'old'
+    assert listing[0]['pending_proposal']['id'] == 'leaf'
+    assert listing[0]['pending_proposal']['review_decision'] == decision
+    assert source == before
+    assert ReminderService(repo).schedules(include_history=True) == source
+    source[2].update(verification_status='HCP_VERIFIED', verified_at=at(12))
+    assert [r['id'] for r in current_schedule_listing(source)] == ['leaf']

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid4
-from .calculations import occurrences, adherence, verified_schedule_periods
+from .calculations import occurrences, adherence, verified_schedule_periods, current_schedule_listing
 
 
 def latest_assessment(repo, entry):
@@ -35,13 +35,13 @@ class ReminderService:
     def schedules(self, *, include_history=False):
         r = self.repo
         with r.transaction():
-            return r._all('''SELECT s.*,e.medication_fields->>'name_raw' AS name,
+            rows = r._all('''SELECT s.*,e.medication_fields->>'name_raw' AS name,
                 coalesce(rs.enabled,false) AS reminder_enabled,
                 (SELECT o.decision FROM msa.review_outcomes o WHERE o.schedule_id=s.id ORDER BY o.reviewed_at DESC,o.id DESC LIMIT 1) AS review_decision
                 FROM msa.medication_schedules s JOIN msa.medication_entry_versions e ON e.id=s.entry_version_id
                 LEFT JOIN msa.reminder_settings rs ON rs.schedule_id=s.id
-                WHERE s.user_id=%s AND (%s OR NOT EXISTS(SELECT FROM msa.medication_schedules n WHERE n.supersedes_schedule_id=s.id))
-                ORDER BY s.created_at DESC,s.id''', (r.owner, include_history))
+                WHERE s.user_id=%s ORDER BY s.created_at DESC,s.id''', (r.owner,))
+            return rows if include_history else current_schedule_listing(rows)
 
     def reminder(self, schedule_id, enabled):
         r = self.repo
@@ -57,18 +57,25 @@ class ReminderService:
             s = r._owned('medication_schedules', schedule_id, lock=True)
             if s['schedule_origin'] != 'PROPOSED_CHANGE':
                 raise ValueError('Activation requires a reviewed schedule revision')
-            outcome = r._one('''SELECT o.* FROM msa.review_outcomes o JOIN msa.review_cases c ON c.id=o.case_id
+            if r._one('SELECT id FROM msa.medication_schedules WHERE supersedes_schedule_id=%s', (schedule_id,)):
+                raise ValueError('Cannot activate a superseded schedule')
+            outcome = r._one('''SELECT o.*,c.safety_assessment_id AS assessment_id
+                FROM msa.review_outcomes o JOIN msa.review_cases c ON c.id=o.case_id
+                JOIN msa.safety_assessments a ON a.id=c.safety_assessment_id AND a.user_id=c.user_id
                 WHERE o.schedule_id=%s AND o.user_id=%s
-                AND c.safety_assessment_id=%s ORDER BY o.reviewed_at DESC,o.id DESC LIMIT 1''',
-                (schedule_id, r.owner, latest_assessment(r, s['entry_version_id'])))
+                AND a.execution_status='COMPLETED' AND EXISTS(SELECT FROM msa.snapshot_entries se
+                    WHERE se.snapshot_id=a.snapshot_id AND se.user_id=a.user_id AND se.entry_version_id=%s)
+                ORDER BY o.reviewed_at DESC,o.id DESC LIMIT 1''',
+                (schedule_id, r.owner, s['entry_version_id']))
             if outcome is None or outcome['decision'] != 'APPROVED':
-                raise ValueError('Approval for the current assessment is required')
+                raise ValueError('Approval with a completed assessment for this medication is required')
             case = r._owned('review_cases', outcome['case_id'], lock=True)
             if case['status'] not in ('OPEN', 'IN_REVIEW', 'CLOSED'):
                 raise ValueError('Case is not available for activation')
             if s['verification_status'] == 'UNVERIFIED':
                 r.confirm_schedule(s['id'], s['content_digest'], uuid4(), explicit_confirmation=True, review_outcome=outcome['id'])
-            setting = self.reminder(schedule_id, True)
+            setting = r.set_reminder(schedule_id, enabled=True, assessment=outcome['assessment_id'],
+                                     preferences={'schema': 'notification-preferences.v1', 'channel': 'IN_APP'})
             if case['status'] != 'CLOSED':
                 closed = r._one('''UPDATE msa.review_cases
                     SET status='CLOSED',closed_at=clock_timestamp(),updated_at=clock_timestamp()

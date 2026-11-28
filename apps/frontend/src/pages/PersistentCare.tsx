@@ -486,7 +486,11 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
           <Link className="button secondary" to="/dose-history">
             Lịch sử dùng thuốc
           </Link>
-          {schedules.map((s) => (
+          {schedules.map((s) => {
+            const proposal = s.pending_proposal || s;
+            const canSend = proposal.verification_status !== "UNVERIFIED" ||
+              ["REJECTED", "CHANGES_REQUESTED"].includes(proposal.review_decision || "");
+            return (
             <Card key={s.id}>
               <h2>{s.name}</h2>
               <p>
@@ -496,6 +500,11 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
               <p>
                 {s.verification_status} · {s.review_decision}
               </p>
+              {s.pending_proposal && <section aria-label="Lịch đề xuất">
+                <h3>Lịch đề xuất đang chờ</h3>
+                <p>{proposal.schedule_details.dose_raw} · {proposal.schedule_details.times.join(", ")} · {proposal.timezone}</p>
+                <p>{proposal.verification_status} · {proposal.review_decision || "Chờ rà soát"}</p>
+              </section>}
               {s.verification_status !== "UNVERIFIED" && (
                 <button
                   className="button"
@@ -510,30 +519,30 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
                   {s.reminder_enabled ? "Tắt nhắc" : "Bật nhắc"}
                 </button>
               )}
-              {s.review_decision === "APPROVED" &&
-                s.verification_status === "UNVERIFIED" && (
+              {proposal.review_decision === "APPROVED" &&
+                proposal.verification_status === "UNVERIFIED" && (
                   <button
                     className="button"
                     disabled={busy}
                     onClick={() =>
-                      void action(() => remindersApi.activate(s.id))
+                      void action(() => remindersApi.activate(proposal.id))
                     }
                   >
                     Kích hoạt lịch đã duyệt
                   </button>
                 )}
-              {s.verification_status !== "UNVERIFIED" && (
+              {canSend && (
                 <button
                   className="button secondary"
                   disabled={busy}
-                  onClick={() => setShare(s.id)}
+                  onClick={() => setShare(proposal.id)}
                 >
                   Gửi chuyên gia
                 </button>
               )}
-              {share === s.id && (
+              {share === proposal.id && (
                 <SendToHcp
-                  scheduleId={s.id}
+                  scheduleId={proposal.id}
                   onSent={() => {
                     setShare(null);
                     setNotice("Đã gửi ca. Chờ kết quả rà soát.");
@@ -542,7 +551,7 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
                 />
               )}
             </Card>
-          ))}
+          );})}
           <Card>
             <h2>Ca đã gửi</h2>
             {cases.length === 0 && <p>Chưa gửi ca nào.</p>}

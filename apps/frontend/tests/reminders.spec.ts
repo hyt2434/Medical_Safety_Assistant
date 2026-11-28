@@ -165,3 +165,44 @@ test("patient creates schedule, consents to review, activates approval and corre
   await expect(page.getByText("SKIPPED", { exact: false })).toBeVisible();
   expect(calls.filter((c) => c.path.endsWith("/doses"))).toHaveLength(2);
 });
+
+for (const decision of ['REJECTED', 'CHANGES_REQUESTED']) {
+  test(`retained schedule can be toggled and ${decision} proposal resent`, async ({page}) => {
+    const proposal = {id:'pending',entry_version_id:'entry',name:'Medicine',timezone:'UTC',
+      schedule_details:{times:['09:00'],dose_raw:'one'},verification_status:'UNVERIFIED',review_decision:decision,reminder_enabled:false};
+    const retained = { ...proposal, id:'verified', verification_status:'PATIENT_CONFIRMED',
+      schedule_details:{times:['08:00'],dose_raw:'one'},reminder_enabled:true,review_decision:null,pending_proposal:proposal};
+    let toggled=false, resent=false;
+    await page.route('**/api/v1/reminders/**', async route => {
+      const path=new URL(route.request().url()).pathname;
+      if(path.endsWith('/reminder')) {
+        expect(path).toContain('/verified/'); expect(route.request().postDataJSON()).toEqual({enabled:false});
+        retained.reminder_enabled=false;toggled=true;return route.fulfill({json:{enabled:false}});
+      }
+      if(path.endsWith('/schedules'))return route.fulfill({json:[retained]});
+      if(path.endsWith('/adherence'))return route.fulfill({json:{days:7,taken:0,total_due:0,rate:null}});
+      return route.fulfill({json:[]});
+    });
+    await page.route('**/api/v1/hcp/**', async route => {
+      const path=new URL(route.request().url()).pathname;
+      if(path.endsWith('/capabilities'))return route.fulfill({json:{preview:false}});
+      if(path.endsWith('/providers'))return route.fulfill({json:[{id:'hcp',full_name:'Provider'}]});
+      if(route.request().method()==='POST') {
+        expect(route.request().postDataJSON()).toEqual({kind:'SCHEDULE',schedule_id:'pending',hcp_id:'hcp',consent:true});
+        resent=true;return route.fulfill({json:{id:'new-case'}});
+      }
+      return route.fulfill({json:[]});
+    });
+    await login(page);await page.goto('/reminders');
+    await expect(page.getByRole('region',{name:'Lịch đề xuất'})).toContainText(decision);
+    await page.getByRole('button',{name:'Tắt nhắc',exact:true}).click();
+    await expect(page.getByRole('button',{name:'Bật nhắc',exact:true})).toBeVisible();
+    expect(toggled).toBe(true);
+    await page.getByRole('button',{name:'Gửi chuyên gia',exact:true}).click();
+    await page.getByLabel('Chuyên gia nhận ca').selectOption('hcp');
+    await page.getByRole('checkbox').check();
+    await page.getByRole('button',{name:'Gửi ca cho chuyên gia',exact:true}).click();
+    await expect(page.getByText('Đã gửi ca. Chờ kết quả rà soát.')).toBeVisible();
+    expect(resent).toBe(true);
+  });
+}

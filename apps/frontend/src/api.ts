@@ -67,7 +67,7 @@ export type HcpRecord = {
 };
 export type MedicationSchedule = { id: string; entry_version_id: string; name: string; timezone: string;
   schedule_details: { times: string[]; dose_raw: string }; verification_status: string;
-  reminder_enabled: boolean; review_decision?: string | null };
+  reminder_enabled: boolean; review_decision?: string | null; pending_proposal?: MedicationSchedule };
 export type DoseOccurrence = { schedule_id: string; name: string; time: string; scheduled_for: string;
   status: 'PENDING' | 'TAKEN' | 'MISSED' | 'SKIPPED'; record_id: string | null; due: boolean; reminder_enabled: boolean };
 export type Adherence = { taken: number; total_due: number; rate: number | null; days: number };

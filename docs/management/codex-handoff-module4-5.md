@@ -21,6 +21,8 @@ Rules:
 | G6 | Frontend `HcpQueue` + `HcpCase` use API; patient "send to HCP" (provider picker + consent) | `npm run build` OK | ☑ | ba157962 | Revalidated in the G5 production build and 37-pass browser suite: live queue/detail, consent picker, and denied-access behavior. Review records the HCP outcome; patient activation closes the case. Mocked browser tests are UI contracts only. |
 | G7 | `tests/integration/test_module4_5_api.py` (skip without `MODULE2_TEST_DSN`), `hcp-case.spec.ts`, `reminders.spec.ts` | baseline holds (pytest ≥558 pass, Playwright ≥34 pass) + new tests pass/skip cleanly | ☑ | 7c3ec4e6 | Clean-source rerun: Python 568 pass / 8 existing failures / 85 existing errors; no new failing names. Build passes; Playwright 37 pass / 1 skip. PostgreSQL skeleton skips without DSN. G4-fix2 targeted checks: 26 Python pass / 1 integration skip; 3 browser pass. Previous full-suite counts retained above. |
 
+| G8-A | Reviewed-schedule activation and retained schedule/proposal listing | 24 unit / 3 browser / 1 real DB checks pass | ☑ | [G8-A] (this commit) | Reject superseded activation; retain verified ancestor with pending review/resend UI; use completed assessment from the reviewed case. |
+
 ## 1. What already exists (reuse, don't rewrite)
 - **Persistence**: `src/shared/db/domain_repository.py` → `DomainRepository(conn, authenticated_actor=UUID, permissions=[...])`
   - M4: `create_case(kind, assessment=, schedule=)`, `grant_case_access(case, hcp, consent)`, `assign_case(case, hcp)`, `case_message(case, text)`, `record_review(case, decision, evidence, notes=)`, `revoke_access(grant)`.
