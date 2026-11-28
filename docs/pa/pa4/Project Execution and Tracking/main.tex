@@ -1,0 +1,314 @@
+% !TeX program = xelatex
+% Compile twice: xelatex -interaction=nonstopmode -halt-on-error main.tex
+% Original evidence is preserved in images/. Crops are display-only LaTeX trims.
+\documentclass[14pt,a4paper,landscape]{extarticle}
+\usepackage[left=17mm,right=17mm,top=22mm,bottom=17mm,headheight=34pt,headsep=8pt,footskip=23pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{graphicx,tabularx,array,booktabs,fancyhdr,lastpage,xcolor}
+\definecolor{pafourblue}{RGB}{0,82,204}
+\newcommand{\upd}[1]{{\color{pafourblue}#1}}
+\usepackage[unicode,hidelinks]{hyperref}
+\hypersetup{pdftitle={Project Execution and Tracking - PA4},pdfauthor={Group 02}}
+\graphicspath{{images/}}
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+\emergencystretch=3em
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\fontsize{12}{14}\selectfont MEDICATION SAFETY ASSISTANT\\Project Execution and Tracking (PA4-Group02-Execution)}
+\fancyhead[R]{\small Version 3.0\\28 November 2026}
+\fancyfoot[L]{\small University of Science, VNU-HCM -- Course Project}
+\fancyfoot[R]{\small Page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{.4pt}\renewcommand{\footrulewidth}{.4pt}
+\newcommand{\issueurl}[1]{\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/#1}{GitHub Issue \##1}}
+\newcommand{\evidence}[5]{%
+ \clearpage
+ {\large\bfseries #1\par}\vspace{2mm}
+ \begin{center}\includegraphics[trim=#3,clip,width=.98\linewidth,height=.66\textheight,keepaspectratio]{#2}\end{center}
+ \textbf{Description.} #4\par
+ {\small\textbf{Evidence reference:} #5}
+}
+
+\newcommand{\reportpage}[1]{\clearpage{\Large\bfseries #1\par}\vspace{3mm}}
+\newcommand{\shot}[3]{\begin{center}\includegraphics[trim=#2,clip,width=.97\linewidth,height=#3\textheight,keepaspectratio]{#1}\end{center}}
+\newcommand{\pr}[1]{\href{https://github.com/hyt2434/Medical_Safety_Assistant/pull/#1}{PR \##1}}
+\newcommand{\commitref}[1]{\href{https://github.com/hyt2434/Medical_Safety_Assistant/commit/#1}{\texttt{#1}}}
+\newcommand{\weekly}{\href{https://docs.google.com/document/d/1hL1-R4h-wUWRMYfatBCGNO-6FeTvV1qBhrAj1i1jbPk/edit}{Team weekly reports}}
+\renewcommand{\arraystretch}{1.12}
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+\vspace*{10mm}
+{\large\bfseries MEDICATION SAFETY ASSISTANT\par}
+\vspace{18mm}
+{\fontsize{25}{30}\selectfont\bfseries Project Execution and Tracking\par}
+\vspace{5mm}\upd{PA4 -- Section f}\par
+\vspace{8mm}Group 02\par
+\vfill
+Cao Hoàng Long, Hoàng Yến Trang, Lỗ Chí Thành\par
+University of Science, VNU-HCM\par
+PA3: 02--14 November 2026; \upd{PA4: 16--28 November 2026}\par
+\vspace{5mm}
+\begin{minipage}{.87\linewidth}\centering
+Execution, collaboration, delivery and verification evidence. \upd{Part A (blue) records the PA4 iteration, checked on 28 November 2026. Part B keeps the PA3 record unchanged so progress across iterations stays traceable.}
+\end{minipage}
+\end{center}
+
+
+\reportpage{\upd{Part A -- PA4 iteration (16--28 November 2026)}}
+\color{pafourblue}
+\textbf{A1. Execution summary.} The PA4 goal was a working release with at least two main use-case groups and system testing. All feature branches were integrated into \texttt{dev} and \texttt{main}; Modules 4 and 5 were implemented and merged; a full system test run was executed on 28 November.
+
+\begin{tabularx}{\linewidth}{@{}p{55mm}X@{}}\toprule
+\textbf{Area} & \textbf{Verified result as of 28 November 2026}\\\midrule
+Integration of all branches & \pr{79}, \pr{81}, \pr{82} and \pr{83} merged on 27 November; \texttt{dev} and \texttt{main} synchronised by \pr{84}. Only \texttt{dev} and \texttt{main} remain on GitHub.\\
+Module 4 and Module 5 & Implemented on a feature branch and merged by \pr{86} on 28 November (draft \pr{85} was closed and superseded).\\
+Intake, chatbot, database & Long integrated voice/manual input, RAG chatbot, OCR/RBAC and the complete system schema (commits 19--23 November).\\
+System testing & 644 backend/unit tests, 43 end-to-end UI tests and the Module 4/5 flow on real PostgreSQL passed; 114 functional test cases written for UC-01--UC-20.\\
+Release & Release v0.4.0 prepared from \texttt{main} for PA4 submission.\\\bottomrule
+\end{tabularx}
+
+\reportpage{\upd{A2. Task allocation and status (PA4 board, issues \#72--\#77)}}
+\color{pafourblue}
+\begin{tabularx}{\linewidth}{@{}p{16mm}p{24mm}X p{60mm}@{}}\toprule
+\textbf{Issue} & \textbf{Owner} & \textbf{Planned work} & \textbf{Status on 28 Nov (evidence)}\\\midrule
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/73}{\#73} & Trang & Module 4 -- HCP review and communication & Implemented and merged (\pr{86}); issue still open for reviewer sign-off.\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/72}{\#72} & Thanh & Module 5 -- reminders and adherence & Implemented by Trang in \pr{86} together with Module 4 because the two share one review flow; issue open for Thanh's review and manual tests.\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/74}{\#74} & Long & Module 3 safety assessment & Open; system schema and access controls delivered (commit \commitref{6de2ce9a}).\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/75}{\#75}, \href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/76}{\#76} & Long & Health summary, health profile & Open; UI prototypes exist, server APIs planned (defect B014).\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/77}{\#77} & Long & Medication cabinet & Open; UC-19 kept as future development.\\\bottomrule
+\end{tabularx}
+
+\textbf{Weekly goals (week of 22 November).} Trang: begin Module 4 and review/test User Management and OCR. Long: RAG chatbot, Module 3 improvements, database completion and end-to-end tests of Modules 1--3. Thanh: begin Module 5 and review/test Voice/STT and Manual Input. Source: \weekly.
+
+\reportpage{\upd{A3. Delivery timeline (pull requests and commits)}}
+\color{pafourblue}
+{\fontsize{12}{14}\selectfont
+\begin{tabularx}{\linewidth}{@{}p{26mm}p{30mm}X@{}}\toprule
+\textbf{Date} & \textbf{Who} & \textbf{Delivery}\\\midrule
+19 Nov & Long & RAG chatbot with source citations (\commitref{174014e7}); voice/manual input integrated with intake validation (\commitref{faa18726}).\\
+20--21 Nov & Long & Intake E2E fixes and Module 2 tests; OCR UI + RBAC integration and NLP refactor (\commitref{6d1be2fe}).\\
+22--23 Nov & Long & Complete system schema, access controls and audit API (\commitref{6de2ce9a}); CSV datasets consolidated (\commitref{451be27c}).\\
+24 Nov & Trang & \pr{78}: \texttt{dev} merged into \texttt{main}.\\
+27 Nov & Trang & Repository cleanup; unified DB setup and intake chat UI; \pr{79}, \pr{81}, \pr{82}, \pr{83}, \pr{84} merged -- all branches integrated, conflicts in Module 1 resolved in favour of the restructured version.\\
+27--28 Nov & Trang & Module 4/5 implementation in goals G1--G11 on a feature branch, merged by \pr{86}.\\
+28 Nov & Trang & Full system test run, test cases and report, SAD v2.0, final UI design.\\\bottomrule
+\end{tabularx}}
+
+\reportpage{\upd{A4. Collaboration and quality control -- review cycle}}
+\color{pafourblue}
+\textbf{How the work was controlled.} Modules 4 and 5 were split into small goals (G1--G7) with a verifiable ``done'' check each, recorded in \texttt{docs/management/codex-handoff-module4-5.md}. After each group of goals the branch went through an automated code review; every finding was either fixed in a new goal or recorded as a known defect. An AI coding assistant was used for parts of the implementation and review; all results were verified by running the test suites.
+
+{\fontsize{12}{14}\selectfont
+\begin{tabularx}{\linewidth}{@{}p{30mm}X p{55mm}@{}}\toprule
+\textbf{Review round} & \textbf{Main finding} & \textbf{Action}\\\midrule
+After G7 & HCP review was rolled back by the database guard (only the patient may update a case). & Fixed in G4-fix: closure moved to patient activation (B008).\\
+Real-DB run & Integration test had never run (no test DSN); single-medicine assessment rule violated. & Isolated marked test DB created; test fixed and passing.\\
+Round 3 & Activation of superseded schedules; data and dose-bound issues. & Fixed in G8-A/B/C.\\
+Round 4 & Reminder toggle locked after any proposal (regression); duplicate outcomes. & Fixed in G9--G10 (B009, B013).\\
+Round 5 & Proposals cannot carry new timing (root cause: \texttt{one\_schedule\_root} index). & G11-B/C/D fixed; G11-A deferred -- needs migration 006 with the DB owner (B005, B006).\\\bottomrule
+\end{tabularx}}
+
+\reportpage{\upd{A5. Testing results and problem resolution}}
+\color{pafourblue}
+\begin{tabularx}{\linewidth}{@{}p{80mm}p{38mm}X@{}}\toprule
+\textbf{Suite (28 Nov, branch dev)} & \textbf{Result} & \textbf{Baseline 27 Nov}\\\midrule
+Backend + unit (pytest) & 644 pass / 8 fail / 85 error & 558 / 8 / 85\\
+Integration (pytest, opt-in suites skipped) & 2 pass / 33 error / 73 skip & 2 / 33 / 71\\
+Module 4/5 flow on real PostgreSQL & 2 pass & --\\
+End-to-end UI (Playwright) & 43 pass / 1 skip & 34 / 1\\
+Functional test cases (UC-01--UC-20) & 114 written: 68 pass, 46 not run & --\\\bottomrule
+\end{tabularx}
+
+\textbf{Interpretation.} No regression was introduced. The remaining failures and errors are caused by local reference data missing on the test machine (B001), not by new code. Not-run cases are listed with reasons in the test-case workbook. Open defects: B001--B003, B005--B007, B014; fixed during PA4: B004, B008--B013.
+
+\reportpage{\upd{A6. Next iteration}}
+\color{pafourblue}
+\begin{tabularx}{\linewidth}{@{}p{60mm}p{28mm}X@{}}\toprule
+\textbf{Work} & \textbf{Owner} & \textbf{Approach}\\\midrule
+Migration 006 for standalone schedule proposals (B005--B007) & Trang, Long & Relax \texttt{one\_schedule\_root} for proposals; re-run the Module 4/5 DB test.\\
+Reference data package for testers (B001) & Long & Share \texttt{data/DDInter} and \texttt{data/reference}; re-run Module 2/3 suites.\\
+Manual execution of the 46 not-run cases & All & Record actual results in the test-case workbook.\\
+Server APIs for UC-12--UC-18, UC-20 (B014) & Long, Thanh & Use the existing tables of migration 003.\\
+Review of Modules 4/5 by the issue owners & Thanh & Close \#72/\#73 after review and manual tests.\\\bottomrule
+\end{tabularx}
+\color{black}
+
+\reportpage{Part B -- PA3 record (unchanged from the PA3 submission)}
+The following pages are the PA3 tracking report, kept unchanged so that the progress between PA3 and PA4 remains traceable.
+
+\reportpage{1. Execution summary}
+The team delivered database, OCR and interface changes to the development branch, while continuing the PA3 design reports. GitHub marks all eight PA3 tasks Done, but review findings and test coverage still need follow-up.
+
+\begin{tabularx}{\linewidth}{@{}p{53mm}X@{}}\toprule
+\textbf{Area} & \textbf{Verified result as of 15 November 2026}\\\midrule
+Database integration & Long submitted \pr{60}; Trang merged it into dev on 15 November.\\
+OCR and UI integration & Long approved \pr{70} and \pr{71}; Trang merged both into dev on 15 November. Each still has one unresolved review comment.\\
+PA3 reports & Long opened \pr{69}; Long and Trang contributed commits. The PR is still open and requires approval.\\
+Focused verification & 20 backend OCR tests passed in a local rerun on 15 November. This does not establish frontend E2E or full-system acceptance.\\
+Next iteration & Six PA4 tasks are Open / Todo, planned for 09--22 November.\\\bottomrule
+\end{tabularx}
+
+\textbf{Schedule result.} The three confirmed merges occurred one day after the board's 14 November target. This is integration timing, not proof of when every task was finished. Acceptance-completion dates remain unverified.
+
+\textbf{Evidence used.} GitHub screenshots, dated local Git history, the team's weekly reports, the OCR development log and a saved JUnit test result. Each section identifies what its evidence does and does not show.
+
+\reportpage{2. Task allocation and tracking}
+\shot{latest-pa3-board.jpg}{0bp 150bp 0bp 72bp}{.36}
+\textbf{Board evidence.} Eight PA3 tasks are Done; the linked database, OCR and UI PRs are merged. The board records task status, not test acceptance.
+
+\begin{tabularx}{\linewidth}{@{}p{25mm}p{30mm}X p{44mm}@{}}\toprule
+\textbf{Owner} & \textbf{Issues} & \textbf{Responsibility} & \textbf{Delivery evidence}\\\midrule
+Trang & \#61, \#62 & Accounts/RBAC and prescription OCR; Long also assigned to \#61. & \pr{60}, \pr{70}, \pr{71}\\
+Long & \#63--\#66 & Chatbot, test medicine data, matching and core database. & \pr{60}; branch commits\\
+Thanh & \#67, \#68 & Voice/STT and validated manual entry. & \commitref{3422c29a}\\\bottomrule
+\end{tabularx}
+{\small Source: \href{https://github.com/users/hyt2434/projects/3/views/1}{GitHub Project}, captured 15 November. Commit presence alone does not prove review or integration.}
+
+\reportpage{3. Planned dates versus observed delivery}
+All eight tasks were planned for 02--14 November. ``Not verified'' below means no acceptance-completion date has been established from the reviewed records.
+
+{\fontsize{12}{14}\selectfont
+\begin{tabularx}{\linewidth}{@{}p{17mm}p{25mm}p{30mm}X p{52mm}@{}}\toprule
+\textbf{Task} & \textbf{Planned end} & \textbf{Actual completion} & \textbf{Dated delivery / review evidence} & \textbf{Test evidence}\\\midrule
+\#61 & 14 Nov & Not verified & \#60 / \#70 merged 15 Nov; reviewed & No task-wide acceptance result\\
+\#62 & 14 Nov & Not verified & \#71 merged 15 Nov; Long approved & 20 focused OCR tests; E2E pending\\
+\#63 & 14 Nov & Not verified & Chatbot commit \texttt{dc7ca22c}, 10 Nov & No result verified in this report\\
+\#64 & 14 Nov & Not verified & DB/import work \texttt{a67d8cf1}, 09 Nov & PR reports DB checks; not rerun\\
+\#65 & 14 Nov & Not verified & Matching commit \texttt{b3071052}, 10 Nov & No result verified in this report\\
+\#66 & 14 Nov & Not verified & \#60 merged 15 Nov; Trang approved & PR reports 46/46 DB tests\\
+\#67 & 14 Nov & Not verified & Voice/manual commit \texttt{3422c29a}, 15 Nov & No task-wide test result verified\\
+\#68 & 14 Nov & Not verified & Same commit; PR/merge not verified & No task-wide test result verified\\\bottomrule
+\end{tabularx}}
+
+\textbf{What the dates show.} Database and OCR implementation commits exist before the target; integration continued on 15 November. The voice/manual commit is also dated 15 November, but it may not be the first implementation of those features.
+
+\textbf{Tracking gap.} Weekly reports use different targets (07 November for implementation and 15 November for design work) and report 100\% alongside continuing work. These percentages are not used as acceptance dates. Sources: \weekly; Git history saved in \texttt{evidence/commit-timeline.txt}.
+
+\reportpage{4. Team collaboration -- meetings and follow-up}
+\textbf{03 November: task and technical discussion.} The weekly report for 02--08 November records that Long organized a meeting to review the task plan and distribute PA3 responsibilities. It also records three open technical questions:
+\begin{itemize}
+\item How \texttt{intake\_extractions.input\_id} links input methods and extraction runs.
+\item How OCR output maps to SUCCEED, PARTIAL and FAILED, and whether confidence affects status.
+\item How receipts without medication instructions should reach HCP review.
+\end{itemize}
+\textbf{Follow-up.} Trang's OCR work and Long's database work needed a common input/status contract. The report records HCP review as a proposed approach; it does not prove that every question was resolved during the meeting.
+
+\textbf{Use-case alignment meeting.} The weekly report for 09--15 November records that Long organized a meeting to align changed use cases and class diagrams. Trang handled User Management/OCR diagrams, Long handled NLP/Chatbot and architecture, and Thanh handled Voice/STT and Manual Input diagrams plus weekly reporting.
+
+\textbf{Date precision.} The team identifies this meeting as 12 November at 22:00. The linked weekly report confirms the meeting and its purpose, but does not give that exact date/time. No chat transcript or attendance screenshot was supplied.
+
+{\small Source: \weekly, weeks 02--08 and 09--15 November. This summarizes the team's written record; it does not establish a resolved disagreement or individual speaking turns.}
+
+\reportpage{5. Team collaboration -- review and integration}
+\shot{latest-pr71.jpg}{140bp 120bp 140bp 135bp}{.43}
+\textbf{Concrete handoff.} Trang submitted OCR in \pr{71}. Long approved it on 15 November and requested end-to-end testing before integration into main; Trang then merged it into dev. The same author/reviewer handoff appears in \pr{70}.
+
+\textbf{Review outcome.} The automated review raised a problem with saving ambiguous medicine matches. The discussion remains unresolved even though the PR is merged. Approval therefore records a review decision, not proof that this concern was fixed.
+
+\textbf{Team action still needed.} Reproduce the reported case, agree a fix owner, attach a regression result and close the discussion only after verification. The available record does not identify a separate fix assignee or show a resolved disagreement.
+
+{\small Source: \pr{71} and \pr{70}, captured 15 November; reviewer comments inspected directly.}
+
+\reportpage{6. Trang -- accounts, OCR and UI delivery}
+\shot{latest-pr70.jpg}{140bp 120bp 140bp 135bp}{.40}
+\textbf{Who did what.} Trang owned \issueurl{61} and \issueurl{62}, with Long co-assigned to the database task. She implemented OCR and editable medicine confirmation, then submitted the OCR/UI branch through \pr{70} and OCR through \pr{71}.
+
+\textbf{How the work progressed.} Commits on 09 and 10 November added printed-prescription/receipt parsing and reorganized the OCR pipeline. Commit \commitref{e41a745c} on 15 November added region selection and confirmation-workflow improvements.
+
+\textbf{Verified result.} Both PRs are merged into dev following Long's approval. A frontend review concern remains: rows whose medicine names could not be read may be filtered out before manual correction. The focused backend tests do not clear this frontend concern.
+
+{\small Sources: \pr{70}, \pr{71}; \texttt{docs/ocr-development-log.md}, OCR-25 and OCR-26.}
+
+\reportpage{7. Long -- database, chatbot and matching}
+\shot{live-pr60.jpg}{140bp 100bp 140bp 135bp}{.40}
+\textbf{Who did what.} Long owned \#63--\#66: chatbot, test medicine data, medicine matching and core SQL. Database V4 was submitted in \pr{60}, reviewed and merged by Trang on 15 November.
+
+\textbf{How it was organized.} The PR separates migration/setup tools from the shared database-access code used by Modules 1--3. The submitted description reports 46/46 database tests and successful migrations; these are author-reported results, not a database rerun for this report.
+
+\textbf{Other delivery records.} Local branch history includes chatbot commit \commitref{dc7ca22c} and matching commit \commitref{b3071052} on 10 November. Their presence supports implementation activity, but this report has not verified a corresponding reviewed merge or complete test result for those tasks.
+
+{\small Sources: \pr{60}; Git commit history; \texttt{db/README.md}.}
+
+\reportpage{8. Thanh -- voice and manual entry}
+\shot{issue-67.png}{0bp 225.620bp 0bp 0bp}{.38}
+\textbf{Who did what.} Thanh owned \issueurl{67} and \issueurl{68}. Voice input converts speech into editable text; manual entry lets users add and correct medicine details. Both are intended to produce the shared confirmed-input format.
+
+\textbf{Delivery record.} Commit \commitref{3422c29a}, dated 15 November, is titled ``feat: voice \& manual input.'' The issue pages are Closed and the board is Done. A reviewed PR, verified merge and task-wide test result for this commit have not been established here.
+
+\textbf{Collaboration contribution.} The weekly report credits Thanh with Voice/STT and Manual Input class diagrams, adapting them to changed use cases, and preparing Weekly Reports 6 and 7.
+
+{\small Sources: issue screenshot (assignment evidence only), commit history and \weekly. The screenshot is not evidence of successful speech recognition.}
+
+\reportpage{9. Design reports and dated progress}
+\shot{latest-pr69.jpg}{140bp 65bp 140bp 135bp}{.38}
+\textbf{14 November.} Long committed the use-case and architecture reports (\commitref{398fc8a2}) and revised the logical view to 12 components (\commitref{86816b61}). These are dated outputs after the reported alignment meeting; the commits do not by themselves prove which meeting decision caused each change.
+
+\textbf{15 November.} Trang merged OCR/UI into the PA3 branch for report preparation, added the UI Design report (\commitref{aec1634a}) and tracking material (\commitref{5695a2a8}).
+
+\textbf{Current status.} Long's \pr{69} contains contributions from both Long and Trang. It remains open with one approval required and no checks available. This is distinct from the already merged implementation PRs.
+
+{\small Sources: \pr{69}, captured 15 November; local commit history.}
+
+\reportpage{10. Testing -- reproducible result and limits}
+\textbf{Local rerun: 15 November 2026.} At checkout \texttt{5695a2a8}, the two focused OCR test files completed with \textbf{20 passed, 0 failed, 1 warning} in 5.13 seconds. The test output is retained as JUnit XML.
+
+\begin{tabularx}{\linewidth}{@{}p{52mm}X p{26mm}@{}}\toprule
+\textbf{Case group} & \textbf{What was checked} & \textbf{Result}\\\midrule
+Region validation & Empty/reversed/out-of-bounds regions and tiny crops are rejected. & Passed\\
+Image coordinates & Cropping preserves source pixels; EXIF orientation and coordinate offsets are handled. & Passed\\
+API and draft state & Invalid region JSON does not start OCR; optional region keeps the unconfirmed-output contract. & Passed\\
+Parser recovery & Text survives when both layout parsers fail; damaged numbering and several product layouts are checked. & Passed\\
+Basic API handling & Health endpoint and non-image upload rejection. & Passed\\\bottomrule
+\end{tabularx}
+
+{\small Reproduce from repo root: \texttt{python -m pytest apps/backend/tests/test\_ocr\_regions.py apps/backend/tests/test\_ocr\_backend.py -q -p no:cacheprovider}. Saved evidence: \texttt{evidence/ocr-verification-2026-11-15.xml}.}
+
+\textbf{Limits.} These backend tests use fixtures/mocks and are not a live OCR accuracy benchmark or browser E2E test. They do not verify the two unresolved PR findings, production database integration, or all eight issue checklists. The warning concerns deprecated httpx use in Starlette's TestClient.
+
+\reportpage{11. Problem resolution -- actions and current results}
+{\fontsize{12}{14}\selectfont
+\begin{tabularx}{\linewidth}{@{}p{39mm}p{48mm}X p{38mm}@{}}\toprule
+\textbf{Problem} & \textbf{Discussion / responsible work} & \textbf{Action and evidence} & \textbf{Current result}\\\midrule
+Full prescription text read but no medicine rows parsed & Trang's OCR development log records a two-part prescription case. & Added user-selected regions in \texttt{e41a745c}. Log reports 0 rows for the whole image and 3 for the left region; focused region tests pass. & Improved for that case; full-prescription recall not established.\\
+Unreadable medicine names may disappear from the draft & Automated review on \pr{70}; Trang is the PR author, Long the reviewer. & Review proposes keeping incomplete rows for correction. No verified fix or regression result attached here. & Pending verification; discussion unresolved.\\
+Ambiguous matches may fail when saved & Automated review on \pr{71}; Trang is the PR author, Long the reviewer. & Review proposes resolving the candidates' reference-data version before saving. Fix owner has not been separately recorded. & Pending verification; discussion unresolved.\\\bottomrule
+\end{tabularx}}
+
+\textbf{Closure rule.} For each remaining finding, record the person taking the fix, a failing example, the change/commit and the passing regression result. Merged status alone is not a resolution record.
+
+\textbf{Other verification gap.} PR \#60 reports 46/46 DB tests, but its raw test output has not been independently inspected here. Voice/manual, chatbot and matching still need task-specific result links before claiming full acceptance.
+
+\reportpage{12. Next iteration -- PA4 weeks 7--8}
+The project lists six Open / Todo tasks for 09--22 November. They are plans, not PA3 delivery results. Week 7 covers use-case/design alignment; week 8 covers implementation, tests and SAD updates.
+
+\begin{tabularx}{\linewidth}{@{}p{17mm}p{24mm}X@{}}\toprule
+\textbf{Issue} & \textbf{Owner} & \textbf{Next work and approach}\\\midrule
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/72}{\#72} & Thanh & Reminders and adherence: use confirmed schedules, prevent duplicate notifications and record taken/skipped/missed doses.\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/73}{\#73} & Trang & HCP review: authorized case queue, requests for missing details and version-aware review outcomes.\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/74}{\#74} & Long & Safety assessment: use reviewed interaction data and distinguish risks from incomplete or unassessed results.\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/75}{\#75} & Long & Health summary: combine existing data in a read-only view with sources and update times.\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/76}{\#76} & Long & Health profile: validate patient-entered context, enforce ownership and flag stale assessments.\\
+\href{https://github.com/hyt2434/Medical_Safety_Assistant/issues/77}{\#77} & Long & Medication cabinet: add/edit/archive medicines, avoid duplicate imports and keep reminders separate.\\\bottomrule
+\end{tabularx}
+
+\textbf{Before closing.} Link the implementation PR, execute relevant tests, update the corresponding SAD section and obtain another member's review. Carry the two unresolved OCR review findings into follow-up tracking.
+
+{\small Sources: \href{https://github.com/users/hyt2434/projects/3/views/1?filterQuery=PA4}{PA4 board}; Issues \#72--\#77; \weekly.}
+
+\reportpage{13. Evidence index and interpretation}
+\begin{tabularx}{\linewidth}{@{}p{44mm}X@{}}\toprule
+\textbf{Source} & \textbf{What it supports}\\\midrule
+GitHub Project / issues & Assignment, planned dates and captured status. Not an actual acceptance date.\\
+\pr{60}, \pr{70}, \pr{71} & Submission, review and merge into dev. \#70/\#71 retain unresolved findings.\\
+\pr{69} & Joint report contributions and the remaining report approval.\\
+\weekly & Meeting context, team responsibilities, weekly goals and reported progress. Exact 12 November / 22:00 timing is team-supplied, not shown in the report text.\\
+OCR development log & Development problems, changes, small local experiments and their stated limitations.\\
+Saved Git timeline & Dated local Git history across available refs; not proof that every branch change is integrated.\\
+JUnit test results & Machine-readable result of the 20-test local rerun.\\
+Test-run context & Command, checkout, result and scope of the rerun.\\\bottomrule
+\end{tabularx}
+
+\textbf{Record handling.} Original screenshots remain in the images folder. This report selects each useful view once and replaces repeated issue-description pages with task-to-delivery links. No meeting screenshot, test pass or issue-completion date has been invented.
+
+\textbf{Still to collect.} Per-task acceptance dates/results, end-to-end validation requested by the reviewer, and closure evidence for the two unresolved findings.
+\end{document}
