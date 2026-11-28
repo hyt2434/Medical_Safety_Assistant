@@ -33,13 +33,16 @@ def verified_schedule_periods(schedules):
 
 
 def current_schedule_listing(schedules):
-    """Group a pending leaf and its decision with its last verified ancestor."""
+    """Group undecided leaves; list reviewed leaves alongside verified ancestors."""
     by_id = {str(s['id']): s for s in schedules}
     parents = {str(s['supersedes_schedule_id']) for s in schedules if s.get('supersedes_schedule_id')}
     active = {str(s['id']): s for s in verified_schedule_periods(schedules)
               if s['effective_until'] is None}
     for key, row in by_id.items():
         if key in parents or row['verification_status'] != 'UNVERIFIED':
+            continue
+        if row.get('review_decision'):
+            active[key] = dict(row)
             continue
         parent, visited = row.get('supersedes_schedule_id'), {key}
         while parent and str(parent) in by_id and str(parent) not in visited:

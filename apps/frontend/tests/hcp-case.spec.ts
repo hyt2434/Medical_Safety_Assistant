@@ -77,6 +77,7 @@ test("assigned HCP records review and leaves closure to patient activation", asy
   await expect(
     page.getByText("APPROVED: Reviewed exact schedule and assessment", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Lưu kết quả rà soát" })).toHaveCount(0);
 });
 
 test("denied HCP case does not fall back to demo data", async ({ page }) => {

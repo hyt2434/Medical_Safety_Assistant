@@ -174,9 +174,16 @@ def test_listing_keeps_verified_ancestor_and_pending_decision(decision):
     repo.domain_transaction = __import__('contextlib').nullcontext
     repo._all.return_value = source
     listing = ReminderService(repo).schedules()
-    assert len(listing) == 1 and listing[0]['id'] == 'old'
-    assert listing[0]['pending_proposal']['id'] == 'leaf'
-    assert listing[0]['pending_proposal']['review_decision'] == decision
+    assert listing[0]['id'] == 'old'
+    if decision is None:
+        assert len(listing) == 1
+        assert listing[0]['pending_proposal']['id'] == 'leaf'
+        assert listing[0]['pending_proposal']['review_decision'] is None
+    else:
+        assert len(listing) == 2
+        assert 'pending_proposal' not in listing[0]
+        assert listing[1]['id'] == 'leaf'
+        assert listing[1]['review_decision'] == decision
     assert source == before
     assert ReminderService(repo).schedules(include_history=True) == source
     source[2].update(verification_status='HCP_VERIFIED', verified_at=at(12))

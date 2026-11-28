@@ -97,8 +97,17 @@ class HcpService:
 
     def review(self, case_id, decision, notes):
         """Record the clinician's outcome; patient activation owns case closure."""
-        return self.repo.record_review(
-            case_id, decision,
-            evidence('review-evidence.v1', case_id, f'{decision}\n{notes}'),
-            notes=notes,
-        )
+        r = self.repo
+        with r.domain_transaction():
+            # Serialize outcomes for this case without updating the patient-owned row.
+            case = r._one('''SELECT id FROM msa.review_cases
+                WHERE id=%s AND msa.can_access_case(id,user_id) FOR UPDATE''', (case_id,))
+            if case is None:
+                raise PermissionError('Case access denied')
+            if r._one('SELECT id FROM msa.review_outcomes WHERE case_id=%s', (case_id,)):
+                raise ValueError('Case already has a review outcome')
+            return r.record_review(
+                case_id, decision,
+                evidence('review-evidence.v1', case_id, f'{decision}\n{notes}'),
+                notes=notes,
+            )

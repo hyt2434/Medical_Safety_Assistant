@@ -102,6 +102,8 @@ def test_review_activation_doses_access_and_atomic_rollback(postgres_repo, monke
             response = client.post(case_url+'/review', json={'decision': 'APPROVED', 'notes': 'Synthetic review of exact schedule and assessment'})
             assert response.status_code == 201, response.text
             assert client.get(case_url).json()['status'] == 'OPEN'
+            assert client.post(case_url+'/review', json={'decision': 'REJECTED', 'notes': 'Cannot replace existing outcome'}).status_code == 409
+            assert len(client.get(case_url).json()['outcomes']) == 1
             actor.update(id=core.owner, permissions=['patient.workspace'])
             newer = core.start_assessment(snapshot['id'], {'ddinter': {'synthetic': True}, 'engine_config': {}, 'limitations': ['Newer assessment']})
             core.finish_assessment(newer['id'], checks)

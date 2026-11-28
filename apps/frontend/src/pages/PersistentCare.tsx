@@ -297,7 +297,7 @@ export function LiveHcpCase() {
                 {o.decision}: {o.notes}
               </p>
             ))}
-            {["OPEN", "IN_REVIEW"].includes(row.status) && (
+            {["OPEN", "IN_REVIEW"].includes(row.status) && !row.outcomes?.length && (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -510,7 +510,7 @@ export function LiveReminders({ history = false }: { history?: boolean }) {
               {s.verification_status !== "UNVERIFIED" && (
                 <button
                   className="button"
-                  disabled={busy || Boolean(s.pending_proposal)}
+                  disabled={busy || (!s.reminder_enabled && Boolean(s.pending_proposal))}
                   onClick={() =>
                     void action(
                       () => remindersApi.reminder(s.id, !s.reminder_enabled),
@@ -672,9 +672,13 @@ export function LiveReminderEditor() {
             setBusy(true);
             setError("");
             try {
+              const parsedTimes = times.split(",").map((t) => t.trim()).filter(Boolean);
+              if (!parsedTimes.length || parsedTimes.some((t) => !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t))) {
+                throw new Error("Giờ dùng phải có định dạng HH:MM (00:00–23:59).");
+              }
               await remindersApi.create({
                 entry_version_id: entry,
-                times: times.split(",").map((t) => t.trim()),
+                times: parsedTimes,
                 dose_raw: dose,
                 timezone: zone,
                 confirm: true,

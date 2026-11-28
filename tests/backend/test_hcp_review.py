@@ -1,5 +1,6 @@
 """Review HTTP contract with real Auth; clinician writes outcomes only."""
 from hashlib import sha256
+from contextlib import nullcontext
 from unittest.mock import Mock
 from uuid import uuid4
 
@@ -60,8 +61,15 @@ def test_review_rejects_invalid_body(client, repo_override, monkeypatch, body):
     review.assert_not_called()
 
 
+def review_repo():
+    repo = Mock(spec=['record_review', 'domain_transaction', '_one'])
+    repo.domain_transaction = nullcontext
+    repo._one.side_effect = [{'id': 'case'}, None]
+    return repo
+
+
 def test_service_records_evidence_without_updating_patient_case():
-    repo = Mock(spec=['record_review'])
+    repo = review_repo()
     case_id = uuid4()
     repo.record_review.return_value = {'id': uuid4(), 'decision': 'APPROVED'}
     result = HcpService(repo).review(case_id, 'APPROVED', 'Exact schedule reviewed')
@@ -72,13 +80,32 @@ def test_service_records_evidence_without_updating_patient_case():
     assert args[2]['schema'] == 'review-evidence.v1'
     assert args[2]['sources'][0]['sha256'] == sha256(
         b'APPROVED\nExact schedule reviewed').hexdigest()
-    assert len(repo.mock_calls) == 1
+    assert 'FOR UPDATE' in repo._one.call_args_list[0].args[0]
+    assert all('UPDATE msa.' not in call.args[0] for call in repo._one.call_args_list)
 
 
 @pytest.mark.parametrize('error', [PermissionError, ValueError])
 def test_service_propagates_review_denial_without_other_writes(error):
-    repo = Mock(spec=['record_review'])
+    repo = review_repo()
     repo.record_review.side_effect = error('Review denied')
     with pytest.raises(error):
         HcpService(repo).review(uuid4(), 'APPROVED', 'Exact schedule reviewed')
-    assert len(repo.mock_calls) == 1
+    repo.record_review.assert_called_once()
+
+
+@pytest.mark.parametrize('decision', ['APPROVED', 'REJECTED', 'CHANGES_REQUESTED'])
+def test_review_rejects_second_outcome_for_open_case(decision):
+    repo = review_repo()
+    repo._one.side_effect = [{'id': 'case', 'status': 'OPEN'}, {'id': 'outcome', 'decision': decision}]
+    with pytest.raises(ValueError, match='already has a review outcome'):
+        HcpService(repo).review(uuid4(), 'APPROVED', 'Second review')
+    repo.record_review.assert_not_called()
+
+
+def test_review_checks_case_access_before_outcome():
+    repo = review_repo()
+    repo._one.side_effect = [None]
+    with pytest.raises(PermissionError, match='Case access denied'):
+        HcpService(repo).review(uuid4(), 'APPROVED', 'Denied')
+    repo.record_review.assert_not_called()
+    repo._one.assert_called_once()
